@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans|Source+Code+Pro" />
+        <link rel="icon" href="img/echo-favicon.png" />
+
+        <meta charset="UTF-8" />
+    </head>
+    
+    <div id="elm">
+    </div>
+
+    <script type="text/javascript" src="src/Main.js"></script>
+    <script>
+        var app = Elm.Main.init ({
+            node: document.getElementById("elm")
+        });
+    </script>
+</html>
