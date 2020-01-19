@@ -1,8 +1,9 @@
 module Main exposing (..)
 
 import Browser
+import Browser.Dom exposing (Viewport)
 import Browser.Navigation as Nav
-import Html exposing (Html, div, span, h1, h2, h3, h4, h4, text, br, a, img)
+import Html exposing (Html, div, span, h1, h2, h3, h4, h4, text, br, a, img, button, i)
 import Html.Attributes exposing (type_, value, id, class, href, style, src, alt, rel, target)
 import Html.Events exposing (onClick, onInput)
 import Url
@@ -35,6 +36,7 @@ type Msg
     | Tick Time.Posix
     | Animate Animation.Msg
     | Fade
+    | LoadNav
 
 type alias Model =
     { 
@@ -42,7 +44,8 @@ type alias Model =
         url : Url.Url,
         page : Page,
         time : Time.Posix,
-        style : Animation.State
+        style : Animation.State,
+        nav : Bool
     }
 
 init : () -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
@@ -52,9 +55,10 @@ init _ url key =
         url = url,
         page = Hjem,
         time = (millisToPosix 0),
-        style =
-                Animation.style [ Animation.left (px 0.0), Animation.opacity 1.0 ]},
-        Cmd.none)
+        style = Animation.style [ Animation.left (px 0.0), Animation.opacity 1.0 ],
+        nav = False
+    },
+    Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -88,6 +92,11 @@ update msg model =
             ({ model | style = Animation.update anim model.style}, Cmd.none)
         Fade ->
             ({ model | style = Animation.interrupt [ Animation.to [ Animation.opacity 0 ], Animation.to [ Animation.opacity 1 ] ] model.style }, Cmd.none)
+        LoadNav ->
+            if model.nav == False then
+                ({ model | nav = True }, Cmd.none)
+            else
+                ({ model | nav = False }, Cmd.none)
 
 view : Model -> Browser.Document Msg
 view model =
@@ -110,11 +119,13 @@ view model =
                 br [] [],
                 -}
                 div [ class "menu" ] [
-                    span [ class "menuItem", id "hjem" ] [ a [ href "/" ] [ img [ id "logo", alt "logo", src "img/echo-logo-very-wide.png" ] [] ] ],
+                    span [ id "hjem" ] [ a [ href "/" ] [ img [ id "logo", alt "logo", src "img/echo-logo-very-wide.png" ] [] ] ],
+                    span [ class "navbar" ] [ button [ id "navBtn", onClick LoadNav ] [ i [ id "navBtn-icon", class "fas fa-bars" ] [] ] ],
                     span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ],
                     span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ],
                     span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ],
+                loadNav model,
                 getPages model,
                 div [ class "footer" ] [
                     a [ href "https://echo.uib.no" ] [ text "echo - Fagutvalget for Informatikk" ]
@@ -162,7 +173,7 @@ getClock model =
 
 getProgram : Html msg 
 getProgram =
-    div [ class "program" ] [
+    div [ class "program" ] [ {-
         div [ id "onsdagMain" ] [ text "onsdag" ],
         div [ id "torsdagMain" ] [ text "torsdag" ],
         div [ id "fredagMain" ] [ text "fredag" ],
@@ -185,6 +196,8 @@ getProgram =
         div [ class "program-item", id "knowit-program" ] [ text "knowit" ],
         div [ class "program-item", id "unk-program" ] [ text "TBD" ],
         div [ class "program-item", id "bekk-program" ] [ text "bekk" ]
+    -}
+        div [ class "text" ] [ text "Kommer snart!" ]
     ]
 
 getBedrifter : Html msg 
@@ -192,8 +205,8 @@ getBedrifter =
     div [ class "logos" ] [
         span [ class "logo-item", id "bekk" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ] [ img [ class "bed-logo", src "img/bekk.png", alt "Bekk" ] [] ] ],
         span [ class "logo-item", id "mnemonic" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.mnemonic.no" ] [ img [ class "bed-logo", src "img/mnemonic.png", alt "Mnemonic" ] [] ] ],
-        span [ class "logo-item", id "TBD" ] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ img [ class "bed-logo", src "", alt "TBD" ] [] ] ],
-        span [ class "logo-item", id "TBD2" ] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ img [ class "bed-logo", src "", alt "TBD" ] [] ] ],
+        span [ class "logo-item", id "TBD" ] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ i [ class "fas fa-hourglass-start" ] [] ] ],
+        span [ class "logo-item", id "TBD2" ] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ i [ class "fas fa-hourglass-start" ] [] ] ],
         span [ class "logo-item", id "computas" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://computas.com" ] [ img [ class "bed-logo", src "img/computas.png", alt "Computas" ] [] ] ],
         span [ class "logo-item", id "knowit" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.knowit.no" ] [ img [ class "bed-logo", src "img/knowit.png", alt "Knowit" ] [] ] ]
     ]
@@ -254,3 +267,16 @@ calcDate diff =
         sec = minMod // 1000
     in
         [(day,"D"), (hour,"H"), (min,"M"), (sec,"S")]
+
+
+loadNav : Model -> Html Msg
+loadNav model =
+    case model.nav of
+        True ->
+            div [ id "navbar-content" ] [
+                a [ href "/bedrifter", onClick LoadNav ] [ text "Bedrifter" ],
+                a [ href "/program", onClick LoadNav ] [ text "Program" ],
+                a [ href "/om", onClick LoadNav ] [ text "Om oss" ]
+            ]
+        False ->
+            span [] []

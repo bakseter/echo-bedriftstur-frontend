@@ -6,6 +6,11 @@ html
     padding-right: 0px;
 }
 
+body
+{
+    margin: 0px;
+}
+
 a
 {
     text-decoration: none;
@@ -39,6 +44,46 @@ a
     background-color: #EEEEEE;
 }
 
+.navbar
+{
+    display: none;
+    text-align: center;
+}
+
+#navBtn
+{
+    grid-column: 3;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    margin: 0;
+    width: 50px;
+    height: 50px;
+    background-color: #EEEEEE;
+}
+
+#navBtn i
+{
+    font-size: 36px;
+}
+
+#navbar-content
+{
+    display: grid;
+    grid-template-columns: auto auto auto;
+    text-align: center;
+    background-color: #EEEEEE;
+    border: 2px solid white;
+}
+
+#navbar-content a
+{
+    display: inline;
+    padding: 15%;
+    font-weight: bold;
+    border: 2px solid white;
+}
+
 .menuItem
 {
     text-align: center;
@@ -51,7 +96,7 @@ a
 #logo
 {
     max-width: 250px;
-    max-height: 100px;
+    padding: 5%;
 }
 
 #hjem
@@ -174,13 +219,8 @@ a
 
 .logos
 {
-    grid-column: 1 / span 4;
-    grid-row: 2 / span 1;
-
     display: grid;
     grid-template-columns: auto auto auto;
-    grid-template-rows: auto auto;
-
     justify-items: center;
     align-items: center;
 }
@@ -191,47 +231,15 @@ a
     padding-bottom: 10%;
 }
 
-#bekk
-{
-    grid-column: 1 / span 1;
-    grid-row: 1 / span 1;
-}
-#mnemonic
-{
-    grid-column: 2 / span 1;
-    grid-row: 1 / span 1;
-}
-#TBD
-{
-    grid-column: 3 / span 1;
-    grid-row: 1 / span 1;
-}
-#TBD2
-{
-    grid-column: 1 / span 1;
-    grid-row: 2 / span 1;
-}
-#computas
-{
-    grid-column: 2 / span 1;
-    grid-row: 2 / span 1;
-}
-#knowit
-{
-    grid-column: 3 / span 1;
-    grid-row: 2 / span 1;
-}
-
 .program
 {
     grid-column: 1 / span 4;
     grid-row: 2 / span 1;
 
-    display: grid;
+    /*display: grid;
     grid-template-columns: auto auto auto auto;
     grid-template-rows: auto auto auto auto auto auto auto auto auto auto auto auto auto auto;
-    border-style: solid;
-    grid-gap: 20px;
+    grid-gap: 20px;*/
 }
 
 .program-item
@@ -340,7 +348,7 @@ a
     opacity: 0.8;
 }
 
-#sopra-program
+#unk-program
 {
     grid-column: 3 / span 1;
     grid-row: 2 / span 4;
@@ -356,7 +364,7 @@ a
     opacity: 0.8;
 }
 
-#unk-program
+#unk2-program
 {
     grid-column: 4 / span 1;
     grid-row: 2 / span 4;
@@ -373,7 +381,7 @@ a
 
 .om
 {
-    padding: 75px;
+    padding: 5%;
     display: grid;
     grid-template-columns: auto auto auto;
     grid-template-rows: auto auto auto;
@@ -384,6 +392,26 @@ a
 {
     max-width: 250px;
     max-height: 450px;
+}
+
+#om-tekst
+{
+    grid-column: 1 / span 3;
+}
+
+#elias
+{
+    grid-row: 2 / span 1;
+}
+
+#andreas
+{
+    grid-row: 2 / span 1;
+}
+
+#tuva
+{
+    grid-row: 2 / span 1;
 }
 
 .navn
@@ -405,47 +433,91 @@ a
 
 #om-tekst
 {
-    grid-column: 1 / span 3;
-    grid-row: 1 / span 1;
     padding-bottom: 5%;
     padding-left: 5%;
     padding-right: 5%;
-    text-align: center;
-}
-
-#elias
-{
-    grid-column: 1 / span 1;
-    grid-row: 2 / span 1;
-}
-#elias-info
-{
-    grid-column: 1 / span 1;
-    grid-row: 3 / span 1;
-}
-#andreas
-{
-    grid-column: 2 / span 1;
-    grid-row: 2 / span 1;
-}
-#andreas-info
-{
-    grid-column: 2 / span 1;
-    grid-row: 3 / span 1;
-}
-#tuva
-{
-    grid-column: 3 / span 1;
-    grid-row: 2 / span 1;
-}
-#tuva-info
-{
-    grid-column: 3 / span 1;
-    grid-row: 3 / span 1;
 }
 
 .footer
 {
     grid-column: 1 / span 4;
     text-align: center;
+}
+
+@media screen and (max-width: 900px)
+{
+
+    .menu
+    {
+        grid-template-columns: 60% 10% 30%;
+        overflow: hidden;
+    }
+
+    .menuItem
+    {
+        display: none;
+    }
+
+    .navbar
+    {
+        display: inline;
+        grid-column: 3 / span 1;
+    }
+
+    #logo
+    {
+        max-width: 170px;
+    }
+
+    .om
+    {
+        grid-template-columns: auto;
+        padding: 2%;
+        padding-top: 5%;
+    }
+
+    .portrett
+    {
+        padding-top: 10%;
+    }
+
+    .footer
+    {
+        display: none;
+    }
+
+    #om-tekst
+    {
+        grid-column: 1 / span 1;
+    }
+
+    #elias
+    {
+        grid-row: 2 / span 1;
+    }
+
+    #andreas
+    {
+        grid-row: 4 / span 1;
+    }
+
+    #tuva
+    {
+        grid-row: 6 / span 1;
+    }
+
+    .logos
+    {
+        grid-template-columns: auto;
+    }
+
+    .text
+    {
+        font-size: 18px;
+    }
+
+    .clockItem
+    {
+        font-size: 38px;
+    }
 }
