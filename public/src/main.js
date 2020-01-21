@@ -8591,7 +8591,7 @@ var $author$project$Main$getHjem = F2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					hide ? $elm$html$Html$Attributes$class('hidden') : $elm$html$Html$Attributes$class('page')
+					hide ? $elm$html$Html$Attributes$class('page') : $elm$html$Html$Attributes$class('hidden')
 				]),
 			_List_fromArray(
 				[

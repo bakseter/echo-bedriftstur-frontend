@@ -17,6 +17,11 @@ a
     color:black;
 }
 
+.hidden
+{
+    display: none;
+}
+
 .bed-logo
 {
     max-width: 200px;
@@ -444,7 +449,7 @@ a
     text-align: center;
 }
 
-@media screen and ((max-device-width: 415px) or (max-width: 700px))
+@media screen and ((max-device-width: 415px) or (max-width: 900px))
 {
     .menu
     {

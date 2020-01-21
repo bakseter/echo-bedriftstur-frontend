@@ -126,7 +126,7 @@ view model =
                     span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ],
                 loadNav model,
-                getPages model,
+                div [] (getPages model),
                 div [ class "footer" ] [
                     a [ href "https://echo.uib.no" ] [ text "echo - Fagutvalget for Informatikk" ]
                 ]
@@ -134,21 +134,21 @@ view model =
         ]
     }
 
-getPages : Model -> Html Msg
+getPages : Model -> List (Html Msg)
 getPages model =
     case model.page of
         Hjem ->
-            getHjem model
+            [getHjem model False] ++ [getProgram True] ++ [getBedrifter True] ++ [getOm True]
         Program ->
-            getProgram
+            [getHjem model True] ++ [getProgram False] ++ [getBedrifter True] ++ [getOm True]
         Bedrifter ->
-            getBedrifter
+            [getHjem model True] ++ [getProgram True] ++ [getBedrifter False] ++ [getOm True]
         Om ->
-            getOm
+            [getHjem model True] ++ [getProgram True] ++ [getBedrifter True] ++ [getOm False]
 
-getHjem : Model -> Html msg 
-getHjem model =
-    div [ class "page" ] [
+getHjem : Model -> Bool -> Html msg 
+getHjem model hide =
+    div [ if hide then class "hidden" else class "page" ] [
         div [ class "content" ] [
             h1 [] [ text "echo bedriftstur" ],
             br [] [],
@@ -171,9 +171,9 @@ getClock model =
         span [ id "seconds" ] [ text "S" ]
     ] ++ getCountDown model.time)
 
-getProgram : Html msg 
-getProgram =
-    div [ class "program" ] [ {-
+getProgram : Bool -> Html msg 
+getProgram hide =
+    div [ if hide then class "hidden" else  class "program" ] [ {-
         div [ id "onsdagMain" ] [ text "onsdag" ],
         div [ id "torsdagMain" ] [ text "torsdag" ],
         div [ id "fredagMain" ] [ text "fredag" ],
@@ -200,9 +200,9 @@ getProgram =
         div [ class "text" ] [ text "Kommer snart!" ]
     ]
 
-getBedrifter : Html msg 
-getBedrifter =
-    div [ class "logos" ] [
+getBedrifter : Bool -> Html msg 
+getBedrifter hide =
+    div [ if hide then class "hidden" else class "logos" ] [
         span [ class "logo-item", id "bekk" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ] [ img [ class "bed-logo", src "img/bekk.png", alt "Bekk" ] [] ] ],
         span [ class "logo-item", id "mnemonic" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.mnemonic.no" ] [ img [ class "bed-logo", src "img/mnemonic.png", alt "Mnemonic" ] [] ] ],
         span [ class "logo-item", id "TBD" ] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ i [ class "fas fa-hourglass-start" ] [] ] ],
@@ -211,9 +211,9 @@ getBedrifter =
         span [ class "logo-item", id "knowit" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.knowit.no" ] [ img [ class "bed-logo", src "img/knowit.png", alt "Knowit" ] [] ] ]
     ]
 
-getOm : Html msg 
-getOm =
-    div [ class "om" ] [
+getOm : Bool -> Html msg 
+getOm hide =
+    div [ if hide then class "hidden" else class "om" ] [
         div [ id "om-tekst" ] [
             div [ class "text" ] [ text "echo består av 12 demokratisk valgte studenter. Vi er fagutvalget/linjeforeningen for informatikk ved Universitetet i Bergen, men har også et overordnet ansvar for studentsaker som angår det faglige ved instituttet. Vi jobber utelukkende med å gjøre studiehverdagen for oss informatikere bedre og er studentenes stemme opp mot instituttet, fakultetet og arbeidsmarkedet." ], 
             br [] [],
