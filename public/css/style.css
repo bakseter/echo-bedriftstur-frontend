@@ -444,7 +444,7 @@ a
     text-align: center;
 }
 
-@media screen and (max-width: 900px)
+@media screen and ((max-device-width: 415px) or (max-width: 700px))
 {
     .menu
     {
