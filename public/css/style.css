@@ -29,6 +29,11 @@ a
     width: auto;
     height: auto;
     padding: 20px;
+    transition: transform 0.5s;
+}
+
+.bed-logo:hover {
+    transform: scale(1.2);
 }
 
 .text
@@ -132,7 +137,15 @@ a
     " background-color: #6F00FF; "
 }
 
-.page
+h1#anim-2 {
+    display: inline;
+}
+
+h1#anim-text {
+    display: inline;
+}
+
+.hjem
 {
     display: grid;
     grid-template-columns: auto auto auto;
@@ -151,7 +164,6 @@ a
 
     border-radius: 10px;
     
-    text-align: center;
 }
 
 .clock
@@ -353,7 +365,7 @@ a
     opacity: 0.8;
 }
 
-#unk-program
+#dnb-program
 {
     grid-column: 3 / span 1;
     grid-row: 2 / span 4;

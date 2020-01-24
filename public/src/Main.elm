@@ -5,14 +5,15 @@ import Browser.Dom exposing (Viewport)
 import Browser.Navigation as Nav
 import Html exposing (Html, div, span, h1, h2, h3, h4, h4, text, br, a, img, button, i)
 import Html.Attributes exposing (type_, value, id, class, href, style, src, alt, rel, target)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
 import Url
 import Url.Builder exposing (crossOrigin)
 import String exposing (fromInt, append, concat, length)
 import Time exposing (..)
 import Tuple exposing (first, second)
 import List exposing (map, map2)
-import Animation exposing (px)
+import Animation exposing (none, block, inline, color)
+import Animation.Messenger exposing (send)
 
 main =
     Browser.application {
@@ -30,12 +31,20 @@ type Page
     | Bedrifter
     | Om
 
+type Name
+    = Initial
+    | Bekk
+    | Computas
+    | Mnemonic
+    | Knowit
+    | Dnb
+
 type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
     | Tick Time.Posix
     | Animate Animation.Msg
-    | Fade
+    | Transition
     | LoadNav
 
 type alias Model =
@@ -44,8 +53,9 @@ type alias Model =
         url : Url.Url,
         page : Page,
         time : Time.Posix,
-        style : Animation.State,
-        nav : Bool
+        style : Animation.Messenger.State Msg,
+        nav : Bool,
+        name : Name
     }
 
 init : () -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
@@ -55,8 +65,15 @@ init _ url key =
         url = url,
         page = Hjem,
         time = (millisToPosix 0),
-        style = Animation.style [ Animation.left (px 0.0), Animation.opacity 1.0 ],
-        nav = False
+        style = Animation.interrupt [ Animation.loop [ 
+                                                Animation.wait (millisToPosix 4000),
+                                                Animation.to [ Animation.opacity 0 ],
+                                                Animation.Messenger.send Transition,
+                                                Animation.wait (millisToPosix 1500),
+                                                Animation.to [ Animation.opacity 1 ]
+                                            ] ] (Animation.style [ Animation.opacity 1 ]),
+        nav = False,
+        name = Initial
     },
     Cmd.none)
 
@@ -73,7 +90,6 @@ update msg model =
                     (model, Nav.pushUrl model.key (Url.toString url))
                 Browser.External href ->
                     (model, Nav.load href) 
-
         UrlChanged url ->
             case url.path of
                 "/hjem" ->
@@ -89,9 +105,11 @@ update msg model =
         Tick time ->
             ({ model | time = time }, Cmd.none)
         Animate anim ->
-            ({ model | style = Animation.update anim model.style}, Cmd.none)
-        Fade ->
-            ({ model | style = Animation.interrupt [ Animation.to [ Animation.opacity 0 ], Animation.to [ Animation.opacity 1 ] ] model.style }, Cmd.none)
+            let (newStyle, cmds) = Animation.Messenger.update anim model.style
+            in
+               ({ model | style = newStyle }, cmds)
+        Transition ->
+            ({ model | name = getNextName model.name }, Cmd.none) 
         LoadNav ->
             if model.nav == False then
                 ({ model | nav = True }, Cmd.none)
@@ -105,19 +123,6 @@ view model =
         body =
             [
             div [ class "site" ] [
-                {-span [] [
-                    text "echo | "
-                ],
-                span 
-                    (Animation.render model.style ++ [ Html.Events.onMouseOver Fade]) [ text "bed" ],
-                span 
-                    (Animation.render model.style ++ [ Html.Events.onMouseOver Fade]) [ text "rif" ],
-                span 
-                    (Animation.render model.style ++ [ Html.Events.onMouseOver Fade]) [ text "tst" ],
-                span 
-                    (Animation.render model.style ++ [ Html.Events.onMouseOver Fade]) [ text "ur" ],
-                br [] [],
-                -}
                 div [ class "menu" ] [
                     span [ id "hjem" ] [ a [ href "/" ] [ img [ id "logo", alt "logo", src "img/echo-logo-very-wide.png" ] [] ] ],
                     span [ class "navbar" ] [ button [ id "navBtn", onClick LoadNav ] [ i [ id "navBtn-icon", class "fas fa-bars" ] [] ] ],
@@ -138,19 +143,24 @@ getPages : Model -> List (Html Msg)
 getPages model =
     case model.page of
         Hjem ->
-            [getHjem model False] ++ [getProgram True] ++ [getBedrifter True] ++ [getOm True]
+            [getHjem model False] ++ [getProgram True] ++ [getBedrifter model True] ++ [getOm True]
         Program ->
-            [getHjem model True] ++ [getProgram False] ++ [getBedrifter True] ++ [getOm True]
+            [getHjem model True] ++ [getProgram False] ++ [getBedrifter model True] ++ [getOm True]
         Bedrifter ->
-            [getHjem model True] ++ [getProgram True] ++ [getBedrifter False] ++ [getOm True]
+            [getHjem model True] ++ [getProgram True] ++ [getBedrifter model False] ++ [getOm True]
         Om ->
-            [getHjem model True] ++ [getProgram True] ++ [getBedrifter True] ++ [getOm False]
+            [getHjem model True] ++ [getProgram True] ++ [getBedrifter model True] ++ [getOm False]
 
-getHjem : Model -> Bool -> Html msg 
+getHjem : Model -> Bool -> Html Msg 
 getHjem model hide =
-    div [ if hide then class "hidden" else class "page" ] [
+    div [ if hide then class "hidden" else class "hjem" ] [
         div [ class "content" ] [
-            h1 [] [ text "echo bedriftstur" ],
+
+            div [ id "anim" ] [
+                h1 [ id "anim-2" ] [ text "echo | " ],
+                h1
+                    (Animation.render model.style ++ [ id "anim-text" ]) [ text (getNameString model.name) ]
+            ],
             br [] [],
             div [ class "text" ] [ text "echo har startet en komité for å arrangere bedriftstur til Oslo høsten 2020." ],
             div [ class "text" ] [ text "Tanken med arrangementet er å gjøre våre informatikkstudenter kjent med karrieremulighetene i Oslo." ],
@@ -192,7 +202,7 @@ getProgram hide =
         div [ id "time22" ] [ text "22" ],
         div [ class "program-item", id "mnemonic-program" ] [ text "mnemonic" ],
         div [ class "program-item", id "computas-program" ] [ text "computas" ],
-        div [ class "program-item", id "sopra-program" ] [ text "TBD" ],
+        div [ class "program-item", id "dnb-program" ] [ text "dnb" ],
         div [ class "program-item", id "knowit-program" ] [ text "knowit" ],
         div [ class "program-item", id "unk-program" ] [ text "TBD" ],
         div [ class "program-item", id "bekk-program" ] [ text "bekk" ]
@@ -200,15 +210,39 @@ getProgram hide =
         div [ class "text" ] [ text "Kommer snart!" ]
     ]
 
-getBedrifter : Bool -> Html msg 
-getBedrifter hide =
+getBedrifter : Model -> Bool -> Html Msg 
+getBedrifter model hide =
     div [ if hide then class "hidden" else class "logos" ] [
-        span [ class "logo-item", id "bekk" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ] [ img [ class "bed-logo", src "img/bekk.png", alt "Bekk" ] [] ] ],
-        span [ class "logo-item", id "mnemonic" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.mnemonic.no" ] [ img [ class "bed-logo", src "img/mnemonic.png", alt "Mnemonic" ] [] ] ],
-        span [ class "logo-item", id "TBD" ] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ i [ class "fas fa-hourglass-start" ] [] ] ],
-        span [ class "logo-item", id "TBD2" ] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ i [ class "fas fa-hourglass-start" ] [] ] ],
-        span [ class "logo-item", id "computas" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://computas.com" ] [ img [ class "bed-logo", src "img/computas.png", alt "Computas" ] [] ] ],
-        span [ class "logo-item", id "knowit" ] [ a [ target "_blank", rel "noopener noreferrer", href "https://www.knowit.no" ] [ img [ class "bed-logo", src "img/knowit.png", alt "Knowit" ] [] ] ]
+        span [ class "logo-item", id "bekk" ] [ 
+            a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ] [
+                img  [ class "bed-logo", src "img/bekk.png", alt "Bekk" ] [] 
+            ]
+         ],
+        span [ class "logo-item", id "mnemonic" ] [
+            a [ target "_blank", rel "noopener noreferrer", href "https://www.mnemonic.no" ] [
+                img  [ class "bed-logo", src "img/mnemonic.png", alt "Mnemonic" ] [] 
+            ]
+        ],
+        span [ class "logo-item", id "DNB" ] [
+            a [ target "_blank", rel "noopener noreferrer", href "https://www.dnb.no" ] [
+                img  [ class "bed-logo", src "img/dnb.png", alt "DNB" ] [] 
+            ]
+        ],
+        span [ class "logo-item", id "computas" ] [
+            a [ target "_blank", rel "noopener noreferrer", href "https://computas.com" ] [
+                img  [ class "bed-logo", src "img/computas.png", alt "Computas" ] [] 
+            ]
+        ],
+        span [ class "logo-item", id "knowit" ] [
+            a [ target "_blank", rel "noopener noreferrer", href "https://www.knowit.no" ] [
+                img  [ class "bed-logo", src "img/knowit.png", alt "Knowit" ] [] 
+            ]
+        ],
+        span [ class "logo-item", id "TBD" ] [
+            a [ target "_blank", rel "noopener noreferrer", href "" ] [
+                i [ class "fas fa-hourglass-start" ] []
+            ]
+        ]
     ]
 
 getOm : Bool -> Html msg 
@@ -224,7 +258,7 @@ getOm hide =
         div [ id "elias" ] [ img [ class "portrett", src "img/elias.png", alt "elias" ] [] ],
         div [ id "elias-info" ] [
             div [ class "navn" ] [ text "Elias Djupesland" ],
-            div [ class "tittel" ] [ text "Leder og kontaktansvarlig" ],
+            div [ class "tittel" ] [ text "Leder og bedriftskontakt" ],
             div [ class "mail" ] [ text "elias.djupesland@echo.uib.no" ]
         ],
         div [ id "andreas" ] [ img [ class "portrett", src "img/andreas.png", alt "andreas" ] [] ],
@@ -236,7 +270,7 @@ getOm hide =
         div [ id "tuva" ] [ img [ class "portrett", src "img/tuva.png", alt "tuva" ] []],
         div [ id "tuva-info" ] [
             div [ class "navn" ] [ text "Tuva Kvalsøren" ],
-            div [ class "tittel" ] [ text "Hotellansvarlig" ],
+            div [ class "tittel" ] [ text "Arrangøransvarlig" ],
             div [ class "mail" ] [ text "tuva.kvalsoren@echo.uib.no" ]
         ]
     ]
@@ -280,3 +314,35 @@ loadNav model =
             ]
         False ->
             span [] []
+
+getNextName : Name -> Name
+getNextName name =
+    case name of
+        Initial ->
+            Bekk
+        Bekk ->
+            Computas
+        Computas ->
+            Mnemonic
+        Mnemonic ->
+            Knowit
+        Knowit ->
+            Dnb
+        Dnb ->
+            Initial
+
+getNameString : Name -> String
+getNameString name =
+    case name of
+        Initial ->
+            "bedriftstur"
+        Bekk ->
+            "BEKK"
+        Computas ->
+            "Computas"
+        Mnemonic ->
+            "mnemonic"
+        Knowit ->
+            "Knowit"
+        Dnb ->
+            "DNB"
