@@ -308,6 +308,10 @@ h1#anim-text {
         max-width: 170px;
     }
 
+    .program {
+        grid-template-columns: auto;
+    }
+
     .om {
         grid-template-columns: auto;
         padding: 2%;
