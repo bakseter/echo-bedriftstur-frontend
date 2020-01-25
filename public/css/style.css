@@ -11,7 +11,8 @@ body {
 
 a {
     text-decoration: none;
-    color:black;
+    outline: none;
+    color: black;
 }
 
 .hidden {
@@ -216,127 +217,27 @@ h1#anim-text {
 }
 
 .program {
-    grid-column: 1 / span 4;
-    grid-row: 2 / span 1;
-
-    /*display: grid;
-    grid-template-columns: auto auto auto auto;
-    grid-template-rows: auto auto auto auto auto auto auto auto auto auto auto auto auto auto;
-    grid-gap: 20px;*/
+    display: grid;
+    grid-template-columns: 33% 33% 33%;
+    text-align: center;
 }
 
 .program-item {
-    padding: 20px;
+    margin: 4%;
+    padding: 6%;
+    background-color: #EEEEEE;
 }
 
-#onsdagMain {
-    grid-column: 2 / span 1;
-    grid-row: 1 / span 1;
-}
-
-#torsdagMain {
-    grid-column: 3 / span 1;
-    grid-row: 1 / span 1;
+#onsdag {
 
 }
 
-#fredagMain {
-    grid-column: 4 / span 1;
-    grid-row: 1 / span 1;
+#torsdag {
+
 }
 
-#time10 {
-    grid-column: 1 / span 1;
-    grid-row: 2 / span 1;
-}
-#time11 {
-    grid-column: 1 / span 1;
-    grid-row: 3 / span 1;
-}
-#time12 {
-    grid-column: 1 / span 1;
-    grid-row: 4 / span 1;
-}
-#time13 {
-    grid-column: 1 / span 1;
-    grid-row: 5 / span 1;
-}
-#time14 {
-    grid-column: 1 / span 1;
-    grid-row: 6 / span 1;
-}
-#time15 {
-    grid-column: 1 / span 1;
-    grid-row: 7 / span 1;
-}
-#time16 {
-    grid-column: 1 / span 1;
-    grid-row: 8 / span 1;
-}
-#time17 {
-    grid-column: 1 / span 1;
-    grid-row: 9 / span 1;
-}
-#time18 {
-    grid-column: 1 / span 1;
-    grid-row: 10 / span 1;
-}
-#time19 {
-    grid-column: 1 / span 1;
-    grid-row: 11 / span 1;
-}
-#time20 {
-    grid-column: 1 / span 1;
-    grid-row: 12 / span 1;
-}
-#time21 {
-    grid-column: 1 / span 1;
-    grid-row: 13 / span 1;
-}
-#time22 {
-    grid-column: 1 / span 1;
-    grid-row: 14 / span 1;
-}
+#fredag {
 
-#mnemonic-program {
-    grid-column: 2 / span 1;
-    grid-row: 2 / span 4;
-    background-color: #FFA500;
-    opacity: 0.8;
-}
-
-#computas-program {
-    grid-column: 2 / span 1;
-    grid-row: 8 / span 7;
-    background-color: #123456;
-    opacity: 0.8;
-}
-
-#dnb-program {
-    grid-column: 3 / span 1;
-    grid-row: 2 / span 4;
-    background-color: #FF1111;
-    opacity: 0.8;
-}
-
-#knowit-program {
-    grid-column: 3 / span 1;
-    grid-row: 8 / span 7;
-    background-color: #00FFAA;
-    opacity: 0.8;
-}
-
-#unk-program {
-    grid-column: 4 / span 1;
-    grid-row: 2 / span 4;
-    opacity: 0.8;
-}
-
-#bekk-program {
-    grid-column: 4 / span 1;
-    grid-row: 8 / span 7;
-    background-color: #111111;
-    opacity: 0.8;
 }
 
 .om {
@@ -388,12 +289,7 @@ h1#anim-text {
     padding-right: 5%;
 }
 
-.footer {
-    grid-column: 1 / span 4;
-    text-align: center;
-}
-
-@media screen and ((max-device-width: 415px) or (max-width: 900px)) {
+@media (max-device-width: 415px), (max-width: 900px) {
     .menu {
         grid-template-columns: 60% 10% 30%;
         overflow: hidden;
@@ -420,10 +316,6 @@ h1#anim-text {
 
     .portrett {
         padding-top: 10%;
-    }
-
-    .footer {
-        display: none;
     }
 
     #om-tekst {

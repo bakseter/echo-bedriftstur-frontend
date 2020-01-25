@@ -12,8 +12,10 @@ import String exposing (fromInt, append, concat, length)
 import Time exposing (..)
 import Tuple exposing (first, second)
 import List exposing (map, map2)
-import Animation exposing (none, block, inline, color, px)
+import Animation exposing (none, block, inline, color, px, deg)
 import Animation.Messenger exposing (send)
+import Svg exposing (svg, line)
+import Svg.Attributes exposing (x1, x2, y1, y2, width, height)
 
 main =
     Browser.application {
@@ -44,44 +46,63 @@ type Msg
     | LinkClicked Browser.UrlRequest
     | Tick Time.Posix
     | Animate Animation.Msg
+    | Animate2 Animation.Msg
     | Transition
     | LoadNav
+    | NavBtnTransition
 
 type alias Model =
-    { 
-        key : Nav.Key,
-        url : Url.Url,
-        page : Page,
-        time : Time.Posix,
-        titleAnimation : Animation.Messenger.State Msg,
-        navbarAnimation : Animation.Messenger.State Msg,
-        nav : Bool,
-        name : Name
+    { key : Nav.Key
+    , url : Url.Url
+    , page : Page
+    , time : Time.Posix
+    , titleAnimation : Animation.Messenger.State Msg
+    , navbarAnimation : Animation.Messenger.State Msg
+    , navBtnAnimation : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
+    , nav : Bool
+    , name : Name
+    , removeLineNavBtn : Bool
     }
 
 init : () -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
 init _ url key =
-    ({
-        key = key, 
-        url = url,
-        page = Hjem,
-        time = (millisToPosix 0),
-        titleAnimation = Animation.interrupt [ Animation.loop [ 
-                                                Animation.wait (millisToPosix 4000),
-                                                Animation.to [ Animation.opacity 0 ],
-                                                Animation.Messenger.send Transition,
-                                                Animation.wait (millisToPosix 1500),
-                                                Animation.to [ Animation.opacity 1 ]
-                                            ] ] (Animation.style [ Animation.opacity 1 ]),
-        navbarAnimation = Animation.style [ Animation.top (px -50) ],
-        nav = False,
-        name = Initial
+    ({  key = key
+     ,  url = url
+     ,  page = Hjem
+     ,  time = (millisToPosix 0)
+     ,  titleAnimation = Animation.interrupt 
+                            [ Animation.loop 
+                                [ Animation.wait (millisToPosix 4000)
+                                , Animation.to [ Animation.opacity 0 ]
+                                , Animation.Messenger.send Transition
+                                , Animation.wait (millisToPosix 1500)
+                                , Animation.to [ Animation.opacity 1 ]
+                                ] 
+                            ] (Animation.style [ Animation.opacity 1 ])
+     ,  navbarAnimation = Animation.style [ Animation.top (px -50) ]
+     ,  navBtnAnimation = (Animation.style 
+                            [ Animation.rotate (deg 0)
+                            , Animation.translate (px 0) (px 0)
+                            , Animation.scale 1.0 
+                            ]
+                         , Animation.style 
+                            [ Animation.rotate (deg 0)
+                            , Animation.translate (px 0) (px 0)
+                            , Animation.scale 1.0 
+                            ])
+     ,  nav = False
+     ,  name = Initial
+     ,  removeLineNavBtn = False
     },
     Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch [Time.every 1000 Tick, Animation.subscription Animate [model.titleAnimation, model.navbarAnimation]]
+    Sub.batch 
+    [ Time.every 1000 Tick
+    , Animation.subscription Animate [model.titleAnimation, model.navbarAnimation]
+    , Animation.subscription Animate2 [first model.navBtnAnimation, second model.navBtnAnimation]
+    ]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -111,17 +132,66 @@ update msg model =
                 (newStyleNavbarAnim, navbarCmds) = Animation.Messenger.update anim model.navbarAnimation
             in
                ({ model | titleAnimation = newStyleTitleAnim, navbarAnimation = newStyleNavbarAnim }, (titleCmds))
+        Animate2 anim ->
+            let (newStyleNavBtnAnim, navBtnCmds) = Animation.Messenger.update anim (first model.navBtnAnimation)
+                (newStyleNavBtnAnim2, _) = Animation.Messenger.update anim (second model.navBtnAnimation)
+            in
+                ({ model | navBtnAnimation = (newStyleNavBtnAnim, newStyleNavBtnAnim2) }, navBtnCmds)
         Transition ->
             ({ model | name = getNextName model.name }, Cmd.none) 
         LoadNav ->
             if model.nav == False then
-                ({ model | nav = True, navbarAnimation = Animation.interrupt [ 
-                                                                Animation.to [ Animation.top (px 0) ] ]
-                                                                model.navbarAnimation }, Cmd.none)
+                ({ model
+                    | nav = True
+                    , navBtnAnimation = (Animation.interrupt 
+                                             [ Animation.Messenger.send NavBtnTransition
+                                             , Animation.to 
+                                                [ Animation.translate (px 34) (px -8)
+                                                ,  Animation.rotate (deg 45)
+                                                ,  Animation.scale 0.7 
+                                                ]
+                                            ] 
+                                            (first model.navBtnAnimation)
+                                            , Animation.interrupt 
+                                            [ Animation.to 
+                                                [ Animation.translate (px -35) (px 6)
+                                                , Animation.rotate (deg -45)
+                                                , Animation.scale 0.7
+                                                ]
+                                            ] 
+                                            (second model.navBtnAnimation)
+                                        )
+                }
+                , Cmd.none)
             else
-                ({ model | nav = False, navbarAnimation =  Animation.interrupt [ 
-                                                                Animation.to [ Animation.top (px -50) ] ]
-                                                                model.navbarAnimation }, Cmd.none)
+                ({ model
+                    | nav = False
+                    , navBtnAnimation = (Animation.interrupt 
+                                            [ Animation.Messenger.send NavBtnTransition
+                                            , Animation.to 
+                                                [ Animation.translate (px 0) (px 0)
+                                                ,  Animation.rotate (deg 0)
+                                                ,  Animation.scale 1.0 
+                                                ]
+                                            ] 
+                                            (first model.navBtnAnimation)
+                                            , Animation.interrupt 
+                                            [ Animation.to 
+                                                [ Animation.translate (px 0) (px 0)
+                                                , Animation.rotate (deg 0)
+                                                , Animation.scale 1.0
+                                                ]
+                                            ] 
+                                            (second model.navBtnAnimation)
+                                        )
+                    } 
+                    , Cmd.none)
+        NavBtnTransition ->
+            if model.removeLineNavBtn
+            then
+                ({ model | removeLineNavBtn = False }, Cmd.none)
+            else
+                ({ model | removeLineNavBtn = True }, Cmd.none)
 
 view : Model -> Browser.Document Msg
 view model =
@@ -129,23 +199,27 @@ view model =
         title = "echo bedriftstur",
         body =
             [
-            div [ class "site" ] [
-                div [ class "menu" ] [
-                    span [ id "hjem" ] [ a [ href "/" ] [ img [ id "logo", alt "logo", src "img/echo-logo-very-wide.png" ] [] ] ],
-                    span [ class "navbar" ] [ button [ id "navBtn", onClick LoadNav ] [ i [ id "navBtn-icon", class "fas fa-bars" ] [] ] ],
-                    span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ],
-                    span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ],
-                    span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
-                ],
-                div [ id "navbar-content" ] [
-                    a [ href "/bedrifter", onClick LoadNav ] [ text "Bedrifter" ],
-                    a [ href "/program", onClick LoadNav ] [ text "Program" ],
-                    a [ href "/om", onClick LoadNav ] [ text "Om oss" ]
-                ],
-                div [] (getPages model),
-                div [ class "footer" ] [
-                    a [ href "https://echo.uib.no" ] [ text "echo - Fagutvalget for Informatikk" ]
+            div [ class "site" ] 
+                [ div [ class "menu" ]
+                    [ span [ id "hjem" ] 
+                        [ a [ href "/" ] 
+                            [ img [ id "logo", alt "logo", src "img/echo-logo-very-wide.png" ] [] ] 
+                        ]
+                    , span [ class "navbar", onClick LoadNav ]
+                    [ svg [ width "100", height "100" ]
+                        [ line (Animation.render (first model.navBtnAnimation)
+                        ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
+                        , (getMiddleLine model.removeLineNavBtn)
+                        , line (Animation.render (second model.navBtnAnimation) 
+                            ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
+                        ] 
+                    ]
+                    , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
+                    , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
+                    , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
+                , loadNav model
+                , div [] (getPages model)
             ]
         ]
     }
@@ -194,31 +268,48 @@ getClock model =
 
 getProgram : Bool -> Html msg 
 getProgram hide =
-    div [ if hide then class "hidden" else  class "program" ] [ {-
-        div [ id "onsdagMain" ] [ text "onsdag" ],
-        div [ id "torsdagMain" ] [ text "torsdag" ],
-        div [ id "fredagMain" ] [ text "fredag" ],
-        div [ id "time10" ] [ text "10" ],
-        div [ id "time11" ] [ text "11" ],
-        div [ id "time12" ] [ text "12" ],
-        div [ id "time13" ] [ text "13" ],
-        div [ id "time14" ] [ text "14" ],
-        div [ id "time15" ] [ text "15" ],
-        div [ id "time16" ] [ text "16" ],
-        div [ id "time17" ] [ text "17" ],
-        div [ id "time18" ] [ text "18" ],
-        div [ id "time19" ] [ text "19" ],
-        div [ id "time20" ] [ text "20" ],
-        div [ id "time21" ] [ text "21" ],
-        div [ id "time22" ] [ text "22" ],
-        div [ class "program-item", id "mnemonic-program" ] [ text "mnemonic" ],
-        div [ class "program-item", id "computas-program" ] [ text "computas" ],
-        div [ class "program-item", id "dnb-program" ] [ text "dnb" ],
-        div [ class "program-item", id "knowit-program" ] [ text "knowit" ],
-        div [ class "program-item", id "unk-program" ] [ text "TBD" ],
-        div [ class "program-item", id "bekk-program" ] [ text "bekk" ]
-    -}
-        div [ class "text" ] [ text "Kommer snart!" ]
+    div [ if hide then class "hidden" else  class "program" ]
+        [ div [ id "onsdag" ]
+            [ h1 [] [ text "Onsdag" ]
+            , div [ class "program-item", id "mnemonic-program" ]
+                [ h1 [] [  text "mnemonic" ]
+                , h3 [] [ text "11:00 - 15:00" ]
+                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Henrik Ibsens gate 100" ] ]
+                ]
+            , div [ class "program-item", id "computas-program" ]
+                [ h1 [] [ text "Computas" ]
+                , h3 [] [ text "17:00 - 21:00" ]
+                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Akersgata 35" ] ]
+                ]
+            ]
+        , div [ id "torsdag" ]
+            [ h1 [] [ text "Torsdag" ]
+            , div [ class "program-item", id "tba-program" ]
+                [ h1 [] [ text "To be announced" ]
+                , h3 [] [ text "11:00 - 15:00" ]
+                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "" ] ] 
+                , br [] []
+                , br [] []
+                ]
+            , div [ class "program-item", id "knowit-program" ]
+                [ h1 [] [ text "Knowit" ]
+                , h3 [] [ text "17:00 - 21:00" ]
+                , h4 [] [  a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Lakkegata 53" ] ] 
+                ]
+            ]
+        , div [ id "fredag" ] 
+            [ h1 [] [ text "Fredag" ]
+            , div [ class "program-item", id "dnb-program" ]
+                [ h1 [] [ text "DNB" ] 
+                , h3 [] [ text "11:00 - 15:00" ]
+                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Dronning Eufemias gate 30" ] ] 
+                ]
+            , div [ class "program-item", id "bekk-program" ]
+                [ h1 [] [ text "Bekk" ]
+                , h3 [] [ text "17:00 - 21:00" ]
+                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Skur 39 Akershusstranda 21" ] ] 
+                ]
+            ]
     ]
 
 getBedrifter : Model -> Bool -> Html Msg 
@@ -231,7 +322,7 @@ getBedrifter model hide =
          ],
         span [ class "logo-item", id "mnemonic" ] [
             a [ target "_blank", rel "noopener noreferrer", href "https://www.mnemonic.no" ] [
-                img  [ class "bed-logo", src "img/mnemonic.png", alt "Mnemonic" ] [] 
+                img  [ class "bed-logo", src "img/mnemonic.png", alt "mnemonic" ] [] 
             ]
         ],
         span [ class "logo-item", id "DNB" ] [
@@ -251,7 +342,7 @@ getBedrifter model hide =
         ],
         span [ class "logo-item", id "TBD" ] [
             a [ target "_blank", rel "noopener noreferrer", href "" ] [
-                i [ class "fas fa-hourglass-start" ] []
+                text "To be announced"
             ]
         ]
     ]
@@ -357,3 +448,11 @@ getNameString name =
             "Knowit"
         Dnb ->
             "DNB"
+
+getMiddleLine : Bool -> Svg.Svg msg
+getMiddleLine remove =
+    if remove
+    then 
+        line [] []
+    else
+        line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
