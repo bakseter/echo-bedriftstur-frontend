@@ -1,6 +1,17 @@
+:root {
+    --background: #ffffff;
+    --color1: #c69901;
+    --color2: #0595ad;
+    --color3: #56afbf;
+    --color4: #97bdc7;
+    --color5: #c9c7c3;
+    --color6: #5d584d;
+    --color7: #c69901;
+}
+
 html {
     font-family: IBM Plex Sans;
-    background-color: #FFFFFF;
+    background-color: var(--background);
     padding-left: 0px;
     padding-right: 0px;
 }
@@ -60,11 +71,7 @@ a {
     margin: 0;
     width: 50px;
     height: 50px;
-    background-color: #EEEEEE;
-}
-
-#navBtn i {
-    font-size: 36px;
+    background-color: var(--color1);
 }
 
 #navbar-content {
@@ -217,6 +224,7 @@ h1#anim-text {
 }
 
 .program {
+    padding-top: 2rem;
     display: grid;
     grid-template-columns: 33% 33% 33%;
     text-align: center;
@@ -224,8 +232,58 @@ h1#anim-text {
 
 .program-item {
     margin: 4%;
-    padding: 6%;
+    margin-top: 8%;
     background-color: #EEEEEE;
+    border-radius: 0.7rem;
+    display: grid;
+    grid-template-columns: 12% 88%;
+    transition: 1s ease;
+    height: 100%;
+}
+
+.program-item:hover {
+    grid-template-columns: 100% 100%;
+}
+
+.program-content {
+    position: absolute;
+    justify-self: center;
+}
+
+#mnemonic-tab {
+    height: 100%;
+    border-radius: 0.7rem;
+    background-color: #ffd876;
+}
+
+#computas-tab {
+    height: 100%;
+    border-radius: 0.7rem;
+    background-color: #fcbf01;
+}
+
+#tba-tab {
+    height: 100%;
+    border-radius: 0.7rem;
+    background-color: #a9d1d9;
+}
+
+#knowit-tab {
+    height: 100%;
+    border-radius: 0.7rem;
+    background-color: var(--color2);
+}
+
+#dnb-tab {
+    height: 100%;
+    border-radius: 0.7rem;
+    background-color: var(--color5);
+}
+
+#bekk-tab {
+    height: 100%;
+    border-radius: 0.7rem;
+    background-color: #979590;
 }
 
 #onsdag {
@@ -348,5 +406,18 @@ h1#anim-text {
 
     .clockItem {
         font-size: 38px;
+    }
+    
+    .program-item {
+        height: auto;
+        grid-template-columns: 0% 100%;
+    }
+
+    .program-item:hover {
+        grid-template-columns: 0% 100%;
+    }
+
+    .program-content {
+        position: static;
     }
 }

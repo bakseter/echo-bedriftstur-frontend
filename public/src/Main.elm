@@ -3,7 +3,7 @@ module Main exposing (..)
 import Browser
 import Browser.Dom exposing (Viewport)
 import Browser.Navigation as Nav
-import Html exposing (Html, div, span, h1, h2, h3, h4, h4, text, br, a, img, button, i)
+import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, button, i)
 import Html.Attributes exposing (type_, value, id, class, href, style, src, alt, rel, target)
 import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
 import Url
@@ -50,6 +50,7 @@ type Msg
     | Transition
     | LoadNav
     | NavBtnTransition
+
 
 type alias Model =
     { key : Nav.Key
@@ -240,7 +241,6 @@ getHjem : Model -> Bool -> Html Msg
 getHjem model hide =
     div [ if hide then class "hidden" else class "hjem" ] [
         div [ class "content" ] [
-
             div [ id "anim" ] [
                 h1 [ id "anim-2" ] [ text "echo | " ],
                 h1
@@ -271,46 +271,64 @@ getProgram hide =
     div [ if hide then class "hidden" else  class "program" ]
         [ div [ id "onsdag" ]
             [ h1 [] [ text "Onsdag" ]
-            , div [ class "program-item", id "mnemonic-program" ]
-                [ h1 [] [  text "mnemonic" ]
-                , h3 [] [ text "11:00 - 15:00" ]
-                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Henrik Ibsens gate 100" ] ]
+            , div [ class "program-item" ]
+                [ div [ class "program-tab", id "mnemonic-tab" ] [ br [] [] ]
+                , div [ class "program-content" ]
+                    [ h1 [] [ text "mnemonic" ]
+                    , h3 [] [ text "11:00 - 15:00" ]
+                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Henrik Ibsens gate 100" ] ]
+                    ]
                 ]
-            , div [ class "program-item", id "computas-program" ]
-                [ h1 [] [ text "Computas" ]
-                , h3 [] [ text "17:00 - 21:00" ]
-                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Akersgata 35" ] ]
+            , div [ class "program-item" ]
+                [ div [ class "program-tab", id "computas-tab" ] [ br [] [] ]
+                , div [ class "program-content" ]
+                    [ h1 [] [ text "Computas" ]
+                    , h3 [] [ text "17:00 - 21:00" ]
+                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Akersgata 35" ] ]
+                    ]
                 ]
             ]
         , div [ id "torsdag" ]
             [ h1 [] [ text "Torsdag" ]
-            , div [ class "program-item", id "tba-program" ]
-                [ h1 [] [ text "To be announced" ]
-                , h3 [] [ text "11:00 - 15:00" ]
-                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "" ] ] 
-                , br [] []
-                , br [] []
+            , div [ class "program-item" ]
+                [ div [ class "program-tab", id "tba-tab" ] [ br [] [] ]
+                , div [ class "program-content" ]
+                    [ h1 [] [ text "To be announced" ]
+                    , h3 [] [ text "11:00 - 15:00" ]
+                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "" ] ] 
+                    , br [] []
+                    , br [] []
+                    ]
                 ]
-            , div [ class "program-item", id "knowit-program" ]
-                [ h1 [] [ text "Knowit" ]
-                , h3 [] [ text "17:00 - 21:00" ]
-                , h4 [] [  a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Lakkegata 53" ] ] 
+            , div [ class "program-item" ]
+                [ div [ class "program-tab", id "knowit-tab" ] [ br [] [] ]
+                , div [ class "program-content" ]
+                    [ h1 [] [ text "Knowit" ]
+                    , h3 [] [ text "17:00 - 21:00" ]
+                    , h3 [] [  a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Lakkegata 53" ] ] 
+                    ]
                 ]
             ]
         , div [ id "fredag" ] 
             [ h1 [] [ text "Fredag" ]
-            , div [ class "program-item", id "dnb-program" ]
-                [ h1 [] [ text "DNB" ] 
-                , h3 [] [ text "11:00 - 15:00" ]
-                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Dronning Eufemias gate 30" ] ] 
+            , div [ class "program-item" ]
+                [ div [ class "program-tab", id "dnb-tab" ] [ br [] [] ]
+                , div [ class "program-content" ]
+                    [ h1 [] [ text "DNB" ] 
+                    , h3 [] [ text "11:00 - 15:00" ]
+                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Dronning Eufemias gate 30" ] ] 
+                    ]
                 ]
-            , div [ class "program-item", id "bekk-program" ]
-                [ h1 [] [ text "Bekk" ]
-                , h3 [] [ text "17:00 - 21:00" ]
-                , h4 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Skur 39 Akershusstranda 21" ] ] 
+            , div [ class "program-item" ]
+                [ div [ class "program-tab", id "bekk-tab" ] [ br [] [] ]
+                , div [ class "program-content" ]
+                    [ h1 [] [ text "Bekk" ]
+                    , h3 [] [ text "17:00 - 21:00" ]
+                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Skur 39 Akershusstranda 21" ] ] 
+                    ]
                 ]
             ]
-    ]
+        ]
 
 getBedrifter : Model -> Bool -> Html Msg 
 getBedrifter model hide =
