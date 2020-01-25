@@ -237,16 +237,18 @@ h1#anim-text {
     border-radius: 0.7rem;
     display: grid;
     grid-template-columns: 12% 88%;
-    transition: 1s ease;
-    height: 100%;
+/*  transition: 1s ease; */
+/*  height: 100%; */
 }
 
+/*
 .program-item:hover {
     grid-template-columns: 100% 100%;
 }
+*/
 
 .program-content {
-    position: absolute;
+/*  position: absolute; */
     justify-self: center;
 }
 
