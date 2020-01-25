@@ -12,7 +12,7 @@ import String exposing (fromInt, append, concat, length)
 import Time exposing (..)
 import Tuple exposing (first, second)
 import List exposing (map, map2)
-import Animation exposing (none, block, inline, color)
+import Animation exposing (none, block, inline, color, px)
 import Animation.Messenger exposing (send)
 
 main =
@@ -53,7 +53,8 @@ type alias Model =
         url : Url.Url,
         page : Page,
         time : Time.Posix,
-        style : Animation.Messenger.State Msg,
+        titleAnimation : Animation.Messenger.State Msg,
+        navbarAnimation : Animation.Messenger.State Msg,
         nav : Bool,
         name : Name
     }
@@ -65,13 +66,14 @@ init _ url key =
         url = url,
         page = Hjem,
         time = (millisToPosix 0),
-        style = Animation.interrupt [ Animation.loop [ 
+        titleAnimation = Animation.interrupt [ Animation.loop [ 
                                                 Animation.wait (millisToPosix 4000),
                                                 Animation.to [ Animation.opacity 0 ],
                                                 Animation.Messenger.send Transition,
                                                 Animation.wait (millisToPosix 1500),
                                                 Animation.to [ Animation.opacity 1 ]
                                             ] ] (Animation.style [ Animation.opacity 1 ]),
+        navbarAnimation = Animation.style [ Animation.top (px -50) ],
         nav = False,
         name = Initial
     },
@@ -79,7 +81,7 @@ init _ url key =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch [Time.every 1000 Tick, Animation.subscription Animate [model.style]]
+    Sub.batch [Time.every 1000 Tick, Animation.subscription Animate [model.titleAnimation, model.navbarAnimation]]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -105,16 +107,21 @@ update msg model =
         Tick time ->
             ({ model | time = time }, Cmd.none)
         Animate anim ->
-            let (newStyle, cmds) = Animation.Messenger.update anim model.style
+            let (newStyleTitleAnim, titleCmds) = Animation.Messenger.update anim model.titleAnimation
+                (newStyleNavbarAnim, navbarCmds) = Animation.Messenger.update anim model.navbarAnimation
             in
-               ({ model | style = newStyle }, cmds)
+               ({ model | titleAnimation = newStyleTitleAnim, navbarAnimation = newStyleNavbarAnim }, (titleCmds))
         Transition ->
             ({ model | name = getNextName model.name }, Cmd.none) 
         LoadNav ->
             if model.nav == False then
-                ({ model | nav = True }, Cmd.none)
+                ({ model | nav = True, navbarAnimation = Animation.interrupt [ 
+                                                                Animation.to [ Animation.top (px 0) ] ]
+                                                                model.navbarAnimation }, Cmd.none)
             else
-                ({ model | nav = False }, Cmd.none)
+                ({ model | nav = False, navbarAnimation =  Animation.interrupt [ 
+                                                                Animation.to [ Animation.top (px -50) ] ]
+                                                                model.navbarAnimation }, Cmd.none)
 
 view : Model -> Browser.Document Msg
 view model =
@@ -130,7 +137,11 @@ view model =
                     span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ],
                     span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ],
-                loadNav model,
+                div [ id "navbar-content" ] [
+                    a [ href "/bedrifter", onClick LoadNav ] [ text "Bedrifter" ],
+                    a [ href "/program", onClick LoadNav ] [ text "Program" ],
+                    a [ href "/om", onClick LoadNav ] [ text "Om oss" ]
+                ],
                 div [] (getPages model),
                 div [ class "footer" ] [
                     a [ href "https://echo.uib.no" ] [ text "echo - Fagutvalget for Informatikk" ]
@@ -159,11 +170,11 @@ getHjem model hide =
             div [ id "anim" ] [
                 h1 [ id "anim-2" ] [ text "echo | " ],
                 h1
-                    (Animation.render model.style ++ [ id "anim-text" ]) [ text (getNameString model.name) ]
+                    (Animation.render model.titleAnimation ++ [ id "anim-text" ]) [ text (getNameString model.name) ]
             ],
             br [] [],
             div [ class "text" ] [ text "echo har startet en komité for å arrangere bedriftstur til Oslo høsten 2020." ],
-            div [ class "text" ] [ text "Tanken med arrangementet er å gjøre våre informatikkstudenter kjent med karrieremulighetene i Oslo." ],
+            div [ class "text" ] [ text "Formålet med arrangementet er å gjøre våre informatikkstudenter kjent med karrieremulighetene i Oslo." ],
             br [] [],
             div [ class "text" ] [ text "Informasjon kommer fortløpende!" ],
             br [] [],
@@ -337,7 +348,7 @@ getNameString name =
         Initial ->
             "bedriftstur"
         Bekk ->
-            "BEKK"
+            "Bekk"
         Computas ->
             "Computas"
         Mnemonic ->
