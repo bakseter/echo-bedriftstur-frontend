@@ -29,8 +29,8 @@ main =
 
 type Page
     = Hjem
-    | Program 
     | Bedrifter
+    | Program 
     | Om
 
 type Name
@@ -229,42 +229,69 @@ getPages : Model -> List (Html Msg)
 getPages model =
     case model.page of
         Hjem ->
-            [getHjem model False] ++ [getProgram True] ++ [getBedrifter model True] ++ [getOm True]
-        Program ->
-            [getHjem model True] ++ [getProgram False] ++ [getBedrifter model True] ++ [getOm True]
+            [getHjem model False] ++ [getBedrifter model True] ++ [getProgram True] ++ [getOm True]
         Bedrifter ->
-            [getHjem model True] ++ [getProgram True] ++ [getBedrifter model False] ++ [getOm True]
+            [getHjem model True] ++ [getBedrifter model False] ++ [getProgram True] ++ [getOm True]
+        Program ->
+            [getHjem model True] ++ [getBedrifter model True] ++ [getProgram False] ++ [getOm True]
         Om ->
-            [getHjem model True] ++ [getProgram True] ++ [getBedrifter model True] ++ [getOm False]
+            [getHjem model True] ++ [getBedrifter model True] ++ [getProgram True] ++ [getOm False]
 
 getHjem : Model -> Bool -> Html Msg 
 getHjem model hide =
-    div [ if hide then class "hidden" else class "hjem" ] [
-        div [ class "content" ] [
-            div [ id "anim" ] [
-                h1 [ id "anim-2" ] [ text "echo | " ],
-                h1
-                    (Animation.render model.titleAnimation ++ [ id "anim-text" ]) [ text (getNameString model.name) ]
-            ],
-            br [] [],
-            div [ class "text" ] [ text "echo har startet en komité for å arrangere bedriftstur til Oslo høsten 2020." ],
-            div [ class "text" ] [ text "Formålet med arrangementet er å gjøre våre informatikkstudenter kjent med karrieremulighetene i Oslo." ],
-            br [] [],
-            div [ class "text" ] [ text "Informasjon kommer fortløpende!" ],
-            br [] [],
-            br [] []
-        ],
-        getClock model
-    ]
+    div [ if hide then class "hidden" else class "hjem" ]
+        [ div [ class "hjem-content" ]
+            [ div []
+                [ h1 [ class "anim-text" ] [ text "echo | " ]
+                , h1
+                    (Animation.render model.titleAnimation ++ [ class "anim-text" ]) [ text (getNameString model.name) ]
+                ]
+            , br [] []
+            , div [ class "text" ] [ text "echo har startet en komité for å arrangere bedriftstur til Oslo høsten 2020." ]
+            , div [ class "text" ] [ text "Formålet med arrangementet er å gjøre våre informatikkstudenter kjent med karrieremulighetene i Oslo." ]
+            , br [] []
+            , div [ class "text" ] [ text "Informasjon kommer fortløpende!" ]
+            ]
+        , getClock model
+        ]
 
 getClock : Model -> Html msg
 getClock model =
-    div [ class "clock" ] ([
-        span [ id "days" ] [ text "D" ],
-        span [ id "hours" ] [ text "H" ],
-        span [ id "minutes" ] [ text "M" ],
-        span [ id "seconds" ] [ text "S" ]
-    ] ++ getCountDown model.time)
+    div [ class "clock" ]
+        ([ span [ id "days" ] [ text "D" ]
+         , span [ id "hours" ] [ text "H" ]
+         , span [ id "minutes" ] [ text "M" ]
+         , span [ id "seconds" ] [ text "S" ]
+         ] ++ getCountDown model.time)
+
+getBedrifter : Model -> Bool -> Html Msg 
+getBedrifter model hide =
+    div [ if hide then class "hidden" else class "logos" ]
+        [ span [ class "logo-item", id "bekk" ]
+            [ a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ]
+                [ img  [ class "bed-logo", src "img/bekk.png", alt "Bekk" ] [] ]
+            ]
+        , span [ class "logo-item", id "mnemonic" ]
+            [ a [ target "_blank", rel "noopener noreferrer", href "https://www.mnemonic.no" ]
+                [ img  [ class "bed-logo", src "img/mnemonic.png", alt "mnemonic" ] [] ]
+            ]
+        , span [ class "logo-item", id "DNB" ]
+            [ a [ target "_blank", rel "noopener noreferrer", href "https://www.dnb.no" ]
+                [ img  [ class "bed-logo", src "img/dnb.png", alt "DNB" ] [] ]
+            ]
+        , span [ class "logo-item", id "computas" ]
+            [ a [ target "_blank", rel "noopener noreferrer", href "https://computas.com" ]
+                [ img  [ class "bed-logo", src "img/computas.png", alt "Computas" ] [] ]
+            ]
+        , span [ class "logo-item", id "knowit" ]
+            [ a [ target "_blank", rel "noopener noreferrer", href "https://www.knowit.no" ]
+                [ img  [ class "bed-logo", src "img/knowit.png", alt "Knowit" ] [] ]
+            ]
+        , span [ class "logo-item", id "tba" ]
+            [ a [ target "_blank", rel "noopener noreferrer", href "" ]
+                [ text "To be announced" ]
+            ]
+        ]
 
 getProgram : Bool -> Html msg 
 getProgram hide =
@@ -273,18 +300,22 @@ getProgram hide =
             [ h1 [] [ text "Onsdag" ]
             , div [ class "program-item" ]
                 [ div [ class "program-tab", id "mnemonic-tab" ] [ br [] [] ]
-                , div [ class "program-content" ]
-                    [ h1 [] [ text "mnemonic" ]
-                    , h3 [] [ text "11:00 - 15:00" ]
-                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Henrik Ibsens gate 100" ] ]
+                , div [ class "program-content", id "mnemonic-content" ]
+                    [ div [ class "program-text" ]
+                        [ h1 [] [ text "mnemonic" ]
+                        , h3 [] [ text "11:00 - 15:00" ]
+                        , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Henrik Ibsens gate 100" ] ]
+                        ]
                     ]
                 ]
             , div [ class "program-item" ]
                 [ div [ class "program-tab", id "computas-tab" ] [ br [] [] ]
-                , div [ class "program-content" ]
-                    [ h1 [] [ text "Computas" ]
-                    , h3 [] [ text "17:00 - 21:00" ]
-                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Akersgata 35" ] ]
+                , div [ class "program-content", id "computas-content" ]
+                    [ div [ class "program-text" ]
+                        [ h1 [] [ text "Computas" ]
+                        , h3 [] [ text "17:00 - 21:00" ]
+                        , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Akersgata 35" ] ]
+                        ]
                     ]
                 ]
             ]
@@ -292,20 +323,24 @@ getProgram hide =
             [ h1 [] [ text "Torsdag" ]
             , div [ class "program-item" ]
                 [ div [ class "program-tab", id "tba-tab" ] [ br [] [] ]
-                , div [ class "program-content" ]
-                    [ h1 [] [ text "To be announced" ]
-                    , h3 [] [ text "11:00 - 15:00" ]
-                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "" ] ] 
-                    , br [] []
-                    , br [] []
+                , div [ class "program-content", id "tba-content" ]
+                    [ div [ class "program-text" ]
+                        [ h1 [] [ text "To be announced" ]
+                        , h3 [] [ text "11:00 - 15:00" ]
+                        , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "" ] ] 
+                        , br [] []
+                        , br [] []
+                        ]
                     ]
                 ]
             , div [ class "program-item" ]
                 [ div [ class "program-tab", id "knowit-tab" ] [ br [] [] ]
-                , div [ class "program-content" ]
-                    [ h1 [] [ text "Knowit" ]
-                    , h3 [] [ text "17:00 - 21:00" ]
-                    , h3 [] [  a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Lakkegata 53" ] ] 
+                , div [ class "program-content", id "knowit-content" ]
+                    [ div [ class "program-text" ]
+                        [ h1 [] [ text "Knowit" ]
+                        , h3 [] [ text "17:00 - 21:00" ]
+                        , h3 [] [  a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Lakkegata 53" ] ] 
+                        ]
                     ]
                 ]
             ]
@@ -313,85 +348,49 @@ getProgram hide =
             [ h1 [] [ text "Fredag" ]
             , div [ class "program-item" ]
                 [ div [ class "program-tab", id "dnb-tab" ] [ br [] [] ]
-                , div [ class "program-content" ]
-                    [ h1 [] [ text "DNB" ] 
-                    , h3 [] [ text "11:00 - 15:00" ]
-                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Dronning Eufemias gate 30" ] ] 
+                , div [ class "program-content", id "dnb-content" ]
+                    [ div [ class "program-text" ]
+                        [ h1 [] [ text "DNB" ] 
+                        , h3 [] [ text "11:00 - 15:00" ]
+                        , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Dronning Eufemias gate 30" ] ] 
+                        ]
                     ]
                 ]
             , div [ class "program-item" ]
                 [ div [ class "program-tab", id "bekk-tab" ] [ br [] [] ]
-                , div [ class "program-content" ]
-                    [ h1 [] [ text "Bekk" ]
-                    , h3 [] [ text "17:00 - 21:00" ]
-                    , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Skur 39 Akershusstranda 21" ] ] 
+                , div [ class "program-content", id "bekk-content" ]
+                    [ div [ class "program-text" ]
+                        [ h1 [] [ text "Bekk" ]
+                        , h3 [] [ text "17:00 - 21:00" ]
+                        , h3 [] [ a [ target "_blank", rel "noopener noreferrer", href "" ] [ text "Skur 39 Akershusstranda 21" ] ] 
+                        ]
                     ]
                 ]
             ]
         ]
 
-getBedrifter : Model -> Bool -> Html Msg 
-getBedrifter model hide =
-    div [ if hide then class "hidden" else class "logos" ] [
-        span [ class "logo-item", id "bekk" ] [ 
-            a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ] [
-                img  [ class "bed-logo", src "img/bekk.png", alt "Bekk" ] [] 
-            ]
-         ],
-        span [ class "logo-item", id "mnemonic" ] [
-            a [ target "_blank", rel "noopener noreferrer", href "https://www.mnemonic.no" ] [
-                img  [ class "bed-logo", src "img/mnemonic.png", alt "mnemonic" ] [] 
-            ]
-        ],
-        span [ class "logo-item", id "DNB" ] [
-            a [ target "_blank", rel "noopener noreferrer", href "https://www.dnb.no" ] [
-                img  [ class "bed-logo", src "img/dnb.png", alt "DNB" ] [] 
-            ]
-        ],
-        span [ class "logo-item", id "computas" ] [
-            a [ target "_blank", rel "noopener noreferrer", href "https://computas.com" ] [
-                img  [ class "bed-logo", src "img/computas.png", alt "Computas" ] [] 
-            ]
-        ],
-        span [ class "logo-item", id "knowit" ] [
-            a [ target "_blank", rel "noopener noreferrer", href "https://www.knowit.no" ] [
-                img  [ class "bed-logo", src "img/knowit.png", alt "Knowit" ] [] 
-            ]
-        ],
-        span [ class "logo-item", id "TBD" ] [
-            a [ target "_blank", rel "noopener noreferrer", href "" ] [
-                text "To be announced"
-            ]
-        ]
-    ]
-
 getOm : Bool -> Html msg 
 getOm hide =
     div [ if hide then class "hidden" else class "om" ] [
-        div [ id "om-tekst" ] [
-            div [ class "text" ] [ text "echo består av 12 demokratisk valgte studenter. Vi er fagutvalget/linjeforeningen for informatikk ved Universitetet i Bergen, men har også et overordnet ansvar for studentsaker som angår det faglige ved instituttet. Vi jobber utelukkende med å gjøre studiehverdagen for oss informatikere bedre og er studentenes stemme opp mot instituttet, fakultetet og arbeidsmarkedet." ], 
-            br [] [],
-            div [ class "text" ] [ text "Vi representerer studenter under følgende bachelor- og masterprogram: Datateknologi, Data Science, Datasikkerhet, Bioinformatikk, Kognitiv Vitenskap, Informasjonsteknologi, Informatikk (master), Programvareutvikling (master)" ],
-            br [] [],
-            div [ class "text" ] [ text "Bedriftsturkomitéen består av 3 frivillige studenter." ]
-        ],
-        div [ id "elias" ] [ img [ class "portrett", src "img/elias.png", alt "elias" ] [] ],
-        div [ id "elias-info" ] [
-            div [ class "navn" ] [ text "Elias Djupesland" ],
-            div [ class "tittel" ] [ text "Leder og bedriftskontakt" ],
-            div [ class "mail" ] [ text "elias.djupesland@echo.uib.no" ]
-        ],
-        div [ id "andreas" ] [ img [ class "portrett", src "img/andreas.png", alt "andreas" ] [] ],
-        div [ id "andreas-info" ] [
-            div [ class "navn" ] [ text "Andreas Salhus Bakseter" ],
-            div [ class "tittel" ] [ text "Web- og transportansvarlig" ],
-            div [ class "mail" ] [ text "andreas.bakseter@echo.uib.no" ]
-        ],
-        div [ id "tuva" ] [ img [ class "portrett", src "img/tuva.png", alt "tuva" ] []],
-        div [ id "tuva-info" ] [
-            div [ class "navn" ] [ text "Tuva Kvalsøren" ],
-            div [ class "tittel" ] [ text "Arrangøransvarlig" ],
-            div [ class "mail" ] [ text "tuva.kvalsoren@echo.uib.no" ]
+        div [ id "om-tekst" ] 
+            [ div [ class "text" ] [ text "Bedriftsturkomitéen består av 3 frivillige studenter." ] ]
+      , div [ id "elias" ] [ img [ class "portrett", src "img/elias.png", alt "elias" ] [] ]
+      , div [ id "elias-info" ]
+            [ div [ class "navn" ] [ text "Elias Djupesland" ]
+            , div [ class "tittel" ] [ text "Leder og bedriftskontakt" ]
+            , div [ class "mail" ] [ text "elias.djupesland@echo.uib.no" ]
+            ]
+      , div [ id "andreas" ] [ img [ class "portrett", src "img/andreas.png", alt "andreas" ] [] ]
+      , div [ id "andreas-info" ] 
+            [ div [ class "navn" ] [ text "Andreas Salhus Bakseter" ]
+            , div [ class "tittel" ] [ text "Web- og transportansvarlig" ]
+            , div [ class "mail" ] [ text "andreas.bakseter@echo.uib.no" ]
+            ]
+      , div [ id "tuva" ] [ img [ class "portrett", src "img/tuva.png", alt "tuva" ] [] ]
+      , div [ id "tuva-info" ] 
+            [ div [ class "navn" ] [ text "Tuva Kvalsøren" ]
+            , div [ class "tittel" ] [ text "Arrangøransvarlig" ]
+            , div [ class "mail" ] [ text "tuva.kvalsoren@echo.uib.no" ]
         ]
     ]
 
@@ -401,8 +400,8 @@ getCountDown dateNow =
         date = dateThen - (posixToMillis dateNow)
     in
         if date == dateThen
-        then (map (\x -> div [ class "clockItem", id ("clock" ++ second x) ] [ text (fixNum (fromInt (first x))) ]) [(0,"D"),(0,"H"),(0,"M"),(0,"S")]) 
-        else (map (\x -> div [ class "clockItem", id ("clock" ++ second x) ] [ text (fixNum (fromInt (first x))) ]) (calcDate date))
+        then (map (\x -> div [ class "clock-item", id ("clock" ++ second x) ] [ text (fixNum (fromInt (first x))) ]) [(0,"D"),(0,"H"),(0,"M"),(0,"S")]) 
+        else (map (\x -> div [ class "clock-item", id ("clock" ++ second x) ] [ text (fixNum (fromInt (first x))) ]) (calcDate date))
 
 fixNum : String -> String
 fixNum str =

@@ -1,12 +1,13 @@
 :root {
     --background: #ffffff;
-    --color1: #c69901;
-    --color2: #0595ad;
-    --color3: #56afbf;
-    --color4: #97bdc7;
-    --color5: #c9c7c3;
-    --color6: #5d584d;
-    --color7: #c69901;
+    --foreground: #eeeeee;
+
+    --color-mnemonic: #ffd876;
+    --color-computas: #fcbf01;
+    --color-tba: #a9d1d9;
+    --color-knowit: #0595ad;
+    --color-dnb: #c9c7c3;
+    --color-bekk: #979590;
 }
 
 html {
@@ -38,7 +39,6 @@ a {
     padding: 20px;
     transition: transform 0.5s;
 }
-
 .bed-logo:hover {
     transform: scale(1.2);
 }
@@ -55,7 +55,7 @@ a {
     display: grid;
     align-items: center;
     grid-template-columns: 20% 50% 10% 10% 10%;
-    background-color: #EEEEEE;
+    background-color: var(--foreground);
 }
 
 .navbar {
@@ -63,22 +63,11 @@ a {
     text-align: center;
 }
 
-#navBtn {
-    grid-column: 3;
-    border: none;
-    outline: none;
-    font-family: inherit;
-    margin: 0;
-    width: 50px;
-    height: 50px;
-    background-color: var(--color1);
-}
-
 #navbar-content {
     display: grid;
     grid-template-columns: auto auto auto;
     text-align: center;
-    background-color: #EEEEEE;
+    background-color: var(--foreground);
     border: 2px solid white;
 }
 
@@ -104,33 +93,21 @@ a {
 
 #hjem {
     grid-column: 1 / span 1;
-
-    " background-color: #2196F3; "
 }
 
 #program {
     grid-column: 3 / span 1;
-
-    " background-color: #2187A3; "
 }
 
 #bedrifter {
     grid-column: 4 / span 1;
-
-    " background-color: #04F72D; "
 }
 
 #om {
     grid-column: 5 / span 1;
-
-    " background-color: #6F00FF; "
 }
 
-h1#anim-2 {
-    display: inline;
-}
-
-h1#anim-text {
+h1.anim-text {
     display: inline;
 }
 
@@ -145,12 +122,9 @@ h1#anim-text {
     padding-bottom: 10%;
 }
 
-.content {
+.hjem-content {
     grid-column: 2 / span 1;
     grid-row: 1 / span 1;
-
-    border-radius: 10px;
-    
 }
 
 .clock {
@@ -161,7 +135,8 @@ h1#anim-text {
     justify-items: center;
     grid-template-columns: auto auto auto auto;
     grid-template-rows: auto auto;
-    
+
+    padding-top: 12%;
     font-weight: bold;
 }
 
@@ -185,10 +160,8 @@ h1#anim-text {
     grid-row: 1 / span 1;
 }
 
-.clockItem {
+.clock-item {
     font-size: 50px;
-    " color: #FED879; "
-    color: white;
 }
 
 #clockD {
@@ -233,71 +206,69 @@ h1#anim-text {
 .program-item {
     margin: 4%;
     margin-top: 8%;
-    background-color: #EEEEEE;
     border-radius: 0.7rem;
     display: grid;
     grid-template-columns: 12% 88%;
-/*  transition: 1s ease; */
-/*  height: 100%; */
 }
-
-/*
-.program-item:hover {
-    grid-template-columns: 100% 100%;
-}
-*/
 
 .program-content {
-/*  position: absolute; */
-    justify-self: center;
+    background-size: 200% 100%;
+    background-position: right bottom;
+    border-radius: 0rem 0.7rem 0.7rem 0rem;
+    transition: background-position 0.7s ease;
+}
+.program-content:hover {
+    background-position: left bottom;
+}
+
+.program-text {
+    padding-right: 12%;
+}
+
+.program-tab {
+    border-radius: 0.7rem 0rem 0rem 0.7rem;
 }
 
 #mnemonic-tab {
-    height: 100%;
-    border-radius: 0.7rem;
     background-color: #ffd876;
+}
+#mnemonic-content {
+    background-image: linear-gradient(to right, #ffd876 50%, var(--foreground) 50%);
 }
 
 #computas-tab {
-    height: 100%;
-    border-radius: 0.7rem;
-    background-color: #fcbf01;
+    background-color: var(--color-computas);
+}
+#computas-content {
+    background-image: linear-gradient(to right, var(--color-computas) 50%, var(--foreground) 50%);
 }
 
 #tba-tab {
-    height: 100%;
-    border-radius: 0.7rem;
-    background-color: #a9d1d9;
+    background-color: var(--color-tba); 
+}
+#tba-content {
+    background-image: linear-gradient(to right, var(--color-tba) 50%, var(--foreground) 50%);
 }
 
 #knowit-tab {
-    height: 100%;
-    border-radius: 0.7rem;
-    background-color: var(--color2);
+    background-color: var(--color-knowit);
+}
+#knowit-content {
+    background-image: linear-gradient(to right, var(--color-knowit) 50%, var(--foreground) 50%);
 }
 
 #dnb-tab {
-    height: 100%;
-    border-radius: 0.7rem;
-    background-color: var(--color5);
+    background-color: var(--color-dnb);
+}
+#dnb-content {
+    background-image: linear-gradient(to right, var(--color-dnb) 50%, var(--foreground) 50%);
 }
 
 #bekk-tab {
-    height: 100%;
-    border-radius: 0.7rem;
-    background-color: #979590;
+    background-color: var(--color-bekk);
 }
-
-#onsdag {
-
-}
-
-#torsdag {
-
-}
-
-#fredag {
-
+#bekk-content {
+    background-image: linear-gradient(to right, var(--color-bekk) 50%, var(--foreground) 50%);
 }
 
 .om {
@@ -311,6 +282,7 @@ h1#anim-text {
 .portrett {
     max-width: 250px;
     max-height: 450px;
+    border-radius: 0.7rem;
 }
 
 #om-tekst {
@@ -406,20 +378,25 @@ h1#anim-text {
         font-size: 18px;
     }
 
-    .clockItem {
-        font-size: 38px;
+    .clock-item {
+        font-size: 36px;
     }
     
     .program-item {
-        height: auto;
-        grid-template-columns: 0% 100%;
-    }
-
-    .program-item:hover {
-        grid-template-columns: 0% 100%;
+        grid-template-columns: 12% 88%;
+        margin-left: 10%;
+        margin-right: 10%;
     }
 
     .program-content {
-        position: static;
+        padding-top: 3%;
+        padding-bottom: 3%;
+    }
+    .program-content:hover {
+        background-position: right bottom;
+    }
+
+    .bed-logo:hover {
+        transform: scale(1.0);
     }
 }
