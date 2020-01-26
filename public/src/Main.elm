@@ -127,7 +127,7 @@ update msg model =
                     (model, Nav.load href) 
         UrlChanged url ->
             case url.path of
-                "/hjem" ->
+                "/" ->
                     ({ model | url = url, page = Hjem }, Cmd.none)
                 "/program" ->
                     ({ model | url = url, page = Program }, Cmd.none)
