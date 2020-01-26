@@ -47,10 +47,6 @@ a {
     font-size: 20px;
 }
 
-.site {
-    padding-top: 0%;
-}
-
 .menu {
     display: grid;
     align-items: center;
@@ -58,9 +54,13 @@ a {
     background-color: var(--foreground);
 }
 
-.navbar {
+#navBtn {
     display: none;
     text-align: center;
+}
+
+#navbar {
+    display: none;
 }
 
 #navbar-content {
@@ -72,7 +72,6 @@ a {
 }
 
 #navbar-content a {
-    display: inline;
     padding: 15%;
     font-weight: bold;
     border: 2px solid white;
@@ -140,48 +139,8 @@ h1.anim-text {
     font-weight: bold;
 }
 
-#days {
-    grid-column: 1 / span 1;
-    grid-row: 1 / span 1;
-}
-
-#hours {
-    grid-column: 2 / span 1;
-    grid-row: 1 / span 1;
-}
-
-#minutes {
-    grid-column: 3 / span 1;
-    grid-row: 1 / span 1;
-}
-
-#seconds {
-    grid-column: 4 / span 1;
-    grid-row: 1 / span 1;
-}
-
 .clock-item {
     font-size: 50px;
-}
-
-#clockD {
-    grid-column: 1 / span 1;
-    grid-row: 2 / span 1;
-}
-
-#clockH {
-    grid-column: 2 / span 1;
-    grid-row: 2 / span 1;
-}
-
-#clockM {
-    grid-column: 3 / span 1;
-    grid-row: 2 / span 1;
-}
-
-#clockS {
-    grid-column: 4 / span 1;
-    grid-row: 2 / span 1;
 }
 
 .logos {
@@ -230,10 +189,10 @@ h1.anim-text {
 }
 
 #mnemonic-tab {
-    background-color: #ffd876;
+    background-color: var(--color-mnemonic); 
 }
 #mnemonic-content {
-    background-image: linear-gradient(to right, #ffd876 50%, var(--foreground) 50%);
+    background-image: linear-gradient(to right, var(--color-mnemonic) 50%, var(--foreground) 50%);
 }
 
 #computas-tab {
@@ -301,6 +260,11 @@ h1.anim-text {
     grid-row: 2 / span 1;
 }
 
+.om-info {
+    padding-top: 2%;
+    padding-bottom: 5%;
+}
+
 .navn {
     font-weight: bold;
     font-size: 22px;
@@ -331,7 +295,7 @@ h1.anim-text {
         display: none;
     }
 
-    .navbar {
+    #navBtn {
         display: inline;
         grid-column: 3 / span 1;
     }
@@ -351,7 +315,7 @@ h1.anim-text {
     }
 
     .portrett {
-        padding-top: 10%;
+        margin-top: 10%;
     }
 
     #om-tekst {
@@ -398,5 +362,9 @@ h1.anim-text {
 
     .bed-logo:hover {
         transform: scale(1.0);
+    }
+
+    #navbar {
+        display: inline;
     }
 }

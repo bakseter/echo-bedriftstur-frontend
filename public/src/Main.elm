@@ -1,18 +1,16 @@
 module Main exposing (..)
 
 import Browser
-import Browser.Dom exposing (Viewport)
 import Browser.Navigation as Nav
-import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, button, i)
-import Html.Attributes exposing (type_, value, id, class, href, style, src, alt, rel, target)
-import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
+import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img)
+import Html.Attributes exposing (id, class, href, src, alt, rel, target)
+import Html.Events exposing (onClick)
 import Url
-import Url.Builder exposing (crossOrigin)
-import String exposing (fromInt, append, concat, length)
+import String exposing (fromInt, length)
 import Time exposing (..)
 import Tuple exposing (first, second)
-import List exposing (map, map2)
-import Animation exposing (none, block, inline, color, px, deg)
+import List exposing (map)
+import Animation exposing (px, deg)
 import Animation.Messenger exposing (send)
 import Svg exposing (svg, line)
 import Svg.Attributes exposing (x1, x2, y1, y2, width, height)
@@ -48,7 +46,7 @@ type Msg
     | Animate Animation.Msg
     | Animate2 Animation.Msg
     | Transition
-    | LoadNav
+    | LoadNavbar
     | NavBtnTransition
 
 
@@ -60,42 +58,54 @@ type alias Model =
     , titleAnimation : Animation.Messenger.State Msg
     , navbarAnimation : Animation.Messenger.State Msg
     , navBtnAnimation : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
-    , nav : Bool
+    , showNavBar : Bool
     , name : Name
     , removeLineNavBtn : Bool
     }
 
-init : () -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
-init _ url key =
-    ({  key = key
-     ,  url = url
-     ,  page = Hjem
-     ,  time = (millisToPosix 0)
-     ,  titleAnimation = Animation.interrupt 
-                            [ Animation.loop 
-                                [ Animation.wait (millisToPosix 4000)
-                                , Animation.to [ Animation.opacity 0 ]
-                                , Animation.Messenger.send Transition
-                                , Animation.wait (millisToPosix 1500)
-                                , Animation.to [ Animation.opacity 1 ]
-                                ] 
-                            ] (Animation.style [ Animation.opacity 1 ])
-     ,  navbarAnimation = Animation.style [ Animation.top (px -50) ]
-     ,  navBtnAnimation = (Animation.style 
-                            [ Animation.rotate (deg 0)
-                            , Animation.translate (px 0) (px 0)
-                            , Animation.scale 1.0 
-                            ]
-                         , Animation.style 
-                            [ Animation.rotate (deg 0)
-                            , Animation.translate (px 0) (px 0)
-                            , Animation.scale 1.0 
-                            ])
-     ,  nav = False
-     ,  name = Initial
-     ,  removeLineNavBtn = False
-    },
-    Cmd.none)
+init : String -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
+init path url key =
+    let model = { key = key
+                ,  url = url
+                ,  page = Hjem
+                ,  time = (millisToPosix 0)
+                ,  titleAnimation = Animation.interrupt 
+                               [ Animation.loop 
+                                   [ Animation.wait (millisToPosix 4000)
+                                   , Animation.to [ Animation.opacity 0 ]
+                                   , Animation.Messenger.send Transition
+                                   , Animation.wait (millisToPosix 1500)
+                                   , Animation.to [ Animation.opacity 1 ]
+                                   ] 
+                               ] (Animation.style [ Animation.opacity 1 ])
+                ,  navbarAnimation = Animation.style [ Animation.top (px -50) ]
+                ,  navBtnAnimation = (Animation.style 
+                               [ Animation.rotate (deg 0)
+                               , Animation.translate (px 0) (px 0)
+                               , Animation.scale 1.0 
+                               ]
+                            , Animation.style 
+                               [ Animation.rotate (deg 0)
+                               , Animation.translate (px 0) (px 0)
+                               , Animation.scale 1.0 
+                               ])
+                ,  showNavBar = False
+                ,  name = Initial
+                ,  removeLineNavBtn = False
+                }
+    in
+        case path of
+            "/" ->
+                ({ model | page = Hjem }, Cmd.none)
+            "/bedrifer" ->
+                ({ model | page = Bedrifter }, Cmd.none)
+            "/program" ->
+                ({ model | page = Program }, Cmd.none) 
+            "/om" ->
+                ({ model | page = Om }, Cmd.none)
+            _ ->
+                ({ model | page = Hjem }, Cmd.none)
+                
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -140,10 +150,10 @@ update msg model =
                 ({ model | navBtnAnimation = (newStyleNavBtnAnim, newStyleNavBtnAnim2) }, navBtnCmds)
         Transition ->
             ({ model | name = getNextName model.name }, Cmd.none) 
-        LoadNav ->
-            if model.nav == False then
+        LoadNavbar ->
+            if model.showNavBar == False then
                 ({ model
-                    | nav = True
+                    | showNavBar = True
                     , navBtnAnimation = (Animation.interrupt 
                                              [ Animation.Messenger.send NavBtnTransition
                                              , Animation.to 
@@ -166,7 +176,7 @@ update msg model =
                 , Cmd.none)
             else
                 ({ model
-                    | nav = False
+                    | showNavBar = False
                     , navBtnAnimation = (Animation.interrupt 
                                             [ Animation.Messenger.send NavBtnTransition
                                             , Animation.to 
@@ -203,10 +213,10 @@ view model =
             div [ class "site" ] 
                 [ div [ class "menu" ]
                     [ span [ id "hjem" ] 
-                        [ a [ href "/" ] 
+                        [ a [ href "/", onClick LoadNavbar ] 
                             [ img [ id "logo", alt "logo", src "img/echo-logo-very-wide.png" ] [] ] 
                         ]
-                    , span [ class "navbar", onClick LoadNav ]
+                    , span [ id "navBtn", onClick LoadNavbar ]
                     [ svg [ width "100", height "100" ]
                         [ line (Animation.render (first model.navBtnAnimation)
                         ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
@@ -219,7 +229,7 @@ view model =
                     , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                     , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
-                , loadNav model
+                , span [ id "navbar" ] [ loadNavbar model ]
                 , div [] (getPages model)
             ]
         ]
@@ -229,13 +239,13 @@ getPages : Model -> List (Html Msg)
 getPages model =
     case model.page of
         Hjem ->
-            [getHjem model False] ++ [getBedrifter model True] ++ [getProgram True] ++ [getOm True]
+            [getHjem model False] ++ [getBedrifter True] ++ [getProgram True] ++ [getOm True]
         Bedrifter ->
-            [getHjem model True] ++ [getBedrifter model False] ++ [getProgram True] ++ [getOm True]
+            [getHjem model True] ++ [getBedrifter False] ++ [getProgram True] ++ [getOm True]
         Program ->
-            [getHjem model True] ++ [getBedrifter model True] ++ [getProgram False] ++ [getOm True]
+            [getHjem model True] ++ [getBedrifter True] ++ [getProgram False] ++ [getOm True]
         Om ->
-            [getHjem model True] ++ [getBedrifter model True] ++ [getProgram True] ++ [getOm False]
+            [getHjem model True] ++ [getBedrifter True] ++ [getProgram True] ++ [getOm False]
 
 getHjem : Model -> Bool -> Html Msg 
 getHjem model hide =
@@ -264,8 +274,8 @@ getClock model =
          , span [ id "seconds" ] [ text "S" ]
          ] ++ getCountDown model.time)
 
-getBedrifter : Model -> Bool -> Html Msg 
-getBedrifter model hide =
+getBedrifter : Bool -> Html Msg 
+getBedrifter hide =
     div [ if hide then class "hidden" else class "logos" ]
         [ span [ class "logo-item", id "bekk" ]
             [ a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ]
@@ -371,28 +381,25 @@ getProgram hide =
 
 getOm : Bool -> Html msg 
 getOm hide =
-    div [ if hide then class "hidden" else class "om" ] [
-        div [ id "om-tekst" ] 
-            [ div [ class "text" ] [ text "Bedriftsturkomitéen består av 3 frivillige studenter." ] ]
+    div [ if hide then class "hidden" else class "om" ]
+      [ div [ id "om-tekst" ] 
+            [ div [ class "text" ] [ text "Bedriftsturkomitéen består av tre frivillige studenter." ] ]
       , div [ id "elias" ] [ img [ class "portrett", src "img/elias.png", alt "elias" ] [] ]
-      , div [ id "elias-info" ]
+      , div [ class "om-info", id "elias-info" ]
             [ div [ class "navn" ] [ text "Elias Djupesland" ]
             , div [ class "tittel" ] [ text "Leder og bedriftskontakt" ]
-            , div [ class "mail" ] [ text "elias.djupesland@echo.uib.no" ]
             ]
       , div [ id "andreas" ] [ img [ class "portrett", src "img/andreas.png", alt "andreas" ] [] ]
-      , div [ id "andreas-info" ] 
+      , div [ class "om-info", id "andreas-info" ] 
             [ div [ class "navn" ] [ text "Andreas Salhus Bakseter" ]
             , div [ class "tittel" ] [ text "Web- og transportansvarlig" ]
-            , div [ class "mail" ] [ text "andreas.bakseter@echo.uib.no" ]
             ]
       , div [ id "tuva" ] [ img [ class "portrett", src "img/tuva.png", alt "tuva" ] [] ]
-      , div [ id "tuva-info" ] 
+      , div [ class "om-info", id "tuva-info" ] 
             [ div [ class "navn" ] [ text "Tuva Kvalsøren" ]
             , div [ class "tittel" ] [ text "Arrangøransvarlig" ]
-            , div [ class "mail" ] [ text "tuva.kvalsoren@echo.uib.no" ]
+            ]
         ]
-    ]
 
 getCountDown : Posix -> List (Html msg)
 getCountDown dateNow =
@@ -422,14 +429,14 @@ calcDate diff =
         [(day,"D"), (hour,"H"), (min,"M"), (sec,"S")]
 
 
-loadNav : Model -> Html Msg
-loadNav model =
-    case model.nav of
+loadNavbar : Model -> Html Msg
+loadNavbar model =
+    case model.showNavBar of
         True ->
             div [ id "navbar-content" ] [
-                a [ href "/bedrifter", onClick LoadNav ] [ text "Bedrifter" ],
-                a [ href "/program", onClick LoadNav ] [ text "Program" ],
-                a [ href "/om", onClick LoadNav ] [ text "Om oss" ]
+                a [ href "/bedrifter", onClick LoadNavbar ] [ text "Bedrifter" ],
+                a [ href "/program", onClick LoadNavbar ] [ text "Program" ],
+                a [ href "/om", onClick LoadNavbar ] [ text "Om oss" ]
             ]
         False ->
             span [] []
@@ -467,8 +474,8 @@ getNameString name =
             "DNB"
 
 getMiddleLine : Bool -> Svg.Svg msg
-getMiddleLine remove =
-    if remove
+getMiddleLine hide =
+    if hide 
     then 
         line [] []
     else
