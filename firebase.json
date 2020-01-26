@@ -4,7 +4,13 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
-    ]
+      "**/node_modules/**",
+      "**elm.json",
+      "**/elm-stuff/**"
+    ],
+    "rewrites": [{
+        "source": "**",
+        "destination": "/index.html"
+    }]
   }
 }

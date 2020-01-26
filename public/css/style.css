@@ -285,6 +285,14 @@ h1.anim-text {
     padding-right: 5%;
 }
 
+.not-found h1 {
+    font-size: 62px;
+    text-align: center;
+}
+.not-found h3 {
+    text-align: center;
+}
+
 @media (max-device-width: 415px), (max-width: 900px) {
     .menu {
         grid-template-columns: 60% 10% 30%;

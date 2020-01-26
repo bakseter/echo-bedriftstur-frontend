@@ -30,6 +30,7 @@ type Page
     | Bedrifter
     | Program 
     | Om
+    | NotFound
 
 type Name
     = Initial
@@ -97,14 +98,14 @@ init path url key =
         case path of
             "/" ->
                 ({ model | page = Hjem }, Cmd.none)
-            "/bedrifer" ->
+            "/bedrifter" ->
                 ({ model | page = Bedrifter }, Cmd.none)
             "/program" ->
                 ({ model | page = Program }, Cmd.none) 
             "/om" ->
                 ({ model | page = Om }, Cmd.none)
             _ ->
-                ({ model | page = Hjem }, Cmd.none)
+                ({ model | page = NotFound }, Cmd.none)
                 
 
 subscriptions : Model -> Sub Msg
@@ -135,7 +136,7 @@ update msg model =
                 "/om" ->
                     ({ model | url = url, page = Om }, Cmd.none)
                 _ ->
-                    ({ model | url = url, page = Hjem }, Cmd.none)
+                    ({ model | url = url, page = NotFound}, Cmd.none)
         Tick time ->
             ({ model | time = time }, Cmd.none)
         Animate anim ->
@@ -214,7 +215,7 @@ view model =
                 [ div [ class "menu" ]
                     [ span [ id "hjem" ] 
                         [ a [ href "/", onClick LoadNavbar ] 
-                            [ img [ id "logo", alt "logo", src "img/echo-logo-very-wide.png" ] [] ] 
+                            [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                         ]
                     , span [ id "navBtn", onClick LoadNavbar ]
                     [ svg [ width "100", height "100" ]
@@ -246,6 +247,8 @@ getPages model =
             [getHjem model True] ++ [getBedrifter True] ++ [getProgram False] ++ [getOm True]
         Om ->
             [getHjem model True] ++ [getBedrifter True] ++ [getProgram True] ++ [getOm False]
+        NotFound ->
+            [getHjem model True] ++ [getBedrifter True] ++ [getProgram True] ++ [getOm True] ++ [getNotFound False]
 
 getHjem : Model -> Bool -> Html Msg 
 getHjem model hide =
@@ -279,23 +282,23 @@ getBedrifter hide =
     div [ if hide then class "hidden" else class "logos" ]
         [ span [ class "logo-item", id "bekk" ]
             [ a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ]
-                [ img  [ class "bed-logo", src "img/bekk.png", alt "Bekk" ] [] ]
+                [ img  [ class "bed-logo", src "/img/bekk.png", alt "Bekk" ] [] ]
             ]
         , span [ class "logo-item", id "mnemonic" ]
             [ a [ target "_blank", rel "noopener noreferrer", href "https://www.mnemonic.no" ]
-                [ img  [ class "bed-logo", src "img/mnemonic.png", alt "mnemonic" ] [] ]
+                [ img  [ class "bed-logo", src "/img/mnemonic.png", alt "mnemonic" ] [] ]
             ]
         , span [ class "logo-item", id "DNB" ]
             [ a [ target "_blank", rel "noopener noreferrer", href "https://www.dnb.no" ]
-                [ img  [ class "bed-logo", src "img/dnb.png", alt "DNB" ] [] ]
+                [ img  [ class "bed-logo", src "/img/dnb.png", alt "DNB" ] [] ]
             ]
         , span [ class "logo-item", id "computas" ]
             [ a [ target "_blank", rel "noopener noreferrer", href "https://computas.com" ]
-                [ img  [ class "bed-logo", src "img/computas.png", alt "Computas" ] [] ]
+                [ img  [ class "bed-logo", src "/img/computas.png", alt "Computas" ] [] ]
             ]
         , span [ class "logo-item", id "knowit" ]
             [ a [ target "_blank", rel "noopener noreferrer", href "https://www.knowit.no" ]
-                [ img  [ class "bed-logo", src "img/knowit.png", alt "Knowit" ] [] ]
+                [ img  [ class "bed-logo", src "/img/knowit.png", alt "Knowit" ] [] ]
             ]
         , span [ class "logo-item", id "tba" ]
             [ a [ target "_blank", rel "noopener noreferrer", href "" ]
@@ -384,21 +387,28 @@ getOm hide =
     div [ if hide then class "hidden" else class "om" ]
       [ div [ id "om-tekst" ] 
             [ div [ class "text" ] [ text "Bedriftsturkomitéen består av tre frivillige studenter." ] ]
-      , div [ id "elias" ] [ img [ class "portrett", src "img/elias.png", alt "elias" ] [] ]
+      , div [ id "elias" ] [ img [ class "portrett", src "/img/elias.png", alt "Elias" ] [] ]
       , div [ class "om-info", id "elias-info" ]
             [ div [ class "navn" ] [ text "Elias Djupesland" ]
             , div [ class "tittel" ] [ text "Leder og bedriftskontakt" ]
             ]
-      , div [ id "andreas" ] [ img [ class "portrett", src "img/andreas.png", alt "andreas" ] [] ]
+      , div [ id "andreas" ] [ img [ class "portrett", src "/img/andreas.png", alt "Andreas" ] [] ]
       , div [ class "om-info", id "andreas-info" ] 
             [ div [ class "navn" ] [ text "Andreas Salhus Bakseter" ]
             , div [ class "tittel" ] [ text "Web- og transportansvarlig" ]
             ]
-      , div [ id "tuva" ] [ img [ class "portrett", src "img/tuva.png", alt "tuva" ] [] ]
+      , div [ id "tuva" ] [ img [ class "portrett", src "/img/tuva.png", alt "Tuva" ] [] ]
       , div [ class "om-info", id "tuva-info" ] 
             [ div [ class "navn" ] [ text "Tuva Kvalsøren" ]
             , div [ class "tittel" ] [ text "Arrangøransvarlig" ]
             ]
+        ]
+
+getNotFound : Bool -> Html msg
+getNotFound hide =
+    div [ if hide then class "hidden" else class "not-found" ]
+        [ h1 [] [ text "404" ]
+        , h3 [] [ text "Siden du leter etter eksisterer ikke" ]
         ]
 
 getCountDown : Posix -> List (Html msg)
