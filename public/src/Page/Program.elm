@@ -4,7 +4,7 @@ import Html exposing (Html, div, h1, h3, text, a, br)
 import Html.Attributes exposing (class, id, target, rel, href)
 
 type Msg
-    = What
+    = None
 
 type alias Model = 
     Html Msg
@@ -16,9 +16,7 @@ init =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    case msg of
-        What ->
-            (model, Cmd.none)
+    (model, Cmd.none)
 
 view : Model -> Html Msg
 view model =

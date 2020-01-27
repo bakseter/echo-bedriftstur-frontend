@@ -110,17 +110,17 @@ update msg model =
                 _ ->
                     ({ model | url = url, currentPage = NotFound}, Cmd.none)
         GotHjemMsg msg_ ->
-            let newModelCmd = Hjem.update msg_ (Tuple.first model.modelCmdHjem)
-            in ({ model | modelCmdHjem = newModelCmd }, Cmd.map GotHjemMsg (Tuple.second newModelCmd))
+            let (newModelCmd, cmd) = updateWithAndSendMsg Hjem.update msg_ model.modelCmdHjem GotHjemMsg
+            in ({ model | modelCmdHjem = newModelCmd }, cmd)
         GotBedrifterMsg msg_ ->
-            let newModelCmd = Bedrifter.update msg_ (Tuple.first model.modelCmdBedrifter)
-            in ({ model | modelCmdBedrifter = newModelCmd }, Cmd.map GotBedrifterMsg (Tuple.second newModelCmd))
+            let (newModelCmd, cmd) = updateWithAndSendMsg Bedrifter.update msg_ model.modelCmdBedrifter GotBedrifterMsg
+            in ({ model | modelCmdBedrifter = newModelCmd }, cmd)
         GotProgramMsg msg_ ->
-            let newModelCmd = Program.update msg_ (Tuple.first model.modelCmdProgram)
-            in ({ model | modelCmdProgram = newModelCmd }, Cmd.map GotProgramMsg (Tuple.second newModelCmd))
+            let (newModelCmd, cmd) = updateWithAndSendMsg Program.update msg_ model.modelCmdProgram GotProgramMsg
+            in ({ model | modelCmdProgram = newModelCmd }, cmd)
         GotOmMsg msg_ ->
-            let newModelCmd = Om.update msg_ (Tuple.first model.modelCmdOm)
-            in ({ model | modelCmdOm = newModelCmd }, Cmd.map GotOmMsg (Tuple.second newModelCmd))
+            let (newModelCmd, cmd) = updateWithAndSendMsg Om.update msg_ model.modelCmdOm GotOmMsg
+            in ({ model | modelCmdOm = newModelCmd }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
                 case linksToHome of
@@ -211,16 +211,20 @@ view model =
          ] ++
         case model.currentPage of
             Hjem ->
-                [ Html.map GotHjemMsg (Hjem.view (Tuple.first model.modelCmdHjem)) ]
+                [ showPage GotHjemMsg Hjem.view model.modelCmdHjem ]
             Bedrifter ->
-                [ Html.map GotBedrifterMsg (Bedrifter.view (Tuple.first model.modelCmdBedrifter)) ]
+                [ showPage GotBedrifterMsg Bedrifter.view model.modelCmdBedrifter ]
             Program ->
-                [ Html.map GotProgramMsg (Program.view (Tuple.first model.modelCmdProgram)) ]
+                [ showPage GotProgramMsg Program.view model.modelCmdProgram ]
             Om ->
-                [ Html.map GotOmMsg (Om.view (Tuple.first model.modelCmdOm)) ]
+                [ showPage GotOmMsg Om.view model.modelCmdOm ]
             NotFound ->
                 [ div [] [ text "404" ] ]
     }
+
+showPage : (a1 -> msg) -> (a -> Html.Html a1) -> ( a, b ) -> Html.Html msg
+showPage msg viewFunc model =
+    Html.map msg (viewFunc (Tuple.first model))
 
 getMiddleLine : Bool -> Svg.Svg msg
 getMiddleLine hide =
@@ -235,10 +239,15 @@ getNavbar : Bool -> Html Msg
 getNavbar show =
     case show of
         True ->
-            div [ id "navbar-content" ] [
-                a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ],
-                a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ],
-                a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
-            ]
+            div [ id "navbar-content" ] 
+                [ a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
+                , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
+                , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
+                ]
         False ->
             span [] []
+
+updateWithAndSendMsg : (c -> a2 -> (a1, Cmd a)) -> c -> (a2, b) -> (a -> msg) -> ((a1, Cmd a), Cmd msg)
+updateWithAndSendMsg updateFunc msg modelCmd msg2 =
+    let newModelCmd = updateFunc msg (Tuple.first modelCmd)
+    in (newModelCmd, Cmd.map msg2 (Tuple.second newModelCmd))
