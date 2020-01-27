@@ -1,0 +1,44 @@
+module Page.Om exposing (..)
+
+import Html exposing (Html, div, text, img)
+import Html.Attributes exposing (class, id, src, alt)
+
+type Msg
+    = What
+
+type alias Model = 
+    Html Msg
+
+init : (Model, Cmd Msg)
+init =
+    ( div [] []
+    , Cmd.none)
+
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+    case msg of
+        What ->
+            (model, Cmd.none)
+
+view : Model -> Html Msg
+view model =
+    div [ class "om" ]
+      [ div [ id "om-tekst" ] 
+            [ div [ class "text" ] [ text "Bedriftsturkomitéen består av tre frivillige studenter." ] ]
+      , div [ id "elias" ] [ img [ class "portrett", src "/img/elias.png", alt "Elias" ] [] ]
+      , div [ class "om-info", id "elias-info" ]
+            [ div [ class "navn" ] [ text "Elias Djupesland" ]
+            , div [ class "tittel" ] [ text "Leder og bedriftskontakt" ]
+            ]
+      , div [ id "andreas" ] [ img [ class "portrett", src "/img/andreas.png", alt "Andreas" ] [] ]
+      , div [ class "om-info", id "andreas-info" ] 
+            [ div [ class "navn" ] [ text "Andreas Salhus Bakseter" ]
+            , div [ class "tittel" ] [ text "Web- og transportansvarlig" ]
+            ]
+      , div [ id "tuva" ] [ img [ class "portrett", src "/img/tuva.png", alt "Tuva" ] [] ]
+      , div [ class "om-info", id "tuva-info" ] 
+            [ div [ class "navn" ] [ text "Tuva Kvalsøren" ]
+            , div [ class "tittel" ] [ text "Arrangøransvarlig" ]
+            ]
+        ]
+
