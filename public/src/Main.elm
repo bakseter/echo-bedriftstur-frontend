@@ -47,7 +47,7 @@ type Msg
     | Animate Animation.Msg
     | Animate2 Animation.Msg
     | Transition
-    | LoadNavbar
+    | LoadNavbar Bool
     | NavBtnTransition
 
 
@@ -151,30 +151,34 @@ update msg model =
                 ({ model | navBtnAnimation = (newStyleNavBtnAnim, newStyleNavBtnAnim2) }, navBtnCmds)
         Transition ->
             ({ model | name = getNextName model.name }, Cmd.none) 
-        LoadNavbar ->
+        LoadNavbar linksToHome ->
             if model.showNavBar == False then
-                ({ model
-                    | showNavBar = True
-                    , navBtnAnimation = (Animation.interrupt 
-                                             [ Animation.Messenger.send NavBtnTransition
-                                             , Animation.to 
-                                                [ Animation.translate (px 34) (px -8)
-                                                ,  Animation.rotate (deg 45)
-                                                ,  Animation.scale 0.7 
-                                                ]
-                                            ] 
-                                            (first model.navBtnAnimation)
-                                            , Animation.interrupt 
-                                            [ Animation.to 
-                                                [ Animation.translate (px -35) (px 6)
-                                                , Animation.rotate (deg -45)
-                                                , Animation.scale 0.7
-                                                ]
-                                            ] 
-                                            (second model.navBtnAnimation)
-                                        )
-                }
-                , Cmd.none)
+                case linksToHome of
+                    True ->
+                        (model, Cmd.none)
+                    False ->
+                        ({ model
+                            | showNavBar = True
+                            , navBtnAnimation = (Animation.interrupt 
+                                                     [ Animation.Messenger.send NavBtnTransition
+                                                     , Animation.to 
+                                                        [ Animation.translate (px 34) (px -8)
+                                                        ,  Animation.rotate (deg 45)
+                                                        ,  Animation.scale 0.7 
+                                                        ]
+                                                    ] 
+                                                    (first model.navBtnAnimation)
+                                                    , Animation.interrupt 
+                                                    [ Animation.to 
+                                                        [ Animation.translate (px -35) (px 6)
+                                                        , Animation.rotate (deg -45)
+                                                        , Animation.scale 0.7
+                                                        ]
+                                                    ] 
+                                                    (second model.navBtnAnimation)
+                                                )
+                        }
+                        , Cmd.none)
             else
                 ({ model
                     | showNavBar = False
@@ -214,10 +218,10 @@ view model =
             div [ class "site" ] 
                 [ div [ class "menu" ]
                     [ span [ id "hjem" ] 
-                        [ a [ href "/", onClick LoadNavbar ] 
+                        [ a [ href "/", onClick (LoadNavbar True) ] 
                             [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                         ]
-                    , span [ id "navBtn", onClick LoadNavbar ]
+                    , span [ id "navBtn", onClick (LoadNavbar False) ]
                     [ svg [ width "100", height "100" ]
                         [ line (Animation.render (first model.navBtnAnimation)
                         ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
@@ -444,9 +448,9 @@ loadNavbar model =
     case model.showNavBar of
         True ->
             div [ id "navbar-content" ] [
-                a [ href "/bedrifter", onClick LoadNavbar ] [ text "Bedrifter" ],
-                a [ href "/program", onClick LoadNavbar ] [ text "Program" ],
-                a [ href "/om", onClick LoadNavbar ] [ text "Om oss" ]
+                a [ href "/bedrifter", onClick (LoadNavbar False) ] [ text "Bedrifter" ],
+                a [ href "/program", onClick (LoadNavbar False) ] [ text "Program" ],
+                a [ href "/om", onClick (LoadNavbar False) ] [ text "Om oss" ]
             ]
         False ->
             span [] []
