@@ -1,4 +1,4 @@
-module Page.Hjem exposing (..)
+module Page.Hjem exposing (init, subscriptions, update, view, Model, Msg)
 
 import Html exposing (Html, div, span, h1, text, br)
 import Html.Attributes exposing (class, id)
@@ -25,20 +25,20 @@ type alias Model =
     , currentTime : Time.Posix
     }
 
-init : (Model, Cmd Msg)
+init : Model
 init =
-    ({ headerName = Initial
-     , headerStyle = Animation.interrupt
-                         [ Animation.loop 
-                             [ Animation.wait (Time.millisToPosix 4000)
-                             , Animation.to [ Animation.opacity 0 ]
-                             , Animation.Messenger.send TransitionHeader
-                             , Animation.wait (Time.millisToPosix 1500)
-                             , Animation.to [ Animation.opacity 1 ]
-                             ] 
-                         ] (Animation.style [ Animation.opacity 1 ])
-     , currentTime = (Time.millisToPosix 0)
-    }, Cmd.none)
+    { headerName = Initial
+    , headerStyle = Animation.interrupt
+                        [ Animation.loop 
+                            [ Animation.wait (Time.millisToPosix 4000)
+                            , Animation.to [ Animation.opacity 0 ]
+                            , Animation.Messenger.send TransitionHeader
+                            , Animation.wait (Time.millisToPosix 1500)
+                            , Animation.to [ Animation.opacity 1 ]
+                            ] 
+                        ] (Animation.style [ Animation.opacity 1 ])
+    , currentTime = (Time.millisToPosix 0)
+    }
 
 subscriptions : Model -> Sub Msg 
 subscriptions model =

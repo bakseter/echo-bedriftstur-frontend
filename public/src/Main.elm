@@ -51,42 +51,66 @@ type alias Model =
     , showNavbar : Bool
     , hideLineNavBtn : Bool  
     , navBtnAnimation : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
-    , modelCmdHjem : (Hjem.Model, Cmd Hjem.Msg)
-    , modelCmdBedrifter :(Bedrifter.Model, Cmd Bedrifter.Msg)
-    , modelCmdProgram : (Program.Model, Cmd Program.Msg)
-    , modelCmdOm : (Om.Model, Cmd Om.Msg)
+    , modelHjem : Hjem.Model
+    , modelBedrifter :Bedrifter.Model
+    , modelProgram : Program.Model
+    , modelOm : Om.Model
     }
 
-init : String -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
-init _ url key =
-    ({ key = key
-     , url = url
-     , currentPage = Hjem
-     , showNavbar = False
-     , hideLineNavBtn = False
-     , navBtnAnimation = (Animation.style 
-                               [ Animation.rotate (deg 0)
-                               , Animation.translate (px 0) (px 0)
-                               , Animation.scale 1.0 
-                               ]
-                            , Animation.style 
-                               [ Animation.rotate (deg 0)
-                               , Animation.translate (px 0) (px 0)
-                               , Animation.scale 1.0 
-                               ])
-     , modelCmdHjem = Hjem.init
-     , modelCmdBedrifter = Bedrifter.init
-     , modelCmdProgram = Program.init
-     , modelCmdOm = Om.init
-     }, Cmd.none)
+init : Maybe String -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
+init path url key =
+    let model = { key = key
+                , url = url
+                , currentPage = Hjem
+                , showNavbar = False
+                , hideLineNavBtn = False
+                , navBtnAnimation = (Animation.style 
+                                        [ Animation.rotate (deg 0)
+                                        , Animation.translate (px 0) (px 0)
+                                        , Animation.scale 1.0 
+                                        ]
+                                    , Animation.style 
+                                         [ Animation.rotate (deg 0)
+                                        , Animation.translate (px 0) (px 0)
+                                       , Animation.scale 1.0 
+                                    ])
+                , modelHjem = Hjem.init
+                , modelBedrifter = Bedrifter.init
+                , modelProgram = Program.init
+                , modelOm = Om.init
+                }
+    in
+        case path of
+            Just str ->
+                case str of
+                    "/" ->
+                        ({ model | currentPage = Hjem }, Cmd.none)
+                    "/bedrifter" ->
+                        ({ model | currentPage = Bedrifter }, Cmd.none)
+                    "/program" ->
+                       ({ model | currentPage = Program }, Cmd.none)
+                    "/om" ->
+                        ({ model | currentPage = Om }, Cmd.none)
+                    _ ->
+                        ({ model | currentPage = NotFound }, Cmd.none)
+            Nothing ->
+                ({ model | currentPage = Hjem }, Cmd.none)
                 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map GotHjemMsg (Hjem.subscriptions (Tuple.first model.modelCmdHjem))
+        [ Sub.batch [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
+                    , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+                    , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
+                    , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
+                    ]
         , Animation.subscription AnimateNavBtn [ Tuple.first model.navBtnAnimation, Tuple.second model.navBtnAnimation ]
         ]
+
+manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg
+manageSubscriptions msg subFunc model =
+    Sub.map msg (subFunc model)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -109,18 +133,18 @@ update msg model =
                     ({ model | url = url, currentPage = Om }, Cmd.none)
                 _ ->
                     ({ model | url = url, currentPage = NotFound}, Cmd.none)
-        GotHjemMsg msg_ ->
-            let (newModelCmd, cmd) = updateWithAndSendMsg Hjem.update msg_ model.modelCmdHjem GotHjemMsg
-            in ({ model | modelCmdHjem = newModelCmd }, cmd)
-        GotBedrifterMsg msg_ ->
-            let (newModelCmd, cmd) = updateWithAndSendMsg Bedrifter.update msg_ model.modelCmdBedrifter GotBedrifterMsg
-            in ({ model | modelCmdBedrifter = newModelCmd }, cmd)
-        GotProgramMsg msg_ ->
-            let (newModelCmd, cmd) = updateWithAndSendMsg Program.update msg_ model.modelCmdProgram GotProgramMsg
-            in ({ model | modelCmdProgram = newModelCmd }, cmd)
-        GotOmMsg msg_ ->
-            let (newModelCmd, cmd) = updateWithAndSendMsg Om.update msg_ model.modelCmdOm GotOmMsg
-            in ({ model | modelCmdOm = newModelCmd }, cmd)
+        GotHjemMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Hjem.update pageMsg model.modelHjem GotHjemMsg
+            in ({ model | modelHjem = newModel }, cmd)
+        GotBedrifterMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Bedrifter.update pageMsg model.modelBedrifter GotBedrifterMsg
+            in ({ model | modelBedrifter = newModel }, cmd)
+        GotProgramMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Program.update pageMsg model.modelProgram GotProgramMsg
+            in ({ model | modelProgram = newModel }, cmd)
+        GotOmMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Om.update pageMsg model.modelOm GotOmMsg
+            in ({ model | modelOm = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
                 case linksToHome of
@@ -211,20 +235,29 @@ view model =
          ] ++
         case model.currentPage of
             Hjem ->
-                [ showPage GotHjemMsg Hjem.view model.modelCmdHjem ]
+                [ showPage GotHjemMsg Hjem.view model.modelHjem ]
             Bedrifter ->
-                [ showPage GotBedrifterMsg Bedrifter.view model.modelCmdBedrifter ]
+                [ showPage GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
             Program ->
-                [ showPage GotProgramMsg Program.view model.modelCmdProgram ]
+                [ showPage GotProgramMsg Program.view model.modelProgram ]
             Om ->
-                [ showPage GotOmMsg Om.view model.modelCmdOm ]
+                [ showPage GotOmMsg Om.view model.modelOm ]
             NotFound ->
-                [ div [] [ text "404" ] ]
+                [ div [ class "not-found" ]
+                    [ h1 [] [ text "404" ]
+                    , h3 [] [ text "Siden du leter etter eksisterer ikke" ]
+                    ]
+                ]
     }
 
-showPage : (a1 -> msg) -> (a -> Html.Html a1) -> ( a, b ) -> Html.Html msg
+showPage : (a -> msg) -> (b -> Html.Html a) -> b -> Html.Html msg
 showPage msg viewFunc model =
-    Html.map msg (viewFunc (Tuple.first model))
+    Html.map msg (viewFunc model)
+
+updateWithAndSendMsg : (b -> c -> (d, Cmd a)) -> b -> c -> (a -> msg) -> (d, Cmd msg)
+updateWithAndSendMsg updateFunc msg model msg2 =
+    let (newModel, cmd) = updateFunc msg model
+    in (newModel, Cmd.map msg2 cmd)
 
 getMiddleLine : Bool -> Svg.Svg msg
 getMiddleLine hide =
@@ -233,7 +266,6 @@ getMiddleLine hide =
         line [] []
     else
         line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
-
 
 getNavbar : Bool -> Html Msg
 getNavbar show =
@@ -246,8 +278,3 @@ getNavbar show =
                 ]
         False ->
             span [] []
-
-updateWithAndSendMsg : (c -> a2 -> (a1, Cmd a)) -> c -> (a2, b) -> (a -> msg) -> ((a1, Cmd a), Cmd msg)
-updateWithAndSendMsg updateFunc msg modelCmd msg2 =
-    let newModelCmd = updateFunc msg (Tuple.first modelCmd)
-    in (newModelCmd, Cmd.map msg2 (Tuple.second newModelCmd))

@@ -1,4 +1,4 @@
-module Page.Bedrifter exposing (..)
+module Page.Bedrifter exposing (init, subscriptions, update, view, Model, Msg)
 
 import Html exposing (Html, div, span, text, a, img)
 import Html.Attributes exposing (class, id, target, rel, href, src, alt)
@@ -9,10 +9,13 @@ type Msg
 type alias Model = 
     Html Msg
 
-init : (Model, Cmd Msg)
+init : Model
 init =
-    ( div [] []
-    , Cmd.none)
+    div [] []
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
