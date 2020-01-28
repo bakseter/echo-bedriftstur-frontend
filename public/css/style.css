@@ -143,7 +143,7 @@ h1.anim-text {
     font-size: 50px;
 }
 
-.logos {
+.bedrifter {
     display: grid;
     grid-template-columns: auto auto auto;
     justify-items: center;
