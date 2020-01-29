@@ -27,6 +27,10 @@ a {
     color: black;
 }
 
+p {
+    width: 600px;
+}
+
 .hidden {
     display: none;
 }
@@ -50,7 +54,7 @@ a {
 .menu {
     display: grid;
     align-items: center;
-    grid-template-columns: 20% 50% 10% 10% 10%;
+    grid-template-columns: 20% 40% 10% 10% 10% 10%;
     background-color: var(--foreground);
 }
 
@@ -65,14 +69,14 @@ a {
 
 #navbar-content {
     display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: auto auto auto auto;
     text-align: center;
     background-color: var(--foreground);
     border: 2px solid white;
 }
 
 #navbar-content a {
-    padding: 15%;
+    padding: 10%;
     font-weight: bold;
     border: 2px solid white;
 }
@@ -94,7 +98,8 @@ a {
     grid-column: 1 / span 1;
 }
 
-#program {
+#logg-inn
+{
     grid-column: 3 / span 1;
 }
 
@@ -102,8 +107,12 @@ a {
     grid-column: 4 / span 1;
 }
 
-#om {
+#program {
     grid-column: 5 / span 1;
+}
+
+#om {
+    grid-column: 6 / span 1;
 }
 
 h1.anim-text {
@@ -141,6 +150,12 @@ h1.anim-text {
 
 .clock-item {
     font-size: 50px;
+}
+
+.logg-inn {
+    display: grid;
+    grid-template-columns: 30% 40% 30%;
+    justify-items: center;
 }
 
 .bedrifter {

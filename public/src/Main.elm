@@ -6,6 +6,7 @@ import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
 import Page.Hjem as Hjem
+import Page.LoggInn as LoggInn
 import Page.Bedrifter as Bedrifter
 import Page.Program as Program
 import Page.Om as Om
@@ -30,6 +31,7 @@ type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
     | GotHjemMsg Hjem.Msg
+    | GotLoggInnMsg LoggInn.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
@@ -39,6 +41,7 @@ type Msg
 
 type Page 
     = Hjem
+    | LoggInn
     | Bedrifter
     | Program
     | Om
@@ -52,6 +55,7 @@ type alias Model =
     , hideLineNavBtn : Bool  
     , navBtnAnimation : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
     , modelHjem : Hjem.Model
+    , modelLoggInn : LoggInn.Model
     , modelBedrifter :Bedrifter.Model
     , modelProgram : Program.Model
     , modelOm : Om.Model
@@ -75,6 +79,7 @@ init path url key =
                                        , Animation.scale 1.0 
                                     ])
                 , modelHjem = Hjem.init
+                , modelLoggInn = LoggInn.init
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
@@ -85,6 +90,8 @@ init path url key =
                 case str of
                     "/" ->
                         ({ model | currentPage = Hjem }, Cmd.none)
+                    "/logg-inn" ->
+                        ({ model | currentPage = LoggInn }, Cmd.none)
                     "/bedrifter" ->
                         ({ model | currentPage = Bedrifter }, Cmd.none)
                     "/program" ->
@@ -101,6 +108,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.batch [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
+                    , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
                     , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
                     , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
                     , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
@@ -125,10 +133,12 @@ update msg model =
             case url.path of
                 "/" ->
                     ({ model | url = url, currentPage = Hjem }, Cmd.none)
-                "/program" ->
-                    ({ model | url = url, currentPage = Program }, Cmd.none)
+                "/logg-inn" ->
+                    ({ model | url = url, currentPage = LoggInn }, Cmd.none)
                 "/bedrifter" ->
                     ({ model | url = url, currentPage = Bedrifter }, Cmd.none) 
+                "/program" ->
+                    ({ model | url = url, currentPage = Program }, Cmd.none)
                 "/om" ->
                     ({ model | url = url, currentPage = Om }, Cmd.none)
                 _ ->
@@ -145,6 +155,9 @@ update msg model =
         GotOmMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg Om.update pageMsg model.modelOm GotOmMsg
             in ({ model | modelOm = newModel }, cmd)
+        GotLoggInnMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg LoggInn.update pageMsg model.modelLoggInn GotLoggInnMsg
+            in ({ model | modelLoggInn = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
                 case linksToHome of
@@ -226,8 +239,9 @@ view model =
                         ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                     ] 
                 ]
-                , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
+                , span [ class "menuItem", id "logg-inn" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
                 , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
+                , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
                 , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
             , span [ id "navbar" ] [ getNavbar model.showNavbar ]
@@ -236,6 +250,8 @@ view model =
         case model.currentPage of
             Hjem ->
                 [ showPage GotHjemMsg Hjem.view model.modelHjem ]
+            LoggInn ->
+                [ showPage GotLoggInnMsg LoggInn.view model.modelLoggInn ]
             Bedrifter ->
                 [ showPage GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
             Program ->
@@ -272,7 +288,8 @@ getNavbar show =
     case show of
         True ->
             div [ id "navbar-content" ] 
-                [ a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
+                [ a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ] 
+                , a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
                 , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
                 , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
                 ]
