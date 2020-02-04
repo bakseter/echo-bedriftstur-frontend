@@ -13,7 +13,7 @@ import Html exposing (Html)
 import Html.Events
 import Animation exposing (deg, px)
 import Animation.Messenger
-import Svg exposing (svg, line)
+import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2, width, height)
 
 main =
@@ -218,11 +218,11 @@ view model =
                         [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                     ]
                 , span [ id "navBtn", Html.Events.onClick (ShowNavbar False) ]
-                [ svg [ width "100", height "100" ]
-                    [ line (Animation.render (Tuple.first model.navBtnAnimation)
+                [ Svg.svg [ width "100", height "100" ]
+                    [ Svg.line (Animation.render (Tuple.first model.navBtnAnimation)
                     ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                     , (getMiddleLine model.hideLineNavBtn)
-                    , line (Animation.render (Tuple.second model.navBtnAnimation) 
+                    , Svg.line (Animation.render (Tuple.second model.navBtnAnimation) 
                         ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                     ] 
                 ]
@@ -263,9 +263,9 @@ getMiddleLine : Bool -> Svg.Svg msg
 getMiddleLine hide =
     if hide 
     then 
-        line [] []
+        Svg.line [] []
     else
-        line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
+        Svg.line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
 
 getNavbar : Bool -> Html Msg
 getNavbar show =

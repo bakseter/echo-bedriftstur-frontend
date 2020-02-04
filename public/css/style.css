@@ -19,6 +19,7 @@ html {
 
 body {
     margin: 0px;
+    width: 100%;
 }
 
 a {
@@ -31,16 +32,22 @@ a {
     display: none;
 }
 
+#viewport {
+    position: fixed;
+}
+
 .bed-logo {
-    max-width: 250px;
-    max-height: 140px;
-    width: auto;
-    height: auto;
+    max-width: 300px;
+    max-height: 175x;
     padding: 20px;
     transition: transform 0.5s;
 }
 .bed-logo:hover {
     transform: scale(1.2);
+}
+
+#dnb-logo {
+    max-width: 250px;
 }
 
 .text {
@@ -143,16 +150,26 @@ h1.anim-text {
     font-size: 50px;
 }
 
-.bedrifter {
+#bedrifter-content {
     display: grid;
-    grid-template-columns: auto auto auto;
-    justify-items: center;
-    align-items: center;
+    grid-template-columns: auto;
+}
+
+.bed-text {
+    font-family: IBM Plex Sans;
+    font-size: 16px;
+    line-height: 1.8;
 }
 
 .logo-item {
-    padding-top: 10%;
-    padding-bottom: 10%;
+    margin-top: 7%;
+    position: relative;
+    opacity: 0;
+    width: 30%;
+}
+
+#meme {
+    font-size: 64px;
 }
 
 .program {
@@ -340,10 +357,6 @@ h1.anim-text {
 
     #tuva {
         grid-row: 6 / span 1;
-    }
-
-    .bedrifter {
-        grid-template-columns: auto;
     }
 
     .text {

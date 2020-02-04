@@ -5,6 +5,7 @@ import Html.Attributes exposing (class, id)
 import Time
 import Animation
 import Animation.Messenger
+import String
 
 type Msg
     = Tick Time.Posix
@@ -75,7 +76,6 @@ update msg model =
             let (newHeaderStyle, headerCmds) = Animation.Messenger.update anim model.headerStyle
             in
                ({ model | headerStyle = newHeaderStyle }, headerCmds)
-
 
 getClock : Model -> Html msg
 getClock model =
