@@ -2,8 +2,8 @@ module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img)
-import Html.Attributes exposing (href, class, id, alt, src)
+import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, i)
+import Html.Attributes exposing (href, class, id, alt, src, rel, target)
 import Url
 import Page.Hjem as Hjem
 import Page.Bedrifter as Bedrifter
@@ -218,21 +218,21 @@ view model =
                         [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                     ]
                 , span [ id "navBtn", Html.Events.onClick (ShowNavbar False) ]
-                [ Svg.svg [ width "100", height "100" ]
-                    [ Svg.line (Animation.render (Tuple.first model.navBtnAnimation)
-                    ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
-                    , (getMiddleLine model.hideLineNavBtn)
-                    , Svg.line (Animation.render (Tuple.second model.navBtnAnimation) 
-                        ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
-                    ] 
-                ]
+                    [ Svg.svg [ width "100", height "100" ]
+                        [ Svg.line (Animation.render (Tuple.first model.navBtnAnimation)
+                            ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
+                        , (getMiddleLine model.hideLineNavBtn)
+                        , Svg.line (Animation.render (Tuple.second model.navBtnAnimation) 
+                            ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
+                        ] 
+                    ]
                 , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
                 , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                 , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
-            , span [ id "navbar" ] [ getNavbar model.showNavbar ]
+                , span [ id "navbar" ] [ getNavbar model.showNavbar ]
             ]
-         ] ++
+        ] ++
         case model.currentPage of
             Hjem ->
                 [ showPage GotHjemMsg Hjem.view model.modelHjem ]

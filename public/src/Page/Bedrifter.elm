@@ -155,8 +155,8 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "bedrifter" ]
-        [ h2 [id "viewport" ] [ text (String.fromFloat (percentageOfScreenScrolled model)) ]
-        , div [ id "bedrifter-content" ] 
+    --  [ h2 [id "viewport" ] [ text (String.fromFloat (percentageOfScreenScrolled model)) ]
+        [ div [ id "bedrifter-content" ] 
             [ span (Animation.render model.bekkAnim ++ [ class "logo-item", id "bekk" ])
                 [ a [ target "_blank", rel "noopener noreferrer", href "https://www.bekk.no" ]
                     [ img  [ class "bed-logo", src "/img/bekk.png", alt "Bekk" ] [] ]
