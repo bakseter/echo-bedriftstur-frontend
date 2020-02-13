@@ -183,6 +183,10 @@ h1.anim-text {
     grid-template-columns: 12% 88%;
 }
 
+.program-item:hover {
+    cursor:pointer;
+}
+
 .program-content {
     background-size: 200% 100%;
     background-position: right bottom;
