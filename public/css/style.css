@@ -48,6 +48,7 @@ a {
 
 .text {
     font-size: 20px;
+    line-height: 1.5;
 }
 
 .menu {
@@ -182,7 +183,6 @@ h1.anim-text {
     display: grid;
     grid-template-columns: 12% 88%;
 }
-
 .program-item:hover {
     cursor:pointer;
 }
@@ -257,14 +257,14 @@ h1.anim-text {
 }
 
 #om-links {
-    font-size: 82px;
+    font-size: 69px;
     display: grid;
     grid-template-columns: auto auto;
     grid-gap: 2%;
 }
 
 #linkedinLink {
-    background-color: #EEEEEE;
+    background-color: var(--foreground);
     justify-self: right;
     padding-left: 3%;
     padding-right: 3%;
@@ -272,7 +272,7 @@ h1.anim-text {
 }
 
 #githubLink {
-    background-color: #EEEEEE;
+    background-color: var(--foreground);
     justify-self: left;
     padding-left: 3%;
     padding-right: 3%;
@@ -301,11 +301,6 @@ h1.anim-text {
     grid-row: 2 / span 1;
 }
 
-.om-info {
-    padding-top: 2%;
-    padding-bottom: 5%;
-}
-
 .navn {
     font-weight: bold;
     font-size: 22px;
@@ -314,6 +309,11 @@ h1.anim-text {
 
 .tittel {
     text-align: center;
+}
+
+.hidden-mail {
+    text-align: center;
+    font-style: italic;
 }
 
 .mail {
