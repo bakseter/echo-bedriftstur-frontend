@@ -17,13 +17,13 @@ import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2, width, height)
 
 main =
-    Browser.application {
-        init = init,
-        subscriptions = subscriptions,
-        update = update,
-        view = view,
-        onUrlChange = UrlChanged,
-        onUrlRequest = LinkClicked
+    Browser.application 
+    { init = init
+    , subscriptions = subscriptions
+    , update = update
+    , view = view
+    , onUrlChange = UrlChanged
+    , onUrlRequest = LinkClicked
     }
 
 type Msg
@@ -197,8 +197,7 @@ update msg model =
                     } 
                     , Cmd.none)
         NavBtnTransition ->
-            if model.hideLineNavBtn
-            then
+            if model.hideLineNavBtn then
                 ({ model | hideLineNavBtn = False }, Cmd.none)
             else
                 ({ model | hideLineNavBtn = True }, Cmd.none)
@@ -261,20 +260,18 @@ updateWithAndSendMsg updateFunc msg model msg2 =
 
 getMiddleLine : Bool -> Svg.Svg msg
 getMiddleLine hide =
-    if hide 
-    then 
+    if hide then 
         Svg.line [] []
     else
         Svg.line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
 
 getNavbar : Bool -> Html Msg
 getNavbar show =
-    case show of
-        True ->
-            div [ id "navbar-content" ] 
-                [ a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
-                , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
-                , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
-                ]
-        False ->
-            span [] []
+    if show then
+        div [ id "navbar-content" ] 
+            [ a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
+            , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
+            , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
+            ]
+    else
+        span [] []

@@ -20,15 +20,18 @@ type Name
     | Dnb
     | Bekk
 
+type alias Names
+    = (Name, String)
+
 type alias Model =
-    { headerName : Name
+    { headerName : Names
     , headerStyle : Animation.Messenger.State Msg
     , currentTime : Time.Posix
     }
 
 init : Model
 init =
-    { headerName = Initial
+    { headerName = (Initial, "bedriftstur")
     , headerStyle = Animation.interrupt
                         [ Animation.loop 
                             [ Animation.wait (Time.millisToPosix 4000)
@@ -49,21 +52,23 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "hjem" ]
-        [ div [ class "hjem-content" ]
-            [ div []
-                [ h1 [ class "anim-text" ] [ text "echo | " ]
-                , h1
-                    (Animation.render model.headerStyle ++ [ class "anim-text" ]) [ text (nameToString model.headerName) ]
+    let (_, name) = nextName model.headerName
+    in
+        div [ class "hjem" ]
+            [ div [ class "hjem-content" ]
+                [ div []
+                    [ h1 [ class "anim-text" ] [ text "echo | " ]
+                    , h1
+                        (Animation.render model.headerStyle ++ [ class "anim-text" ]) [ text name ]
+                    ]
+                , br [] []
+                , div [ class "text" ] [ text "echo har startet en komité for å arrangere bedriftstur til Oslo høsten 2020." ]
+                , div [ class "text" ] [ text "Formålet med arrangementet er å gjøre våre informatikkstudenter kjent med karrieremulighetene i Oslo." ]
+                , br [] []
+                , div [ class "text" ] [ text "Informasjon kommer fortløpende!" ]
                 ]
-            , br [] []
-            , div [ class "text" ] [ text "echo har startet en komité for å arrangere bedriftstur til Oslo høsten 2020." ]
-            , div [ class "text" ] [ text "Formålet med arrangementet er å gjøre våre informatikkstudenter kjent med karrieremulighetene i Oslo." ]
-            , br [] []
-            , div [ class "text" ] [ text "Informasjon kommer fortløpende!" ]
+            , getClock model
             ]
-        , getClock model
-        ]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -91,15 +96,24 @@ getCountDown dateNow =
     let dateThen = 1598436000 * 1000
         date = dateThen - (Time.posixToMillis dateNow)
     in
-        if date == dateThen
-        then (List.map (\x -> div [ class "clock-item", id ("clock" ++ Tuple.second x) ] [ text (fixNum (String.fromInt (Tuple.first x))) ]) [(0,"D"),(0,"H"),(0,"M"),(0,"S")]) 
-        else (List.map (\x -> div [ class "clock-item", id ("clock" ++ Tuple.second x) ] [ text (fixNum (String.fromInt (Tuple.first x))) ]) (calcDate date))
+        if date == dateThen then 
+            (List.map (\x -> div 
+                [ class "clock-item", id ("clock" ++ Tuple.second x) ]
+                [ text (fixNum (String.fromInt (Tuple.first x))) ]) 
+                [(0,"D"),(0,"H"),(0,"M"),(0,"S")]) 
+        else 
+            (List.map (\x -> div 
+                [ class "clock-item", id ("clock" ++ Tuple.second x) ]
+                [ text (fixNum (String.fromInt (Tuple.first x))) ])
+                (calcDate date))
 
 fixNum : String -> String
 fixNum str =
     if String.length str == 1
-    then "0" ++ str
-    else str
+    then
+        "0" ++ str
+    else
+        str
 
 calcDate : Int -> List (Int, String)
 calcDate diff =
@@ -113,34 +127,18 @@ calcDate diff =
     in
         [(day,"D"), (hour,"H"), (min,"M"), (sec,"S")]
 
-nextName : Name -> Name
+nextName : Names -> Names
 nextName name =
     case name of
-        Initial ->
-            Mnemonic
-        Mnemonic ->
-            Computas
-        Computas ->
-            Knowit
-        Knowit ->
-            Dnb
-        Dnb ->
-            Bekk
-        Bekk ->
-            Initial
-
-nameToString : Name -> String
-nameToString name =
-    case name of
-        Initial ->
-            "bedriftstur"
-        Mnemonic ->
-            "mnemonic"
-        Computas ->
-            "Computas"
-        Knowit ->
-            "Knowit"
-        Dnb ->
-            "DNB"
-        Bekk ->
-            "Bekk"
+        (Initial, _) ->
+            (Mnemonic, "mnemonic")
+        (Mnemonic, _) ->
+            (Computas, "Computas")
+        (Computas, _) ->
+            (Knowit, "Knowit")
+        (Knowit, _) ->
+            (Dnb, "DNB")
+        (Dnb, _) ->
+            (Bekk, "Bekk")
+        (Bekk, _) ->
+            (Initial, "bedriftstur")
