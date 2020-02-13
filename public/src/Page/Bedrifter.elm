@@ -74,21 +74,37 @@ update msg model =
         GotViewport newViewport ->
             let scroll = percentageOfScreenScrolled model
                 newModel = { model | viewport = newViewport}
+                deviceWidth = newViewport.scene.width
+                newStyle = Animation.interrupt
+                            [ Animation.set
+                                [ Animation.exactly "left" "auto"
+                                , Animation.opacity 1.0
+                                ]
+                            ] model.bekkAnim
             in
-                if scroll > 0.1 && scroll < 0.3 then
-                    update SlideInBekk newModel
-                else if scroll > 0.3 && scroll < 0.5 then
-                    update SlideInMnemonic newModel
-                else if scroll > 0.5 && scroll < 0.7 then
-                    update SlideInDnb newModel
-                else if scroll > 0.7 && scroll < 0.8 then
-                    update SlideInComputas newModel
-                else if scroll > 0.8 && scroll < 0.9 then
-                    update SlideInKnowit newModel
-                else if scroll > 0.9 then
-                    update SlideInTba newModel
+                if deviceWidth < 900 then
+                   ({ model | bekkAnim = newStyle
+                            , mnemonicAnim = newStyle
+                            , dnbAnim = newStyle
+                            , computasAnim = newStyle
+                            , knowitAnim = newStyle
+                            , tbaAnim = newStyle },
+                            Cmd.none)
                 else
-                    (newModel, Cmd.none)
+                    if scroll > 0.1 && scroll < 0.3 then
+                        update SlideInBekk newModel
+                    else if scroll > 0.3 && scroll < 0.5 then
+                        update SlideInMnemonic newModel
+                    else if scroll > 0.5 && scroll < 0.7 then
+                        update SlideInDnb newModel
+                    else if scroll > 0.7 && scroll < 0.8 then
+                        update SlideInComputas newModel
+                    else if scroll > 0.8 && scroll < 0.9 then
+                        update SlideInKnowit newModel
+                    else if scroll > 0.9 then
+                        update SlideInTba newModel
+                    else
+                        (newModel, Cmd.none)
         Tick time ->
             (model, Task.perform GotViewport Browser.Dom.getViewport)
         SlideInBekk ->
@@ -169,7 +185,7 @@ view model =
                 , p [ class "bed-text" ] [ text "mnemonic hjelper virksomheter med å administrere og håndtere sine sikkerhetsrisikoer, beskytte sine data og forsvare seg mot trusler fra Internett. " ]
                 , p [ class "bed-text" ] [ text "Vårt ekspertteam av sikkerhetskonsulenter, produktspesialister, trusseletterforskere, team av hendelseshåndterere og etiske hackere, kombinert med vår Argus sikkerhetsplattform sikrer at vi ligger i forkant av avanserte angrep fra Internett og beskytter våre kunder fra nye trusler." ]
                 ]
-            , span (Animation.render model.dnbAnim ++ [ class "logo-item", id "DNB" ])
+            , span (Animation.render model.dnbAnim ++ [ class "logo-item", id "dnb" ])
                 [ a [ target "_blank", rel "noopener noreferrer", href "https://www.dnb.no" ]
                     [ img  [ id "dnb-logo", class "bed-logo", src "/img/dnb.png", alt "DNB" ] [] ]
                 , p [ class "bed-text" ] [ text "DNB er mer enn bare en bank. Vår ambisjon er å være et av Europas ledende teknologiselskaper. Bank- og finansbransjen gjennomgår en enorm forandring, og kundeadferden endrer seg raskt. En kritisk del av denne transformasjonen er å etablere raskere og mer effektive måter å jobbe på." ]
@@ -185,7 +201,7 @@ view model =
                     [ img  [ class "bed-logo", src "/img/knowit.png", alt "Knowit" ] [] ]
                 , p [ class "bed-text" ] [ text "Knowit er et konsulentselskap som, i den stadig raskere digitaliseringen, skaper unike kundeverdier gjennom å tilby grenseoverskridende leveranser fra de tre forretningsområdene Experience, Insight og Solutions. Det er evnen til å kombinere kompetanse innen design og kommunikasjon, management consulting og IT som skiller oss fra andre konsulentfirmaer. Vår kultur preges av åpenhet, forståelse for kundens forretninger, høy spesialistkompetanse og en vilje til å utvikles kontinuerlig." ]
                 ]
-            , span (Animation.render model.tbaAnim ++ [ class "logo-item" ])
+            , span (Animation.render model.tbaAnim ++ [ class "logo-item", id "tba" ])
                 [ a [ target "_blank", rel "noopener noreferrer", href "" ]
                     [ h1 [] [ text "To be announced" ] ]
                 ]
