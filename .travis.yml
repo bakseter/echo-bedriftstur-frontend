@@ -1,0 +1,9 @@
+language: node_js
+node_js:
+    - "7"
+script:
+    - echo "Deployed!"
+install:
+    - npm install -g firebase-tools
+after-success:
+    - firebase deploy --project echo-bedriftstur-81a2e --token $FIREBASE_TOKEN
