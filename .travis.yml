@@ -4,6 +4,6 @@ node_js:
 install:
     - npm install -g firebase-tools elm uglify-js
 script:
-    - elm make public/src/Main.elm --output main.js && uglifyjs $1 --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output=$1
+    - cd public && elm make src/Main.elm --output main.js && uglifyjs $1 --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output=$1
 after-success:
     - firebase deploy --project echo-bedriftstur-81a2e --token $FIREBASE_TOKEN
