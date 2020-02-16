@@ -151,51 +151,9 @@ update msg model =
                     True ->
                         (model, Cmd.none)
                     False ->
-                        ({ model
-                            | showNavbar = True
-                            , navBtnAnimation = (Animation.interrupt 
-                                                     [ Animation.Messenger.send NavBtnTransition
-                                                     , Animation.to 
-                                                        [ Animation.translate (px 34) (px -8)
-                                                        ,  Animation.rotate (deg 45)
-                                                        ,  Animation.scale 0.7 
-                                                        ]
-                                                    ] 
-                                                    (Tuple.first model.navBtnAnimation)
-                                                    , Animation.interrupt 
-                                                    [ Animation.to 
-                                                        [ Animation.translate (px -35) (px 6)
-                                                        , Animation.rotate (deg -45)
-                                                        , Animation.scale 0.7
-                                                        ]
-                                                    ] 
-                                                    (Tuple.second model.navBtnAnimation)
-                                                )
-                        }
-                        , Cmd.none)
+                        ({ model | showNavbar = True, navBtnAnimation = newNavBtnStyle False model.navBtnAnimation }, Cmd.none)
             else
-                ({ model
-                    | showNavbar = False
-                    , navBtnAnimation = (Animation.interrupt 
-                                            [ Animation.Messenger.send NavBtnTransition
-                                            , Animation.to 
-                                                [ Animation.translate (px 0) (px 0)
-                                                ,  Animation.rotate (deg 0)
-                                                ,  Animation.scale 1.0 
-                                                ]
-                                            ] 
-                                            (Tuple.first model.navBtnAnimation)
-                                            , Animation.interrupt 
-                                            [ Animation.to 
-                                                [ Animation.translate (px 0) (px 0)
-                                                , Animation.rotate (deg 0)
-                                                , Animation.scale 1.0
-                                                ]
-                                            ] 
-                                            (Tuple.second model.navBtnAnimation)
-                                        )
-                    } 
-                    , Cmd.none)
+                ({ model | showNavbar = False, navBtnAnimation = newNavBtnStyle True model.navBtnAnimation }, Cmd.none)
         NavBtnTransition ->
             if model.hideLineNavBtn then
                 ({ model | hideLineNavBtn = False }, Cmd.none)
@@ -275,3 +233,43 @@ getNavbar show =
             ]
     else
         span [] []
+
+newNavBtnStyle menuActive style =
+    if menuActive then
+        (Animation.interrupt 
+            [ Animation.Messenger.send NavBtnTransition
+            , Animation.to 
+                [ Animation.translate (px 0) (px 0)
+                ,  Animation.rotate (deg 0)
+                ,  Animation.scale 1.0 
+                ]
+            ] 
+            (Tuple.first style)
+            , Animation.interrupt 
+            [ Animation.to 
+                [ Animation.translate (px 0) (px 0)
+                , Animation.rotate (deg 0)
+                , Animation.scale 1.0
+                ]
+            ] 
+            (Tuple.second style)
+        )
+    else
+        (Animation.interrupt 
+             [ Animation.Messenger.send NavBtnTransition
+             , Animation.to 
+                [ Animation.translate (px 34) (px -8)
+                ,  Animation.rotate (deg 45)
+                ,  Animation.scale 0.7 
+                ]
+            ] 
+            (Tuple.first style)
+            , Animation.interrupt 
+            [ Animation.to 
+                [ Animation.translate (px -35) (px 6)
+                , Animation.rotate (deg -45)
+                , Animation.scale 0.7
+                ]
+            ] 
+            (Tuple.second style)
+        )
