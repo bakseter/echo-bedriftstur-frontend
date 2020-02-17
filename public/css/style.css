@@ -38,7 +38,7 @@ a {
 
 .bed-logo {
     max-width: 300px;
-    max-height: 175x;
+    max-height: 175px;
     padding: 20px;
     transition: transform 0.5s;
 }
@@ -119,10 +119,7 @@ h1.anim-text {
     grid-template-columns: auto auto auto;
     grid-template-rows: auto auto;
 
-    padding-top: 5%;
-    padding-left: 10%;
-    padding-right: 10%;
-    padding-bottom: 10%;
+    padding: 5% 10% 10% 10%;
 }
 
 .hjem-content {
@@ -159,10 +156,13 @@ h1.anim-text {
 }
 
 .logo-item {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-gap: 5%;
     margin-top: 7%;
     position: relative;
     opacity: 0;
-    width: 30%;
+    width: 80%;
 }
 
 #tba {
@@ -260,7 +260,7 @@ h1.anim-text {
     font-size: 69px;
     display: grid;
     grid-template-columns: auto auto;
-    grid-gap: 2%;
+    grid-gap: 4%;
 }
 
 #linkedinLink {
@@ -363,12 +363,27 @@ h1.anim-text {
         padding-top: 5%;
     }
 
+    .om-info {
+        padding-bottom: 10%;
+    }
+
     #om-links {
-        padding-bottom: 3%;
+        padding-bottom: 6%;
+        grid-gap: 10%;
+    }
+
+    #githubLink {
+        padding-left: 10%;
+        padding-right: 10%;
+    }
+
+    #linkedinLink {
+        padding-left: 10%;
+        padding-right: 10%;
     }
 
     .portrett {
-        margin-top: 10%;
+        margin-top: 6%;
     }
 
     #om-tekst {
@@ -397,8 +412,6 @@ h1.anim-text {
     
     .program-item {
         grid-template-columns: 12% 88%;
-        margin-left: 10%;
-        margin-right: 10%;
     }
 
     .program-content {
