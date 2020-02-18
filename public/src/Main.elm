@@ -87,7 +87,7 @@ init path url key =
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
-                , modelVerified = Verified.init
+                , modelVerified = Verified.init url
                 }
     in
         case path of
@@ -149,6 +149,8 @@ update msg model =
                     ({ model | url = url, currentPage = Program }, Cmd.none)
                 "/om" ->
                     ({ model | url = url, currentPage = Om }, Cmd.none)
+                "/verified" ->
+                    ({ model | url = url, currentPage = Verified }, Cmd.none)
                 _ ->
                     ({ model | url = url, currentPage = NotFound}, Cmd.none)
         GotHjemMsg pageMsg ->
@@ -179,7 +181,8 @@ update msg model =
             else
                 ({ model | showNavbar = False, navBtnAnimation = newNavBtnStyle True model.navBtnAnimation }, Cmd.none)
         NavBtnTransition ->
-            if model.hideLineNavBtn then
+            if model.hideLineNavBtn
+            then
                 ({ model | hideLineNavBtn = False }, Cmd.none)
             else
                 ({ model | hideLineNavBtn = True }, Cmd.none)
