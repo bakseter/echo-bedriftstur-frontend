@@ -3,7 +3,6 @@ var app = Elm.Main.init ({
     flags: window.location.pathname
 });
 
-
 app.ports.logIn.subscribe(function(data) {
     var actionCodeSettings = {
         url : 'https://echobedriftstur.no/verified',
@@ -15,6 +14,7 @@ app.ports.logIn.subscribe(function(data) {
         })
         .catch(function(error) {
             console.log(error);
+            console.log("error on sendSignInLinkToEmail");
         });
 
     if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
@@ -29,6 +29,7 @@ app.ports.logIn.subscribe(function(data) {
             })
             .catch(function(error) {
                 console.log(error);
+                console.log("error on signInWithEmailLink");
             });
     }
 });

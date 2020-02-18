@@ -9,25 +9,23 @@ import String
 type Msg
     = TypedEmail String
     | LogIn
-    | LogInSuccessful Json.Encode.Value
 
 type alias Model = 
     { email : String
-    , info : String
+    , submittedEmail : Bool
     }
      
 init : Model
 init =
     { email = ""
-    , info = ""
+    , submittedEmail = False
     }
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    logInInfo LogInSuccessful
+    Sub.none
 
 port logIn : Json.Encode.Value -> Cmd msg
-port logInInfo : (Json.Encode.Value -> msg) -> Sub msg
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -35,41 +33,55 @@ update msg model =
         TypedEmail str ->
             ({ model | email = str }, Cmd.none)
         LogIn ->
-            (model, logIn (encode model))
-        LogInSuccessful json ->
-            ({ model | info = Json.Encode.encode 2 json }, Cmd.none)
-
+            ({ model | submittedEmail = True }, logIn (encode model))
 
 view : Model -> Html Msg
 view model =
-    div [ class "logg-inn" ]
-        [ div [] []
-        , div []
-            [ h1 [] [ text "Registrer deg/logg inn" ] 
-            , div [ id "login-info" ]
-                [ p [] 
-                    [ text "For å registrere deg eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
-                , p []
-                    [ text "Fornavn.Etternavn@student.uib.no" ]
-                , p []
-                    [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
-                ]
-            , div [ id "login-form" ]
-                [ h3 [] [ text "Email" ]
-                , input [ id "email", type_ "text", name "Email", Html.Events.onInput TypedEmail ] []
-                , isEmailCorrect model
-                , br [] []
-                , br [] []
-                , input [ id "submitBtn", type_ "submit", value "Logg inn", Html.Events.onClick LogIn ] []
-                ]
-            , p [] [ text model.info ]
-            ]
-        ]
+    showPage model
 
 encode : Model -> Json.Encode.Value
 encode model =
     Json.Encode.object
         [ ( "email", Json.Encode.string model.email ) ]
+
+
+showPage : Model -> Html Msg
+showPage model =
+    if model.submittedEmail
+    then
+        div [ class "logg-inn" ]
+            [ div [] []
+            , div []
+                [ h1 [] [ text "Registrer deg/logg inn" ] 
+                , div [ id "login-info" ]
+                    [ p [] 
+                        [ text "For å registrere deg eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
+                    , p []
+                        [ text "Fornavn.Etternavn@student.uib.no" ]
+                    , p []
+                        [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
+                    ]
+                , div [ id "login-form" ]
+                    [ h3 [] [ text "Email" ]
+                    , input [ id "email", type_ "text", name "Email", Html.Events.onInput TypedEmail ] []
+                    , isEmailCorrect model
+                    , br [] []
+                    , br [] []
+                    , input [ id "submitBtn", type_ "submit", value "Logg inn", Html.Events.onClick LogIn ] []
+                    ]
+                ]
+            ]
+    else
+        div [ class "logg-inn" ]
+            [ div [] []
+            , div []
+                [ h1 [] [ text "Registrer deg/logg inn" ]
+                , p []
+                    [ text ("Vi har nå sendt deg en mail på " ++ model.email ++ ".") ]
+                , p []
+                    [ text "Husk å sjekke søppelposten din!" ]
+                ]
+            ]
 
 -- TODO: make this less spaghetti
 isEmailCorrect : Model -> Html msg
