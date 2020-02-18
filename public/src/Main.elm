@@ -10,6 +10,7 @@ import Page.LoggInn as LoggInn
 import Page.Bedrifter as Bedrifter
 import Page.Program as Program
 import Page.Om as Om
+import Page.Verified as Verified
 import Html exposing (Html)
 import Html.Events
 import Animation exposing (deg, px)
@@ -35,6 +36,7 @@ type Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
+    | GotVerifiedMsg Verified.Msg
     | ShowNavbar Bool
     | NavBtnTransition
     | AnimateNavBtn Animation.Msg
@@ -45,6 +47,7 @@ type Page
     | Bedrifter
     | Program
     | Om
+    | Verified
     | NotFound
 
 type alias Model =
@@ -59,6 +62,7 @@ type alias Model =
     , modelBedrifter :Bedrifter.Model
     , modelProgram : Program.Model
     , modelOm : Om.Model
+    , modelVerified : Verified.Model
     }
 
 init : Maybe String -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
@@ -83,6 +87,7 @@ init path url key =
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
+                , modelVerified = Verified.init
                 }
     in
         case path of
@@ -98,6 +103,8 @@ init path url key =
                        ({ model | currentPage = Program }, Cmd.none)
                     "/om" ->
                         ({ model | currentPage = Om }, Cmd.none)
+                    "/verified" ->
+                        ({ model | currentPage = Verified }, Cmd.none)
                     _ ->
                         ({ model | currentPage = NotFound }, Cmd.none)
             Nothing ->
@@ -112,6 +119,7 @@ subscriptions model =
                     , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
                     , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
                     , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
+                    , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
                     ]
         , Animation.subscription AnimateNavBtn [ Tuple.first model.navBtnAnimation, Tuple.second model.navBtnAnimation ]
         ]
@@ -158,6 +166,9 @@ update msg model =
         GotLoggInnMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg LoggInn.update pageMsg model.modelLoggInn GotLoggInnMsg
             in ({ model | modelLoggInn = newModel }, cmd)
+        GotVerifiedMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Verified.update pageMsg model.modelVerified GotVerifiedMsg
+            in ({ model | modelVerified = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
                 case linksToHome of
@@ -215,6 +226,8 @@ view model =
                 [ showPage GotProgramMsg Program.view model.modelProgram ]
             Om ->
                 [ showPage GotOmMsg Om.view model.modelOm ]
+            Verified ->
+                [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
             NotFound ->
                 [ div [ class "not-found" ]
                     [ h1 [] [ text "404" ]

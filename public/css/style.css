@@ -155,7 +155,7 @@ h1.anim-text {
 
 .logg-inn {
     display: grid;
-    grid-template-columns: 30% 40% 30%;
+    grid-template-columns: 20% 60% 20%;
     justify-items: center;
 }
 
@@ -292,6 +292,21 @@ h1.anim-text {
     padding-left: 3%;
     padding-right: 3%;
     border-radius: 0.7rem;
+}
+
+
+#email-valid {
+    color: #11EE11;
+    padding: 2%;
+}
+
+#email-invalid {
+    color: #FF0000;
+    padding: 2%;
+}
+
+#login-info p {
+    width: 100%;
 }
 
 .portrett {
