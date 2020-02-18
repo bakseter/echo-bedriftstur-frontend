@@ -9,9 +9,8 @@ import String
 
 type Msg
     = TypedEmail String
-    | LogIn
+    | SendSignInLink
     | SendSignInLinkError Json.Encode.Value
-    | LogInWithLinkError Json.Encode.Value
 
 type Error
     = None
@@ -19,8 +18,6 @@ type Error
     | UnathorizedContinueUri
     | InvalidContinueUri
     | ArgumentError
-    | ExpiredActionCode
-    | UserDisabled
 
 type alias Model = 
     { email : String
@@ -39,28 +36,19 @@ init =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch 
-        [ sendSignInLinkError SendSignInLinkError
-        , signInWithLinkError LogInWithLinkError
-        ]
+     sendSignInLinkError SendSignInLinkError
 
-port logIn : Json.Encode.Value -> Cmd msg
+port sendSignInLink : Json.Encode.Value -> Cmd msg
 port sendSignInLinkError : (Json.Encode.Value -> msg) -> Sub msg
-port signInWithLinkError : (Json.Encode.Value -> msg) -> Sub msg
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         TypedEmail str ->
             ({ model | email = str }, Cmd.none)
-        LogIn ->
-            ({ model | submittedEmail = True }, logIn (encode model))
+        SendSignInLink ->
+            ({ model | submittedEmail = True }, sendSignInLink (encode model))
         SendSignInLinkError json ->
-            let jsonStr = Json.Encode.encode 0 json
-                error = errorFromString (getErrorCode jsonStr)
-            in
-                ({ model | error = error }, Cmd.none)
-        LogInWithLinkError json ->
             let jsonStr = Json.Encode.encode 0 json
                 error = errorFromString (getErrorCode jsonStr)
             in
@@ -109,7 +97,7 @@ showPage model =
                     , isEmailCorrect model
                     , br [] []
                     , br [] []
-                    , input [ id "submitBtn", type_ "submit", value "Logg inn", Html.Events.onClick LogIn ] []
+                    , input [ id "submitBtn", type_ "submit", value "Logg inn", Html.Events.onClick SendSignInLink ] []
                     ]
                 , h3 [] [text (errorMessageToUser model.error) ]
                 ]
@@ -154,10 +142,6 @@ errorFromString str =
             InvalidContinueUri
         "auth/argumenterror" ->
             ArgumentError
-        "auth/expired-action-code" ->
-            ExpiredActionCode
-        "auth/user-disabled" ->
-            UserDisabled
         _ ->
             None
 
@@ -166,10 +150,6 @@ errorMessageToUser error =
     case error of
         InvalidEmail ->
             "Mailen du har skrevet inn har ikke riktig format. Prøv igjen"
-        ExpiredActionCode ->
-            "Innlogginslinken har utløpt. Prøv å send en ny link"
-        UserDisabled ->
-            "Brukeren din har blitt deaktivert."
         None ->
             ""
         _ ->
