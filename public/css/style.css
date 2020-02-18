@@ -19,6 +19,7 @@ html {
 
 body {
     margin: 0px;
+    width: 100%;
 }
 
 a {
@@ -35,11 +36,13 @@ p {
     display: none;
 }
 
+#viewport {
+    position: fixed;
+}
+
 .bed-logo {
-    max-width: 250px;
-    max-height: 140px;
-    width: auto;
-    height: auto;
+    max-width: 300px;
+    max-height: 175px;
     padding: 20px;
     transition: transform 0.5s;
 }
@@ -49,6 +52,7 @@ p {
 
 .text {
     font-size: 20px;
+    line-height: 1.5;
 }
 
 .menu {
@@ -124,10 +128,7 @@ h1.anim-text {
     grid-template-columns: auto auto auto;
     grid-template-rows: auto auto;
 
-    padding-top: 5%;
-    padding-left: 10%;
-    padding-right: 10%;
-    padding-bottom: 10%;
+    padding: 5% 10% 10% 10%;
 }
 
 .hjem-content {
@@ -158,16 +159,29 @@ h1.anim-text {
     justify-items: center;
 }
 
-.bedrifter {
+#bedrifter-content { 
     display: grid;
-    grid-template-columns: auto auto auto;
-    justify-items: center;
-    align-items: center;
+    grid-template-columns: auto;
+}
+
+.bed-text {
+    font-family: IBM Plex Sans;
+    font-size: 16px;
+    line-height: 1.8;
 }
 
 .logo-item {
-    padding-top: 10%;
-    padding-bottom: 10%;
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-gap: 5%;
+    margin-top: 7%;
+    position: relative;
+    opacity: 0;
+    width: 80%;
+}
+
+#tba {
+    display: none;
 }
 
 .program {
@@ -183,6 +197,9 @@ h1.anim-text {
     border-radius: 0.7rem;
     display: grid;
     grid-template-columns: 12% 88%;
+}
+.program-item:hover {
+    cursor:pointer;
 }
 
 .program-content {
@@ -245,12 +262,36 @@ h1.anim-text {
     background-image: linear-gradient(to right, var(--color-bekk) 50%, var(--foreground) 50%);
 }
 
-.om {
+#om-content {
     padding: 5%;
+    padding-bottom: 3%;
     display: grid;
     grid-template-columns: auto auto auto;
     grid-template-rows: auto auto auto;
     justify-items: center;
+}
+
+#om-links {
+    font-size: 69px;
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-gap: 4%;
+}
+
+#linkedinLink {
+    background-color: var(--foreground);
+    justify-self: right;
+    padding-left: 3%;
+    padding-right: 3%;
+    border-radius: 0.7rem;
+}
+
+#githubLink {
+    background-color: var(--foreground);
+    justify-self: left;
+    padding-left: 3%;
+    padding-right: 3%;
+    border-radius: 0.7rem;
 }
 
 .portrett {
@@ -275,11 +316,6 @@ h1.anim-text {
     grid-row: 2 / span 1;
 }
 
-.om-info {
-    padding-top: 2%;
-    padding-bottom: 5%;
-}
-
 .navn {
     font-weight: bold;
     font-size: 22px;
@@ -288,6 +324,11 @@ h1.anim-text {
 
 .tittel {
     text-align: center;
+}
+
+.hidden-mail {
+    text-align: center;
+    font-style: italic;
 }
 
 .mail {
@@ -331,14 +372,33 @@ h1.anim-text {
         grid-template-columns: auto;
     }
 
-    .om {
+    #om-content {
         grid-template-columns: auto;
         padding: 2%;
         padding-top: 5%;
     }
 
+    .om-info {
+        padding-bottom: 10%;
+    }
+
+    #om-links {
+        padding-bottom: 6%;
+        grid-gap: 10%;
+    }
+
+    #githubLink {
+        padding-left: 10%;
+        padding-right: 10%;
+    }
+
+    #linkedinLink {
+        padding-left: 10%;
+        padding-right: 10%;
+    }
+
     .portrett {
-        margin-top: 10%;
+        margin-top: 6%;
     }
 
     #om-tekst {
@@ -357,10 +417,6 @@ h1.anim-text {
         grid-row: 6 / span 1;
     }
 
-    .bedrifter {
-        grid-template-columns: auto;
-    }
-
     .text {
         font-size: 18px;
     }
@@ -371,8 +427,6 @@ h1.anim-text {
     
     .program-item {
         grid-template-columns: 12% 88%;
-        margin-left: 10%;
-        margin-right: 10%;
     }
 
     .program-content {
@@ -385,6 +439,27 @@ h1.anim-text {
 
     .bed-logo:hover {
         transform: scale(1.0);
+    }
+
+    .bed-text {
+        display: none;
+    }
+
+    .logo-item {
+        position: static;
+        width: 65%;
+        padding-top: 10%;
+        padding-bottom: 10%;
+    }
+
+    #bedrifter-content {
+        justify-items: center;
+    }
+
+    .bed-logo {
+        max-width: 100%;
+        margin: auto;
+        padding: 0%;
     }
 
     #navbar {

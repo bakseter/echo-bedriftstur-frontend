@@ -2,8 +2,8 @@ module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img)
-import Html.Attributes exposing (href, class, id, alt, src)
+import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, i)
+import Html.Attributes exposing (href, class, id, alt, src, rel, target)
 import Url
 import Page.Hjem as Hjem
 import Page.LoggInn as LoggInn
@@ -14,17 +14,17 @@ import Html exposing (Html)
 import Html.Events
 import Animation exposing (deg, px)
 import Animation.Messenger
-import Svg exposing (svg, line)
+import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2, width, height)
 
 main =
-    Browser.application {
-        init = init,
-        subscriptions = subscriptions,
-        update = update,
-        view = view,
-        onUrlChange = UrlChanged,
-        onUrlRequest = LinkClicked
+    Browser.application 
+    { init = init
+    , subscriptions = subscriptions
+    , update = update
+    , view = view
+    , onUrlChange = UrlChanged
+    , onUrlRequest = LinkClicked
     }
 
 type Msg
@@ -164,54 +164,11 @@ update msg model =
                     True ->
                         (model, Cmd.none)
                     False ->
-                        ({ model
-                            | showNavbar = True
-                            , navBtnAnimation = (Animation.interrupt 
-                                                     [ Animation.Messenger.send NavBtnTransition
-                                                     , Animation.to 
-                                                        [ Animation.translate (px 34) (px -8)
-                                                        ,  Animation.rotate (deg 45)
-                                                        ,  Animation.scale 0.7 
-                                                        ]
-                                                    ] 
-                                                    (Tuple.first model.navBtnAnimation)
-                                                    , Animation.interrupt 
-                                                    [ Animation.to 
-                                                        [ Animation.translate (px -35) (px 6)
-                                                        , Animation.rotate (deg -45)
-                                                        , Animation.scale 0.7
-                                                        ]
-                                                    ] 
-                                                    (Tuple.second model.navBtnAnimation)
-                                                )
-                        }
-                        , Cmd.none)
+                        ({ model | showNavbar = True, navBtnAnimation = newNavBtnStyle False model.navBtnAnimation }, Cmd.none)
             else
-                ({ model
-                    | showNavbar = False
-                    , navBtnAnimation = (Animation.interrupt 
-                                            [ Animation.Messenger.send NavBtnTransition
-                                            , Animation.to 
-                                                [ Animation.translate (px 0) (px 0)
-                                                ,  Animation.rotate (deg 0)
-                                                ,  Animation.scale 1.0 
-                                                ]
-                                            ] 
-                                            (Tuple.first model.navBtnAnimation)
-                                            , Animation.interrupt 
-                                            [ Animation.to 
-                                                [ Animation.translate (px 0) (px 0)
-                                                , Animation.rotate (deg 0)
-                                                , Animation.scale 1.0
-                                                ]
-                                            ] 
-                                            (Tuple.second model.navBtnAnimation)
-                                        )
-                    } 
-                    , Cmd.none)
+                ({ model | showNavbar = False, navBtnAnimation = newNavBtnStyle True model.navBtnAnimation }, Cmd.none)
         NavBtnTransition ->
-            if model.hideLineNavBtn
-            then
+            if model.hideLineNavBtn then
                 ({ model | hideLineNavBtn = False }, Cmd.none)
             else
                 ({ model | hideLineNavBtn = True }, Cmd.none)
@@ -231,22 +188,22 @@ view model =
                         [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                     ]
                 , span [ id "navBtn", Html.Events.onClick (ShowNavbar False) ]
-                [ svg [ width "100", height "100" ]
-                    [ line (Animation.render (Tuple.first model.navBtnAnimation)
-                    ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
-                    , (getMiddleLine model.hideLineNavBtn)
-                    , line (Animation.render (Tuple.second model.navBtnAnimation) 
-                        ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
-                    ] 
-                ]
+                    [ Svg.svg [ width "100", height "100" ]
+                        [ Svg.line (Animation.render (Tuple.first model.navBtnAnimation)
+                            ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
+                        , (getMiddleLine model.hideLineNavBtn)
+                        , Svg.line (Animation.render (Tuple.second model.navBtnAnimation) 
+                            ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
+                        ] 
+                    ]
                 , span [ class "menuItem", id "logg-inn" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
                 , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                 , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
                 , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
-            , span [ id "navbar" ] [ getNavbar model.showNavbar ]
+                , span [ id "navbar" ] [ getNavbar model.showNavbar ]
             ]
-         ] ++
+        ] ++
         case model.currentPage of
             Hjem ->
                 [ showPage GotHjemMsg Hjem.view model.modelHjem ]
@@ -277,21 +234,59 @@ updateWithAndSendMsg updateFunc msg model msg2 =
 
 getMiddleLine : Bool -> Svg.Svg msg
 getMiddleLine hide =
-    if hide 
-    then 
-        line [] []
+    if hide then 
+        Svg.line [] []
     else
-        line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
+        Svg.line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
 
 getNavbar : Bool -> Html Msg
 getNavbar show =
-    case show of
-        True ->
-            div [ id "navbar-content" ] 
-                [ a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ] 
-                , a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
-                , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
-                , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
+    if show then
+        div [ id "navbar-content" ] 
+            [ a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
+            , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
+            , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
+            , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
+            ]
+    else
+        span [] []
+
+newNavBtnStyle menuActive style =
+    if menuActive then
+        (Animation.interrupt 
+            [ Animation.Messenger.send NavBtnTransition
+            , Animation.to 
+                [ Animation.translate (px 0) (px 0)
+                ,  Animation.rotate (deg 0)
+                ,  Animation.scale 1.0 
                 ]
-        False ->
-            span [] []
+            ] 
+            (Tuple.first style)
+            , Animation.interrupt 
+            [ Animation.to 
+                [ Animation.translate (px 0) (px 0)
+                , Animation.rotate (deg 0)
+                , Animation.scale 1.0
+                ]
+            ] 
+            (Tuple.second style)
+        )
+    else
+        (Animation.interrupt 
+             [ Animation.Messenger.send NavBtnTransition
+             , Animation.to 
+                [ Animation.translate (px 34) (px -8)
+                ,  Animation.rotate (deg 45)
+                ,  Animation.scale 0.7 
+                ]
+            ] 
+            (Tuple.first style)
+            , Animation.interrupt 
+            [ Animation.to 
+                [ Animation.translate (px -35) (px 6)
+                , Animation.rotate (deg -45)
+                , Animation.scale 0.7
+                ]
+            ] 
+            (Tuple.second style)
+        )
