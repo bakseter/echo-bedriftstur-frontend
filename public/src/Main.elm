@@ -11,7 +11,6 @@ import Page.Bedrifter as Bedrifter
 import Page.Program as Program
 import Page.Om as Om
 import Page.Verified as Verified
-import Page.MinSide as MinSide
 import Html exposing (Html)
 import Html.Events
 import Animation exposing (deg, px)
@@ -38,7 +37,6 @@ type Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
     | GotVerifiedMsg Verified.Msg
-    | GotMinSideMsg MinSide.Msg
     | ShowNavbar Bool
     | NavBtnTransition
     | AnimateNavBtn Animation.Msg
@@ -50,7 +48,6 @@ type Page
     | Program
     | Om
     | Verified
-    | MinSide
     | NotFound
 
 type alias Model =
@@ -66,7 +63,6 @@ type alias Model =
     , modelProgram : Program.Model
     , modelOm : Om.Model
     , modelVerified : Verified.Model
-    , modelMinSide : MinSide.Model
     }
 
 init : Maybe String -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
@@ -91,8 +87,7 @@ init path url key =
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
-                , modelVerified = Verified.init url
-                , modelMinSide = MinSide.init
+                , modelVerified = Verified.init url key
                 }
     in
         case path of
@@ -110,8 +105,6 @@ init path url key =
                         ({ model | currentPage = Om }, Cmd.none)
                     "/verified" ->
                         ({ model | currentPage = Verified }, Cmd.none)
-                    "/minside" ->
-                        ({ model | currentPage = MinSide }, Cmd.none)
                     _ ->
                         ({ model | currentPage = NotFound }, Cmd.none)
             Nothing ->
@@ -127,7 +120,6 @@ subscriptions model =
                     , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
                     , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
                     , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
-                    , manageSubscriptions GotMinSideMsg MinSide.subscriptions model.modelMinSide
                     ]
         , Animation.subscription AnimateNavBtn [ Tuple.first model.navBtnAnimation, Tuple.second model.navBtnAnimation ]
         ]
@@ -159,6 +151,8 @@ update msg model =
                     ({ model | url = url, currentPage = Om }, Cmd.none)
                 "/verified" ->
                     ({ model | url = url, currentPage = Verified }, Cmd.none)
+                "/minside" ->
+                    ({ model | url = url, currentPage = Verified }, Cmd.none)
                 _ ->
                     ({ model | url = url, currentPage = NotFound}, Cmd.none)
         GotHjemMsg pageMsg ->
@@ -179,9 +173,6 @@ update msg model =
         GotVerifiedMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg Verified.update pageMsg model.modelVerified GotVerifiedMsg
             in ({ model | modelVerified = newModel }, cmd)
-        GotMinSideMsg pageMsg ->
-            let (newModel, cmd) = updateWithAndSendMsg MinSide.update pageMsg model.modelMinSide GotMinSideMsg
-            in ({ model | modelMinSide = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
                 case linksToHome of
@@ -242,8 +233,6 @@ view model =
                 [ showPage GotOmMsg Om.view model.modelOm ]
             Verified ->
                 [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
-            MinSide ->
-                [ showPage GotMinSideMsg MinSide.view model.modelMinSide ]
             NotFound ->
                 [ div [ class "not-found" ]
                     [ h1 [] [ text "404" ]

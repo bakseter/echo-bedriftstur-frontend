@@ -1,27 +1,39 @@
-module Page.MinSide exposing (init, subscriptions, update, view, Model, Msg)
+port module Page.MinSide exposing (init, subscriptions, update, view, Model, Msg)
 
-import Html exposing (Html, div, span, h1, p, text)
-import Html.Attributes exposing (class, id)
+import Html exposing (Html, div, span, h1, h3, p, text, button, option, select, input, br)
+import Html.Attributes exposing (class, id, type_, value, name, placeholder, disabled)
+import Html.Events
+import Json.Encode
 
 type Msg
-    = None
 
 type alias Model =
-    Html Msg
+    { email : String
+    , firstName : String
+    , lastName : String
+    , degree : Degree
+    }
+
 
 init : Model
 init =
-    div [] []
+    { email = ""
+    , firstName = ""
+    , lastName = ""
+    , degree = None
+    }
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ requestedUserInfo RequestedUserInfo
+        , gotUserInfo GotUserInfo
+        ]
+
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    (model, Cmd.none)
+    case msg of
 
 view : Model -> Html Msg
 view model =
-    div [ class "min-side" ]
-        [ text "min side" ]

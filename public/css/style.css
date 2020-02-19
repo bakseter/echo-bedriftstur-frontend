@@ -364,6 +364,19 @@ h1.anim-text {
     text-align: center;
 }
 
+#min-side-content {
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+    justify-items: center;
+}
+
+.min-side-item {
+    width: 30%;
+    grid-column: 2;
+    margin: 1.5%;
+    display: block;
+}
+
 @media (max-device-width: 415px), (max-width: 900px) {
     .menu {
         grid-template-columns: 60% 10% 30%;
