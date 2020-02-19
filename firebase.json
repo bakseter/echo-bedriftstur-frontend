@@ -1,5 +1,6 @@
 {
-  "hosting": {
+  "hosting": [{
+    "target": "app",
     "public": "public",
     "ignore": [
       "firebase.json",
@@ -12,5 +13,20 @@
         "source": "**",
         "destination": "/index.html"
     }]
-  }
+  },
+  {
+    "target": "auth",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**elm.json",
+      "**/elm-stuff/**"
+    ],
+    "rewrites": [{
+        "source": "**",
+        "destination": "/index.html"
+    }]
+  }]
 }

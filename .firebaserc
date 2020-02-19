@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "echo-bedriftstur-81a2e"
+  },
+  "targets": {
+    "echo-bedriftstur-81a2e": {
+      "hosting": {
+        "auth": [
+          "echobedriftstur-userauth"
+        ],
+        "app": [
+          "echobedriftstur-81a2e"
+        ]
+      }
+    }
   }
 }

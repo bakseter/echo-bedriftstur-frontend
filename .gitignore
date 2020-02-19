@@ -67,3 +67,4 @@ node_modules/
 # elm build files
 main.js
 elm-stuff/
+.eslintrc.json
