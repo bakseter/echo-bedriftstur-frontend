@@ -64,11 +64,17 @@ app.ports.getUserInfo.subscribe(function(data) {
         db.collection("users").where("email", "==", user.email)
             .get()
             .then(function(querySnapshot) {
-                querySnapshot.forEach(function(doc) {
-                    // doc.data() is never undefined for query doc snapshots
-                    console.log(doc.id, " => ", doc.data());
-                    app.ports.gotUserInfo.send(doc.data());
-                });
+                if (querySnapshot.empty) {
+                    console.log("user info empty at ", user.email);
+                    app.ports.userInfoEmpty.send(true);
+                    return;
+                }
+                else {
+                    querySnapshot.forEach(function(doc) {
+                        console.log(doc.id, " => ", doc.data());
+                        app.ports.gotUserInfo.send(doc.data());
+                    });
+                }
             })
             .catch(function(error) {
                 console.log("Error getting documents: ", error);
@@ -83,18 +89,43 @@ app.ports.updateUserInfo.subscribe(function(data) {
     var user = firebase.auth().currentUser;
     
     if (user && user.emailVerified) {
-        db.collection("users").add({
-            email: user.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            degree: data.degree
-        })
-        .then(function(docRef) {
-            console.log("Document written with ID:  ", docRef.id);
-        })
-        .catch(function(error) {
-            console.log(error);
-        });
+        if (data.userInfoEmpty) {
+            db.collection("users").add({
+                email: user.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                degree: data.degree
+            })
+            .then(function(docRef) {
+                console.log("Document written with ID:  ", docRef.id);
+            })
+            .catch(function(error) {
+                console.log(error);
+            });
+        }
+        else {
+            db.collection("users").where("email", "==", user.email)
+                .get()
+                .then(function(querySnapshot) {
+                    querySnapshot.forEach(function(doc) {
+                        var userRef = db.collection("users").doc(doc.id);
+                        return userRef.update({
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                            degree: data.degree 
+                        })
+                        .then(function() {
+                            console.log("updated user info");
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+                    });
+                })
+                .catch(function(error) {
+                    console.log("Error getting documents: ", error);
+                });
+        }
     }
 });
 

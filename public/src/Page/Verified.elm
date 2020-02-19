@@ -18,6 +18,7 @@ type Msg
     | SignOutFailed Json.Encode.Value
     | RequestedUserInfo Json.Encode.Value
     | GotUserInfo Json.Encode.Value
+    | UserInfoEmpty Json.Encode.Value
     | AttemptSignOut
     | UpdateUserInfo
     | TypedFirstName String
@@ -56,6 +57,7 @@ type alias Model =
     , key : Browser.Navigation.Key
     , authCode : AuthCode
     , userInfo : String
+    , userInfoEmpty : Bool
     , error : Error
     , currentSubPage : SubPage
     , email : String
@@ -70,6 +72,7 @@ port signInWithLinkError : (Json.Encode.Value -> msg) -> Sub msg
 port getUserInfo : Json.Encode.Value -> Cmd msg
 port gotUserInfo : (Json.Encode.Value -> msg) -> Sub msg
 port updateUserInfo : Json.Encode.Value -> Cmd msg
+port userInfoEmpty : (Json.Encode.Value -> msg) -> Sub msg
 
 port attemptSignOut : Json.Encode.Value -> Cmd msg
 port signOutError : (Json.Encode.Value -> msg) -> Sub msg
@@ -81,8 +84,9 @@ init url key =
     , key = key
     , authCode = getAuthCode url
     , userInfo = ""
+    , userInfoEmpty = True
     , error = NoError
-    , currentSubPage = Verified
+    , currentSubPage = MinSide
     , email = ""
     , firstName = ""
     , lastName = ""
@@ -97,6 +101,7 @@ subscriptions model =
         , signOutSucceeded SignOutSucceeded
         , signOutError SignOutFailed
         , gotUserInfo GotUserInfo
+        , userInfoEmpty UserInfoEmpty
         ]
 
 update : Msg  -> Model -> (Model, Cmd Msg)
@@ -117,9 +122,11 @@ update msg model =
                 lastName = decodeUserInfo json "lastName"
                 degree = stringToDegree (decodeUserInfo json "degree")
             in
-                ({ model | email = email, firstName = firstName, lastName = lastName, degree = degree }, Cmd.none) 
+                ({ model | email = email, firstName = firstName, lastName = lastName, degree = degree, userInfoEmpty = False }, Cmd.none) 
         UpdateUserInfo ->
-            (model, updateUserInfo (encodeUserInfo model))
+            ({ model | userInfoEmpty = False }, updateUserInfo (encodeUserInfo model))
+        UserInfoEmpty _ ->
+            ({ model | userInfoEmpty = True }, Cmd.none)
         AttemptSignOut ->
             (model, attemptSignOut (encode "requestedLogOut" True))
         SignOutSucceeded _ ->
@@ -171,9 +178,10 @@ showPage model =
                             , option [ value "PROG" ] [ text (degreeToString PROG) ]
                             ]
                         ]
-                    , button [ class "min-side-item", type_ "button", Html.Events.onClick UpdateUserInfo ] [ text "Lagre endringer" ]
-                    , button [ class "min-side-item", type_ "button", Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
-                    , h3 [] [ text (model.email ++ ", " ++ model.firstName ++ ", " ++ model.lastName ++ ", " ++ (degreeToString model.degree)) ]
+                    , div [ class "min-side-item", id "min-side-buttons" ]
+                        [ button [ type_ "button", Html.Events.onClick UpdateUserInfo ] [ text "Lagre endringer" ]
+                        , button [ type_ "button", Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
+                        ]
                     ]
                 ]
 
@@ -248,8 +256,8 @@ encodeUserInfo model =
     Json.Encode.object  [ ("firstName", Json.Encode.string model.firstName)
                         , ("lastName", Json.Encode.string model.lastName)
                         , ("degree", Json.Encode.string (degreeToString model.degree))
+                        , ("userInfoEmpty", Json.Encode.bool model.userInfoEmpty)
                         ]
-                    
 
 degreeToString : Degree -> String
 degreeToString degree =
@@ -346,9 +354,6 @@ degreeToStringShorthand degree =
             "PROG"
         None ->
             ""
-redirectUrl : Url.Url -> String
-redirectUrl url =
-    Url.Builder.crossOrigin ("https://" ++ url.host) [ "minside" ] []
 
 decodeUserInfo : Json.Encode.Value -> String -> String
 decodeUserInfo json field =

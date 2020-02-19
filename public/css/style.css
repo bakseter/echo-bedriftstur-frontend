@@ -368,6 +368,7 @@ h1.anim-text {
     display: grid;
     grid-template-columns: 20% 60% 20%;
     justify-items: center;
+    padding: 5%;
 }
 
 .min-side-item {
