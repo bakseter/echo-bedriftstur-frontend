@@ -11,5 +11,5 @@ deploy:
     provider: firebase
     token:
         secure: "WEPpSx0yo37We9ZWdwHejUs2i/L1/B8EJRTtyrcYPF0ljsUn6k2pptpbh8tXwm7NzpUDcR+7TlIUjAVywwcKb4FlFI5WeqsF7mpv0//NXJ6SbyJzgd+NbWdRaDdVEbLSgmDneshUkbbUDWbBKTHoWK23+ajgE7gxk3NL00oDUVmZwt8e3+asg2IexPVQuVTCStxNjLBD1FLWsRpx2ojVeoyP2oGV4VBrkQwOvSnyG49UmPbOsOPDQj5YrDkoY+VK8UZGUNPgK37/dIUJ5cbJ9y/OyDBOtL/C8UgYYP0ZCODrOidCb7a/qP2yT0XJI55Z6wuzcQj8cgqofz9sWPDVjSmIcoURx4pu19aaLAf8cSegsBj/svIBP3lOcxI5pnloXUYBJvqqjBhEFOYV1DW3LTzBovTGcIpbE9wDVmxvSvpaqvrVPiYlVu32RIp9Kfq49IGlg92y1H3dvgEvUFxTU5/skr4zAg00bYUgcy4EDdPF4fHCkhodFkMWd3bkeMctEHknRaJoMwqfomDM2tIJuILe8mdgEON4eHC67WVslcuoUBFDjIAsXkPDJVEzKOZHz5ZZaufXM2VBUi8vgn8IfDfheM46AIRj4FPBLJ6IXk7gfmijfx/9KqcV+XbE/fd8dZrDUrU57lgwIWUuJQglnpTwj8g1ALunJPJvT6jv7jk="
-    project: "echo-bedriftstur-81a2e"
+    project: "echo bedriftstur"
     message: "Travis CI deploy"
