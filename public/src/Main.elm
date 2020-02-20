@@ -113,15 +113,17 @@ init path url key =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ Sub.batch [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
-                    , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
-                    , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
-                    , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
-                    , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
-                    , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
-                    ]
-        , Animation.subscription AnimateNavBtn [ Tuple.first model.navBtnAnimation, Tuple.second model.navBtnAnimation ]
+    Sub.batch 
+        [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
+        , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
+        , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+        , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
+        , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
+        , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
+        , Animation.subscription AnimateNavBtn
+            [ Tuple.first model.navBtnAnimation
+            , Tuple.second model.navBtnAnimation
+            ]
         ]
 
 manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg

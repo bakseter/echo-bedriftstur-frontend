@@ -49,8 +49,7 @@ update msg model =
         SendSignInLink ->
             ({ model | submittedEmail = True }, sendSignInLink (encode model))
         SendSignInLinkError json ->
-            let jsonStr = Json.Encode.encode 0 json
-                error = errorFromString (getErrorCode jsonStr)
+            let error = errorFromString <| getErrorCode <| Json.Encode.encode 0 json
             in
                 ({ model | error = error }, Cmd.none)
 
@@ -108,10 +107,11 @@ isEmailCorrect : Model -> Html msg
 isEmailCorrect model =
     let split = String.split "@" model.email
         domain = List.head (List.drop ((List.length split) - 1) split)
+        invalid = i [class "fa fa-times", id "email-invalid" ] []
     in
         if List.length split == 1 || List.head split == Just "" || List.head split == Nothing
         then
-            i [ class "fa fa-times", id "email-invalid" ] []
+            invalid
         else
             case domain of
                 Just str ->
@@ -119,9 +119,9 @@ isEmailCorrect model =
                     then
                         i [ class "fa fa-check", id "email-valid" ] []
                     else
-                        i [class "fa fa-times", id "email-invalid" ] []
+                        invalid
                 Nothing ->
-                        i [class "fa fa-times", id "email-invalid" ] []
+                        invalid
 
 getErrorCode : String -> String
 getErrorCode json =

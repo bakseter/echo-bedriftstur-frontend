@@ -1,4 +1,4 @@
-module Page.Bedrifter exposing (init, subscriptions, update, view, Model, Msg, slideInStyle)
+module Page.Bedrifter exposing (init, subscriptions, update, view, Model, Msg)
 
 import Html exposing (Html, div, span, text, a, img, h1, h2, p)
 import Html.Attributes exposing (class, id, target, rel, href, src, alt)
@@ -222,7 +222,8 @@ ease : Animation.Interpolation
 ease =
     Animation.spring
         { stiffness = 80
-        , damping = 20 }
+        , damping = 20
+        }
 
 slideInStyle : Animation.State -> Animation.State
 slideInStyle anim =

@@ -78,6 +78,7 @@ app.ports.getUserInfo.subscribe(function(data) {
             })
             .catch(function(error) {
                 console.log("Error getting documents: ", error);
+                app.ports.getUserInfoError.send(error);
             });
     }
     else {
@@ -90,7 +91,7 @@ app.ports.updateUserInfo.subscribe(function(data) {
     
     if (user && user.emailVerified) {
         if (data.userInfoEmpty) {
-            db.collection("users").add({
+            db.collection("users").doc(user.uid).set({
                 email: user.email,
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -98,8 +99,11 @@ app.ports.updateUserInfo.subscribe(function(data) {
             })
             .then(function(docRef) {
                 console.log("Document written with ID:  ", docRef.id);
+                app.ports.updatedUserInfo.send(true);
             })
             .catch(function(error) {
+                //TODO implement
+                app.ports.updateUserInfoError.send(error);
                 console.log(error);
             });
         }
@@ -115,9 +119,12 @@ app.ports.updateUserInfo.subscribe(function(data) {
                             degree: data.degree 
                         })
                         .then(function() {
+                            app.ports.updatedUserInfo.send(true);
                             console.log("updated user info");
                         })
                         .catch(function(error) {
+                            //TODO implement
+                            app.ports.updateUserInfoError.send(error);
                             console.log(error);
                         });
                     });

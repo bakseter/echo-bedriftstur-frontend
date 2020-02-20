@@ -1,6 +1,6 @@
 port module Page.Verified exposing (init, subscriptions, update, view, Model, Msg)
 
-import Html exposing (Html, div, span, br, text, p, input, button, select, option, h3)
+import Html exposing (Html, div, span, br, text, p, input, button, select, option, h3, h2)
 import Html.Attributes exposing (class, id, type_, value, placeholder, disabled)
 import Html.Events
 import Url
@@ -17,6 +17,7 @@ type Msg
     | SignOutSucceeded Json.Encode.Value
     | SignOutFailed Json.Encode.Value
     | RequestedUserInfo Json.Encode.Value
+    | GetUserInfoError Json.Encode.Value
     | GotUserInfo Json.Encode.Value
     | UserInfoEmpty Json.Encode.Value
     | AttemptSignOut
@@ -35,6 +36,7 @@ type Error
     | ExpiredActionCode
     | InvalidActionCode
     | UserDisabled
+    | FirebaseError
 
 type SubPage
     = Verified
@@ -70,8 +72,12 @@ port signInSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 port signInWithLinkError : (Json.Encode.Value -> msg) -> Sub msg
 
 port getUserInfo : Json.Encode.Value -> Cmd msg
+port getUserInfoError : (Json.Encode.Value -> msg) -> Sub msg
 port gotUserInfo : (Json.Encode.Value -> msg) -> Sub msg
+
 port updateUserInfo : Json.Encode.Value -> Cmd msg
+port updateUserInfoError : (Json.Encode.Value -> msg) -> Sub msg
+port updatedUserInfo : (Json.Encode.Value -> msg) -> Sub msg
 port userInfoEmpty : (Json.Encode.Value -> msg) -> Sub msg
 
 port attemptSignOut : Json.Encode.Value -> Cmd msg
@@ -100,6 +106,7 @@ subscriptions model =
         , signInWithLinkError SignInFailed
         , signOutSucceeded SignOutSucceeded
         , signOutError SignOutFailed
+        , getUserInfoError GetUserInfoError
         , gotUserInfo GotUserInfo
         , userInfoEmpty UserInfoEmpty
         ]
@@ -116,6 +123,8 @@ update msg model =
             in ({ model | error = error }, Cmd.none)
         RequestedUserInfo _ ->
             (model, getUserInfo (encode "requestedUserInfo" True))
+        GetUserInfoError _ ->
+            ({ model | error = FirebaseError }, Cmd.none)
         GotUserInfo json ->
             let email = decodeUserInfo json "email"
                 firstName = decodeUserInfo json "firstName"
@@ -125,6 +134,10 @@ update msg model =
                 ({ model | email = email, firstName = firstName, lastName = lastName, degree = degree, userInfoEmpty = False }, Cmd.none) 
         UpdateUserInfo ->
             ({ model | userInfoEmpty = False }, updateUserInfo (encodeUserInfo model))
+        UpdateUserInfoError _ ->
+            ({ model | error = FirebaseError }, Cmd.none)
+        UpdatedUserInfo _ ->
+            ({ model | msgToUser = "Brukerinformasjon oppdatert" }, Cmd.none)
         UserInfoEmpty _ ->
             ({ model | userInfoEmpty = True }, Cmd.none)
         AttemptSignOut ->
@@ -159,7 +172,8 @@ showPage model =
         MinSide ->
             div [ class "min-side" ]
                 [ div [ id "min-side-content" ]
-                    [ input [ class "min-side-item", id "email", type_ "text", value (model.email), disabled True ] [ text "Mail" ]
+                    [ h2 [ class "min-side-item", id "error-message" ] [ text <| errorMessageToUser model.error ]
+                    , input [ class "min-side-item", id "email", type_ "text", value (model.email), disabled True ] [ text "Mail" ]
                     , input [ class "min-side-item", id "firstName", type_ "text", placeholder "Fornavn", Html.Events.onInput TypedFirstName, value (model.firstName) ] [ text "Fornavn" ]
                     , br [] []
                     , input [ class "min-side-item", id "lastName", type_ "text", placeholder "Etternavn", Html.Events.onInput TypedLastName, value (model.lastName) ] [ text "Etternavn" ]
@@ -237,13 +251,15 @@ errorMessageToUser : Error -> String
 errorMessageToUser error =
     case error of
         InvalidEmail ->
-            "Mailen du har skrevet inn har ikke riktig format. Prøv igjen"
+            "Mailen du har skrevet inn har ikke riktig format. Prøv igjen."
         ExpiredActionCode ->
-            "Innlogginslinken har utløpt. Prøv å send en ny link"
+            "Innlogginslinken har utløpt. Prøv å send en ny link."
         InvalidActionCode ->
-            "Innlogginslinken er ikke gyldig. Dette kan skje om den allerede har blitt brukt"
+            "Innlogginslinken er ikke gyldig. Dette kan skje om den allerede har blitt brukt."
         UserDisabled ->
             "Brukeren din har blitt deaktivert."
+        FirebaseError ->
+            "Det skjedde en feil når vi prøvde å laste inn brukerinformasjonen din. Dette kan skje om du ikke har registrert deg med en gyldig studentmail."
         NoError ->
             ""
 
@@ -253,11 +269,12 @@ encode string var =
 
 encodeUserInfo : Model -> Json.Encode.Value
 encodeUserInfo model =
-    Json.Encode.object  [ ("firstName", Json.Encode.string model.firstName)
-                        , ("lastName", Json.Encode.string model.lastName)
-                        , ("degree", Json.Encode.string (degreeToString model.degree))
-                        , ("userInfoEmpty", Json.Encode.bool model.userInfoEmpty)
-                        ]
+    Json.Encode.object 
+        [ ("firstName", Json.Encode.string model.firstName)
+        , ("lastName", Json.Encode.string model.lastName)
+        , ("degree", Json.Encode.string (degreeToString model.degree))
+        , ("userInfoEmpty", Json.Encode.bool model.userInfoEmpty)
+        ]
 
 degreeToString : Degree -> String
 degreeToString degree =
