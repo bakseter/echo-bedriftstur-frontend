@@ -25,10 +25,11 @@ app.ports.sendSignInLink.subscribe(function(data) {
     firebase.auth().sendSignInLinkToEmail(data.email, actionCodeSettings)
         .then(function() {
             window.localStorage.setItem("emailForSignIn", data.email);
+            app.ports.sendSignInLinkSucceeded(true);
         })
         .catch(function(error) {
+            // Error is handled in Elm
             app.ports.sendSignInLinkError.send(error.code);
-            console.log(error.code);
         });
 });
 
@@ -45,6 +46,7 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
             console.log(result);
         })
         .catch(function(error) {
+            // TODO: test that error is handled properly in Elm
             app.ports.signInWithLinkError.send(error.code);
             console.log(error.code);
         });
@@ -75,6 +77,7 @@ app.ports.getUserInfo.subscribe(function(data) {
                 }
             })
             .catch(function(error) {
+                // TODO: test that error is handled properly in Elm
                 console.log(error.code);
                 app.ports.getUserInfoError.send(error.code);
             });
@@ -100,7 +103,7 @@ app.ports.updateUserInfo.subscribe(function(data) {
                 app.ports.updatedUserInfo.send(true);
             })
             .catch(function(error) {
-                //TODO implement
+                // TODO: test that error is handled properly in Elm
                 app.ports.updateUserInfoError.send(error.code);
                 console.log(error.code);
             });
@@ -121,13 +124,14 @@ app.ports.updateUserInfo.subscribe(function(data) {
                             console.log("updated user info");
                         })
                         .catch(function(error) {
-                            //TODO implement
+                            // TODO: test that error is handled properly in Elm
                             app.ports.updateUserInfoError.send(error.code);
                             console.log(error.code);
                         });
                     });
                 })
                 .catch(function(error) {
+                    // TODO: handle error properly in Elm
                     console.log(error.code);
                 });
         }
@@ -141,6 +145,7 @@ app.ports.attemptSignOut.subscribe(function(data) {
                 app.ports.signOutSucceeded.send(true);
             })
             .catch(function(error) {
+                // TODO: test that error is handled properly in Elm
                 app.ports.signOutError.send(error);
                 console.log(error.code);
             });

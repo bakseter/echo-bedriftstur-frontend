@@ -36,18 +36,9 @@ p {
     display: none;
 }
 
+/* for debugging /bedrifter */
 #viewport {
     position: fixed;
-}
-
-.bed-logo {
-    max-width: 300px;
-    max-height: 175px;
-    padding: 20px;
-    transition: transform 0.5s;
-}
-.bed-logo:hover {
-    transform: scale(1.2);
 }
 
 .text {
@@ -123,6 +114,7 @@ h1.anim-text {
     display: inline;
 }
 
+/* HJEM */
 .hjem {
     display: grid;
     grid-template-columns: auto auto auto;
@@ -153,12 +145,7 @@ h1.anim-text {
     font-size: 50px;
 }
 
-.logg-inn {
-    display: grid;
-    grid-template-columns: 20% 60% 20%;
-    justify-items: center;
-}
-
+/* BEDRIFTER */|
 #bedrifter-content { 
     display: grid;
     grid-template-columns: auto;
@@ -180,10 +167,21 @@ h1.anim-text {
     width: 80%;
 }
 
+.bed-logo {
+    max-width: 300px;
+    max-height: 175px;
+    padding: 20px;
+    transition: transform 0.5s;
+}
+.bed-logo:hover {
+    transform: scale(1.2);
+}
+
 #tba {
     display: none;
 }
 
+/* PROGRAM */
 .program {
     padding-top: 2rem;
     display: grid;
@@ -262,6 +260,7 @@ h1.anim-text {
     background-image: linear-gradient(to right, var(--color-bekk) 50%, var(--foreground) 50%);
 }
 
+/* OM */
 #om-content {
     padding: 5%;
     padding-bottom: 3%;
@@ -292,21 +291,6 @@ h1.anim-text {
     padding-left: 3%;
     padding-right: 3%;
     border-radius: 0.7rem;
-}
-
-
-#email-valid {
-    color: #11EE11;
-    padding: 2%;
-}
-
-#email-invalid {
-    color: #FF0000;
-    padding: 2%;
-}
-
-#login-info p {
-    width: 100%;
 }
 
 .portrett {
@@ -356,6 +340,7 @@ h1.anim-text {
     padding-right: 5%;
 }
 
+/* NOT FOUND */
 .not-found h1 {
     font-size: 62px;
     text-align: center;
@@ -364,6 +349,35 @@ h1.anim-text {
     text-align: center;
 }
 
+/* LOGG INN */
+.logg-inn {
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+    justify-items: center;
+}
+
+input[type=text] {
+    padding: 1%;
+    transition: border ease 0.4s;
+    border: 0.2rem solid #CCCCCC;
+    border-radius: 0.3rem;
+}
+input[type=text]:focus {
+    border: 0.2rem solid #888888;
+}
+
+#email-valid {
+    border-color: green;
+}
+#email-invalid {
+    border-color: red;
+}
+
+#login-info p {
+    width: 100%;
+}
+
+/* MIN SIDE */
 #min-side-content {
     display: grid;
     grid-template-columns: 20% 60% 20%;
@@ -378,7 +392,13 @@ h1.anim-text {
     display: block;
 }
 
+
+/* MOBILE */
 @media (max-device-width: 415px), (max-width: 900px) {
+    .text {
+        font-size: 18px;
+    }
+
     .menu {
         grid-template-columns: 60% 10% 30%;
         overflow: hidden;
@@ -393,12 +413,57 @@ h1.anim-text {
         grid-column: 3 / span 1;
     }
 
+    #navbar {
+        display: inline;
+    }
+
     #logo {
         max-width: 170px;
     }
 
+    .clock-item {
+        font-size: 36px;
+    }
+
+    .bed-logo:hover {
+        transform: scale(1.0);
+    }
+
+    #bedrifter-content {
+        justify-items: center;
+    }
+
+    .bed-logo {
+        max-width: 100%;
+        margin: auto;
+        padding: 0%;
+    }
+
+    .bed-text {
+        display: none;
+    }
+
+    .logo-item {
+        position: static;
+        width: 65%;
+        padding-top: 10%;
+        padding-bottom: 10%;
+    }
+
     .program {
         grid-template-columns: auto;
+    }
+
+    .program-item {
+        grid-template-columns: 12% 88%;
+    }
+
+    .program-content {
+        padding-top: 3%;
+        padding-bottom: 3%;
+    }
+    .program-content:hover {
+        background-position: right bottom;
     }
 
     #om-content {
@@ -444,54 +509,5 @@ h1.anim-text {
 
     #tuva {
         grid-row: 6 / span 1;
-    }
-
-    .text {
-        font-size: 18px;
-    }
-
-    .clock-item {
-        font-size: 36px;
-    }
-    
-    .program-item {
-        grid-template-columns: 12% 88%;
-    }
-
-    .program-content {
-        padding-top: 3%;
-        padding-bottom: 3%;
-    }
-    .program-content:hover {
-        background-position: right bottom;
-    }
-
-    .bed-logo:hover {
-        transform: scale(1.0);
-    }
-
-    .bed-text {
-        display: none;
-    }
-
-    .logo-item {
-        position: static;
-        width: 65%;
-        padding-top: 10%;
-        padding-bottom: 10%;
-    }
-
-    #bedrifter-content {
-        justify-items: center;
-    }
-
-    .bed-logo {
-        max-width: 100%;
-        margin: auto;
-        padding: 0%;
-    }
-
-    #navbar {
-        display: inline;
     }
 }

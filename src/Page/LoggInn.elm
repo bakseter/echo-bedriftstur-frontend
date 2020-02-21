@@ -1,7 +1,7 @@
 port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg)
 
 import Html exposing (Html, div, text, h1, h3, img, form, input, br, p, i)
-import Html.Attributes exposing (class, id, src, alt, type_, name, value, style, method)
+import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled)
 import Html.Events
 import Json.Encode
 import Json.Decode
@@ -10,6 +10,7 @@ import String
 type Msg
     = TypedEmail String
     | SendSignInLink
+    | SendSignInLinkSucceded Json.Encode.Value
     | SendSignInLinkError Json.Encode.Value
 
 type Error
@@ -36,10 +37,14 @@ init =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-     sendSignInLinkError SendSignInLinkError
+    Sub.batch
+        [ sendSignInLinkSucceeded SendSignInLinkSucceded
+        , sendSignInLinkError SendSignInLinkError
+        ] 
 
 port sendSignInLink : Json.Encode.Value -> Cmd msg
 port sendSignInLinkError : (Json.Encode.Value -> msg) -> Sub msg
+port sendSignInLinkSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -47,11 +52,12 @@ update msg model =
         TypedEmail str ->
             ({ model | email = str }, Cmd.none)
         SendSignInLink ->
-            ({ model | submittedEmail = True }, sendSignInLink (encode model))
+            (model, sendSignInLink (encode model))
+        SendSignInLinkSucceded _ ->
+            ({ model | submittedEmail = True }, Cmd.none)
         SendSignInLinkError json ->
-            let error = errorFromString <| getErrorCode <| Json.Encode.encode 0 json
-            in
-                ({ model | error = error }, Cmd.none)
+            let error = errorFromString (getErrorCode (Json.Encode.encode 0 json))
+            in ({ model | info = (Json.Encode.encode 0 json), error = error }, Cmd.none)
 
 view : Model -> Html Msg
 view model =
@@ -74,7 +80,6 @@ showPage model =
                     [ text ("Vi har nå sendt deg en mail på " ++ model.email ++ ".") ]
                 , p []
                     [ text "Husk å sjekke søppelposten din!" ]
-                , h3 [] [text (getErrorCode model.info) ]
                 ]
             ]
     else
@@ -91,41 +96,38 @@ showPage model =
                         [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
                     ]
                 , div [ id "login-form" ]
-                    [ h3 [] [ text "Email" ]
-                    , input [ id "email", type_ "text", name "Email", Html.Events.onInput TypedEmail ] []
-                    , isEmailCorrect model
+                    [ input 
+                        [ if model.error == InvalidEmail then
+                            id "email-invalid"
+                          else if isEmailValid model.email then
+                            id "email-valid"
+                          else
+                            id "email"
+                        , type_ "text", Html.Events.onInput TypedEmail ] []
                     , br [] []
                     , br [] []
-                    , input [ id "submitBtn", type_ "submit", value "Logg inn", Html.Events.onClick SendSignInLink ] []
+                    , input 
+                        [ id "submitBtn"
+                        , type_ "submit"
+                        , value "Logg inn"
+                        , Html.Events.onClick SendSignInLink 
+                        , if isEmailValid model.email then
+                            disabled False
+                          else
+                            disabled True
+                        ] []
                     ]
                 , h3 [] [text (errorMessageToUser model.error) ]
                 ]
             ]
 
--- TODO: make this less spaghetti
-isEmailCorrect : Model -> Html msg
-isEmailCorrect model =
-    let split = String.split "@" model.email
-        domain = List.head (List.drop ((List.length split) - 1) split)
-        invalid = i [class "fa fa-times", id "email-invalid" ] []
-    in
-        if List.length split == 1 || List.head split == Just "" || List.head split == Nothing
-        then
-            invalid
-        else
-            case domain of
-                Just str ->
-                    if str == "student.uib.no"
-                    then
-                        i [ class "fa fa-check", id "email-valid" ] []
-                    else
-                        invalid
-                Nothing ->
-                        invalid
+isEmailValid : String -> Bool
+isEmailValid str =
+    (String.right (String.length "@student.uib.no")) str == "@student.uib.no"
 
 getErrorCode : String -> String
 getErrorCode json =
-    case Json.Decode.decodeString (Json.Decode.at ["code"] Json.Decode.string) json of
+    case Json.Decode.decodeString Json.Decode.string json of
         Ok code ->
             code
         Err _ ->
@@ -149,7 +151,7 @@ errorMessageToUser : Error -> String
 errorMessageToUser error =
     case error of
         InvalidEmail ->
-            "Mailen du har skrevet inn har ikke riktig format. Prøv igjen"
+            "Mailen du har skrevet inn er ikke gyldig. Prøv igjen"
         None ->
             ""
         _ ->

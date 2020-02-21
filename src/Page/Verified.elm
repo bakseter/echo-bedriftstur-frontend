@@ -74,6 +74,7 @@ port signOutSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
 type alias Model =
     { url : Url.Url
+    , key : Browser.Navigation.Key
     , authCode : AuthCode
     , msgToUser : String
     , userInfoEmpty : Bool
@@ -85,14 +86,15 @@ type alias Model =
     , degree : Degree
     }
 
-init : Url.Url -> Model
-init url =
+init : Url.Url -> Browser.Navigation.Key -> Model
+init url key =
     { url = url
+    , key = key
     , authCode = getAuthCode url
     , msgToUser = ""
     , userInfoEmpty = True
     , error = NoError
-    , currentSubPage = Verified
+    , currentSubPage = MinSide
     , email = ""
     , firstName = ""
     , lastName = ""
@@ -115,7 +117,9 @@ update : Msg  -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         SignInSucceeded _ ->
-            ({ model | currentSubPage = MinSide }, getUserInfo (encode "getUserInfo" True))
+            ({ model | currentSubPage = MinSide }, Cmd.batch [ getUserInfo (encode "getUserInfo" True)
+                                                             , Browser.Navigation.pushUrl model.key <| redirectUrl model.url
+                                                             ])
         SignInFailed json ->
             let jsonStr = Json.Encode.encode 0 json
                 error = errorFromString (getErrorCode jsonStr)
@@ -194,7 +198,7 @@ showPage model =
                             ]
                         ]
                     , div [ class "min-side-item", id "min-side-buttons" ]
-                        [ h3 [] [ text model.msgToUser ]
+                        [ h3 [] [ text (errorMessageToUser model.error) ]
                         , button [ type_ "button", Html.Events.onClick UpdateUserInfo ] [ text "Lagre endringer" ]
                         , button [ type_ "button", Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
                         ]
@@ -229,7 +233,7 @@ getAuthCode url =
 
 getErrorCode : String -> String
 getErrorCode json =
-    case Json.Decode.decodeString (Json.Decode.at ["code"] Json.Decode.string) json of
+    case Json.Decode.decodeString Json.Decode.string json of
         Ok code ->
             code
         Err _ ->
@@ -385,3 +389,7 @@ decodeUserInfo json field =
                 info 
             Err _ ->
                 "error"
+
+redirectUrl : Url.Url -> String
+redirectUrl url =
+    Url.Builder.crossOrigin "https://echobedriftstur.no" [ "minside" ] []

@@ -78,7 +78,7 @@ init path url key =
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
-                , modelVerified = Verified.init url
+                , modelVerified = Verified.init url key
                 }
     in
         case path of
@@ -145,7 +145,7 @@ update msg model =
                 "/verified" ->
                     ({ model | url = url, currentPage = Verified }, Cmd.none)
                 "/minside" ->
-                    ({ model | url = url, currentPage = Verified }, Cmd.none)
+                    (model, Cmd.none)
                 _ ->
                     ({ model | url = url, currentPage = NotFound}, Cmd.none)
         GotHjemMsg pageMsg ->
@@ -205,7 +205,7 @@ view model =
                             ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                         ] 
                     ]
-                , span [ class "menuItem", id "logg-inn" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
+                , span [ class "menuItem", id "logg-inn" ] [ a [ href "/logg-inn" ] [ text "Påmelding" ] ]
                 , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                 , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
                 , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
