@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Browser.Navigation as Nav
+import Browser.Navigation
 import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, i)
 import Html.Attributes exposing (href, class, id, alt, src, rel, target)
 import Url
@@ -51,7 +51,7 @@ type Page
     | NotFound
 
 type alias Model =
-    { key : Nav.Key
+    { key : Browser.Navigation.Key
     , url : Url.Url
     , currentPage : Page
     , showNavbar : Bool
@@ -59,35 +59,26 @@ type alias Model =
     , navBtnAnimation : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
     , modelHjem : Hjem.Model
     , modelLoggInn : LoggInn.Model
-    , modelBedrifter :Bedrifter.Model
+    , modelBedrifter : Bedrifter.Model
     , modelProgram : Program.Model
     , modelOm : Om.Model
     , modelVerified : Verified.Model
     }
 
-init : Maybe String -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
+init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init path url key =
     let model = { key = key
                 , url = url
                 , currentPage = Hjem
                 , showNavbar = False
                 , hideLineNavBtn = False
-                , navBtnAnimation = (Animation.style 
-                                        [ Animation.rotate (deg 0)
-                                        , Animation.translate (px 0) (px 0)
-                                        , Animation.scale 1.0 
-                                        ]
-                                    , Animation.style 
-                                         [ Animation.rotate (deg 0)
-                                        , Animation.translate (px 0) (px 0)
-                                       , Animation.scale 1.0 
-                                    ])
+                , navBtnAnimation = startNavBtnStyle
                 , modelHjem = Hjem.init
                 , modelLoggInn = LoggInn.init
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
-                , modelVerified = Verified.init url key
+                , modelVerified = Verified.init url
                 }
     in
         case path of
@@ -136,9 +127,9 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    (model, Nav.pushUrl model.key (Url.toString url))
+                    (model, Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
-                    (model, Nav.load href) 
+                    (model, Browser.Navigation.load href) 
         UrlChanged url ->
             case url.path of
                 "/" ->
@@ -270,6 +261,23 @@ getNavbar show =
     else
         span [] []
 
+
+startNavBtnStyle : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)  
+startNavBtnStyle =
+    (Animation.style 
+        [ Animation.rotate (deg 0)
+        , Animation.translate (px 0) (px 0)
+        , Animation.scale 1.0 
+        ]
+    , Animation.style 
+         [ Animation.rotate (deg 0)
+        , Animation.translate (px 0) (px 0)
+       , Animation.scale 1.0 
+    ])
+
+newNavBtnStyle : Bool -> 
+                (Animation.Messenger.State Msg, Animation.Messenger.State Msg) -> 
+                (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
 newNavBtnStyle menuActive style =
     if menuActive then
         (Animation.interrupt 

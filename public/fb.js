@@ -27,9 +27,8 @@ app.ports.sendSignInLink.subscribe(function(data) {
             window.localStorage.setItem("emailForSignIn", data.email);
         })
         .catch(function(error) {
-            app.ports.sendSignInLinkError.send(error);
-            console.log(error);
-            console.log("error on sendSignInLinkToEmail");
+            app.ports.sendSignInLinkError.send(error.code);
+            console.log(error.code);
         });
 });
 
@@ -46,9 +45,8 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
             console.log(result);
         })
         .catch(function(error) {
-            app.ports.signInWithLinkError.send(error);
-            console.log(error);
-            console.log("error on signInWithEmailLink");
+            app.ports.signInWithLinkError.send(error.code);
+            console.log(error.code);
         });
 }
 
@@ -77,8 +75,8 @@ app.ports.getUserInfo.subscribe(function(data) {
                 }
             })
             .catch(function(error) {
-                console.log("Error getting documents: ", error);
-                app.ports.getUserInfoError.send(error);
+                console.log(error.code);
+                app.ports.getUserInfoError.send(error.code);
             });
     }
     else {
@@ -103,8 +101,8 @@ app.ports.updateUserInfo.subscribe(function(data) {
             })
             .catch(function(error) {
                 //TODO implement
-                app.ports.updateUserInfoError.send(error);
-                console.log(error);
+                app.ports.updateUserInfoError.send(error.code);
+                console.log(error.code);
             });
         }
         else {
@@ -124,13 +122,13 @@ app.ports.updateUserInfo.subscribe(function(data) {
                         })
                         .catch(function(error) {
                             //TODO implement
-                            app.ports.updateUserInfoError.send(error);
-                            console.log(error);
+                            app.ports.updateUserInfoError.send(error.code);
+                            console.log(error.code);
                         });
                     });
                 })
                 .catch(function(error) {
-                    console.log("Error getting documents: ", error);
+                    console.log(error.code);
                 });
         }
     }
@@ -144,7 +142,7 @@ app.ports.attemptSignOut.subscribe(function(data) {
             })
             .catch(function(error) {
                 app.ports.signOutError.send(error);
-                console.log(error);
+                console.log(error.code);
             });
     }
 });

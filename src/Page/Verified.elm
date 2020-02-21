@@ -19,6 +19,8 @@ type Msg
     | RequestedUserInfo Json.Encode.Value
     | GetUserInfoError Json.Encode.Value
     | GotUserInfo Json.Encode.Value
+    | UpdatedUserInfo Json.Encode.Value
+    | UpdateUserInfoError Json.Encode.Value
     | UserInfoEmpty Json.Encode.Value
     | AttemptSignOut
     | UpdateUserInfo
@@ -36,7 +38,7 @@ type Error
     | ExpiredActionCode
     | InvalidActionCode
     | UserDisabled
-    | FirebaseError
+    | PermissionDenied
 
 type SubPage
     = Verified
@@ -54,20 +56,6 @@ type Degree
     | INF
     | PROG
 
-type alias Model =
-    { url : Url.Url
-    , key : Browser.Navigation.Key
-    , authCode : AuthCode
-    , userInfo : String
-    , userInfoEmpty : Bool
-    , error : Error
-    , currentSubPage : SubPage
-    , email : String
-    , firstName : String
-    , lastName : String
-    , degree : Degree
-    }
-
 port signInSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 port signInWithLinkError : (Json.Encode.Value -> msg) -> Sub msg
 
@@ -84,15 +72,27 @@ port attemptSignOut : Json.Encode.Value -> Cmd msg
 port signOutError : (Json.Encode.Value -> msg) -> Sub msg
 port signOutSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
-init : Url.Url -> Browser.Navigation.Key -> Model
-init url key =
+type alias Model =
+    { url : Url.Url
+    , authCode : AuthCode
+    , msgToUser : String
+    , userInfoEmpty : Bool
+    , error : Error
+    , currentSubPage : SubPage
+    , email : String
+    , firstName : String
+    , lastName : String
+    , degree : Degree
+    }
+
+init : Url.Url -> Model
+init url =
     { url = url
-    , key = key
     , authCode = getAuthCode url
-    , userInfo = ""
+    , msgToUser = ""
     , userInfoEmpty = True
     , error = NoError
-    , currentSubPage = MinSide
+    , currentSubPage = Verified
     , email = ""
     , firstName = ""
     , lastName = ""
@@ -114,17 +114,18 @@ subscriptions model =
 update : Msg  -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        SignInSucceeded userInfo ->
-            let info = Json.Encode.encode 0 userInfo
-            in ({ model | userInfo = info, currentSubPage = MinSide }, getUserInfo (encode "getUserInfo" True))
+        SignInSucceeded _ ->
+            ({ model | currentSubPage = MinSide }, getUserInfo (encode "getUserInfo" True))
         SignInFailed json ->
             let jsonStr = Json.Encode.encode 0 json
                 error = errorFromString (getErrorCode jsonStr)
             in ({ model | error = error }, Cmd.none)
         RequestedUserInfo _ ->
             (model, getUserInfo (encode "requestedUserInfo" True))
-        GetUserInfoError _ ->
-            ({ model | error = FirebaseError }, Cmd.none)
+        GetUserInfoError json ->
+            let jsonStr = Json.Encode.encode 0 json
+                error = errorFromString (getErrorCode jsonStr)
+            in ({ model | error = error }, Cmd.none)
         GotUserInfo json ->
             let email = decodeUserInfo json "email"
                 firstName = decodeUserInfo json "firstName"
@@ -134,8 +135,10 @@ update msg model =
                 ({ model | email = email, firstName = firstName, lastName = lastName, degree = degree, userInfoEmpty = False }, Cmd.none) 
         UpdateUserInfo ->
             ({ model | userInfoEmpty = False }, updateUserInfo (encodeUserInfo model))
-        UpdateUserInfoError _ ->
-            ({ model | error = FirebaseError }, Cmd.none)
+        UpdateUserInfoError json ->
+            let jsonStr = Json.Encode.encode 0 json
+                error = errorFromString (getErrorCode jsonStr)
+            in ({ model | error = error }, Cmd.none)
         UpdatedUserInfo _ ->
             ({ model | msgToUser = "Brukerinformasjon oppdatert" }, Cmd.none)
         UserInfoEmpty _ ->
@@ -166,13 +169,11 @@ showPage model =
             div [ class "verified" ]
                 [ p [] 
                     [ text (handleQuery model) ]
-                , p []
-                    [ text model.userInfo ]
                 ]
         MinSide ->
             div [ class "min-side" ]
                 [ div [ id "min-side-content" ]
-                    [ h2 [ class "min-side-item", id "error-message" ] [ text <| errorMessageToUser model.error ]
+                    [ p [ class "min-side-item", id "error-message" ] [ text (errorMessageToUser model.error) ]
                     , input [ class "min-side-item", id "email", type_ "text", value (model.email), disabled True ] [ text "Mail" ]
                     , input [ class "min-side-item", id "firstName", type_ "text", placeholder "Fornavn", Html.Events.onInput TypedFirstName, value (model.firstName) ] [ text "Fornavn" ]
                     , br [] []
@@ -193,7 +194,8 @@ showPage model =
                             ]
                         ]
                     , div [ class "min-side-item", id "min-side-buttons" ]
-                        [ button [ type_ "button", Html.Events.onClick UpdateUserInfo ] [ text "Lagre endringer" ]
+                        [ h3 [] [ text model.msgToUser ]
+                        , button [ type_ "button", Html.Events.onClick UpdateUserInfo ] [ text "Lagre endringer" ]
                         , button [ type_ "button", Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
                         ]
                     ]
@@ -244,6 +246,8 @@ errorFromString str =
             InvalidActionCode
         "auth/user-disabled" ->
             UserDisabled
+        "permission-denied" ->
+            PermissionDenied
         _ ->
             NoError
 
@@ -258,7 +262,7 @@ errorMessageToUser error =
             "Innlogginslinken er ikke gyldig. Dette kan skje om den allerede har blitt brukt."
         UserDisabled ->
             "Brukeren din har blitt deaktivert."
-        FirebaseError ->
+        PermissionDenied ->
             "Det skjedde en feil når vi prøvde å laste inn brukerinformasjonen din. Dette kan skje om du ikke har registrert deg med en gyldig studentmail."
         NoError ->
             ""
