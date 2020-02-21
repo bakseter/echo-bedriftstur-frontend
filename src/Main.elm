@@ -16,7 +16,7 @@ import Html.Events
 import Animation exposing (deg, px)
 import Animation.Messenger
 import Svg
-import Svg.Attributes exposing (x1, x2, y1, y2, width, height)
+import Svg.Attributes exposing (x1, x2, y1, y2)
 
 main =
     Browser.application 
@@ -176,8 +176,7 @@ update msg model =
             else
                 ({ model | showNavbar = False, navBtnAnimation = newNavBtnStyle True model.navBtnAnimation }, Cmd.none)
         NavBtnTransition ->
-            if model.hideLineNavBtn
-            then
+            if model.hideLineNavBtn then
                 ({ model | hideLineNavBtn = False }, Cmd.none)
             else
                 ({ model | hideLineNavBtn = True }, Cmd.none)
@@ -197,7 +196,7 @@ view model =
                         [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                     ]
                 , span [ id "navBtn", Html.Events.onClick (ShowNavbar False) ]
-                    [ Svg.svg [ width "100", height "100" ]
+                    [ Svg.svg [ Svg.Attributes.width "100", Svg.Attributes.height "100" ]
                         [ Svg.line (Animation.render (Tuple.first model.navBtnAnimation)
                             ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                         , (getMiddleLine model.hideLineNavBtn)
@@ -206,8 +205,8 @@ view model =
                         ] 
                     ]
                 , span [ class "menuItem", id "logg-inn" ] [ a [ href "/logg-inn" ] [ text "Påmelding" ] ]
-                , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                 , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
+                , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                 , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
                 , span [ id "navbar" ] [ getNavbar model.showNavbar ]
@@ -260,7 +259,6 @@ getNavbar show =
             ]
     else
         span [] []
-
 
 startNavBtnStyle : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)  
 startNavBtnStyle =

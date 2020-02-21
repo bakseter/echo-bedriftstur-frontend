@@ -1,10 +1,14 @@
 if: branch = master
 language: node_js
 node_js:
-    - "13"
+    - '13'
 install:
     - npm install -g firebase-tools elm uglify-js
 script:
-    - cd public && elm make src/Main.elm --output main.js && uglifyjs main.js --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output=main.js
-after-success:
-    - firebase deploy --project echo-bedriftstur-81a2e --token $FIREBASE_TOKEN
+    - elm make src/Main.elm --optimize --output public/main.js
+    - uglifyjs public/main.js --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output=public/main.js
+deploy:
+    skip_cleanup: true
+    provider: firebase
+    token:
+        secure: ZNEV7MYTXb2XmpOkvSsuEPHHevCpCaE32083S7kSUelgA/3KemeQoQyYfKJMgjWBek9sO9MuRzjRn/EB/8fVLLvUdvJt3Mj8HMVfpm6bidgOmPycmmt9WtZoAj8/4Pb37PKXHhn3XqMzbU1rqAh0f5jN2qi8GBdM2SWfL5u6Yn2Lme3kG0yUrNkpyLmHUAVo9v4ofKZUKUKWaAHgSWjlH3U+MCXlvgXPx8mH3We9tYCshi/bPpAy0hG6WaTTx9Yz/bun0Xte5+6suXUHyN/vRUzUCADDSJiqDfuF4O4beWo95/9NQcPoigIl705hSAi4o8xq/nTc2BcUuFWjuVR9Sw/Y0gNuk7aHprgfc24/TzAaG2Bv7iDuYDb3GCGXY2GjoUMisR3vIzSlyAVIfG+OCvmofdj69IJlXmrkIj0A7YClgOo1u316kZ//sKuTsnKxGRqzNCj6o0cnkTBt7r+XT3g+2CezWexAgZgcbRYi+Yec43aMPSKcpzHYCJO1DdTN/MH+tiXFR+qGzFYMMH8aZg7k73IB2EkSsgDfGwi/Cq8Pl7y/OYM8zvphXlwg6EAFWC9zGb6SyhF0OeqdSYMYMYNepOAM4Cnd402xr1rFCT6oMYtFBhCljvmbFHpCruP+9Ax+0ivTatFYl6PKxrGXTnfLdAaSrOV+D9UvO9DGSD4=

@@ -7,6 +7,9 @@
       "hosting": {
         "auth": [
           "echobedriftstur-userauth"
+        ],
+        "app": [
+          "echo-bedriftstur-81a2e"
         ]
       }
     }
