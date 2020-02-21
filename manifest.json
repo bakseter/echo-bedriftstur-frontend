@@ -14,7 +14,7 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": "/public/index.html",
+  "start_url": "https://echobedriftstur.no/",
   "background_color": "#eeeeee",
   "display": "fullscreen",
   "scope": "/",
