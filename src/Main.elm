@@ -1,14 +1,16 @@
 module Main exposing (..)
 
 import Browser
-import Browser.Navigation as Nav
+import Browser.Navigation
 import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, i)
 import Html.Attributes exposing (href, class, id, alt, src, rel, target)
 import Url
 import Page.Hjem as Hjem
+import Page.LoggInn as LoggInn
 import Page.Bedrifter as Bedrifter
 import Page.Program as Program
 import Page.Om as Om
+import Page.Verified as Verified
 import Html exposing (Html)
 import Html.Events
 import Animation exposing (deg, px)
@@ -30,54 +32,53 @@ type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
     | GotHjemMsg Hjem.Msg
+    | GotLoggInnMsg LoggInn.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
+    | GotVerifiedMsg Verified.Msg
     | ShowNavbar Bool
     | NavBtnTransition
     | AnimateNavBtn Animation.Msg
 
 type Page 
     = Hjem
+    | LoggInn
     | Bedrifter
     | Program
     | Om
+    | Verified
     | NotFound
 
 type alias Model =
-    { key : Nav.Key
+    { key : Browser.Navigation.Key
     , url : Url.Url
     , currentPage : Page
     , showNavbar : Bool
     , hideLineNavBtn : Bool  
     , navBtnAnimation : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
     , modelHjem : Hjem.Model
-    , modelBedrifter :Bedrifter.Model
+    , modelLoggInn : LoggInn.Model
+    , modelBedrifter : Bedrifter.Model
     , modelProgram : Program.Model
     , modelOm : Om.Model
+    , modelVerified : Verified.Model
     }
 
-init : Maybe String -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
+init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init path url key =
     let model = { key = key
                 , url = url
                 , currentPage = Hjem
                 , showNavbar = False
                 , hideLineNavBtn = False
-                , navBtnAnimation = (Animation.style 
-                                        [ Animation.rotate (deg 0)
-                                        , Animation.translate (px 0) (px 0)
-                                        , Animation.scale 1.0 
-                                        ]
-                                    , Animation.style 
-                                         [ Animation.rotate (deg 0)
-                                        , Animation.translate (px 0) (px 0)
-                                       , Animation.scale 1.0 
-                                    ])
+                , navBtnAnimation = startNavBtnStyle
                 , modelHjem = Hjem.init
+                , modelLoggInn = LoggInn.init
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
+                , modelVerified = Verified.init url key
                 }
     in
         case path of
@@ -85,12 +86,16 @@ init path url key =
                 case str of
                     "/" ->
                         ({ model | currentPage = Hjem }, Cmd.none)
+                    "/logg-inn" ->
+                        ({ model | currentPage = LoggInn }, Cmd.none)
                     "/bedrifter" ->
                         ({ model | currentPage = Bedrifter }, Cmd.none)
                     "/program" ->
                        ({ model | currentPage = Program }, Cmd.none)
                     "/om" ->
                         ({ model | currentPage = Om }, Cmd.none)
+                    "/verified" ->
+                        ({ model | currentPage = Verified }, Cmd.none)
                     _ ->
                         ({ model | currentPage = NotFound }, Cmd.none)
             Nothing ->
@@ -99,13 +104,17 @@ init path url key =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ Sub.batch [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
-                    , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
-                    , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
-                    , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
-                    ]
-        , Animation.subscription AnimateNavBtn [ Tuple.first model.navBtnAnimation, Tuple.second model.navBtnAnimation ]
+    Sub.batch 
+        [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
+        , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
+        , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+        , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
+        , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
+        , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
+        , Animation.subscription AnimateNavBtn
+            [ Tuple.first model.navBtnAnimation
+            , Tuple.second model.navBtnAnimation
+            ]
         ]
 
 manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg
@@ -118,19 +127,25 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    (model, Nav.pushUrl model.key (Url.toString url))
+                    (model, Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
-                    (model, Nav.load href) 
+                    (model, Browser.Navigation.load href) 
         UrlChanged url ->
             case url.path of
                 "/" ->
                     ({ model | url = url, currentPage = Hjem }, Cmd.none)
-                "/program" ->
-                    ({ model | url = url, currentPage = Program }, Cmd.none)
+                "/logg-inn" ->
+                    ({ model | url = url, currentPage = LoggInn }, Cmd.none)
                 "/bedrifter" ->
                     ({ model | url = url, currentPage = Bedrifter }, Cmd.none) 
+                "/program" ->
+                    ({ model | url = url, currentPage = Program }, Cmd.none)
                 "/om" ->
                     ({ model | url = url, currentPage = Om }, Cmd.none)
+                "/verified" ->
+                    ({ model | url = url, currentPage = Verified }, Cmd.none)
+                "/minside" ->
+                    (model, Cmd.none)
                 _ ->
                     ({ model | url = url, currentPage = NotFound}, Cmd.none)
         GotHjemMsg pageMsg ->
@@ -145,6 +160,12 @@ update msg model =
         GotOmMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg Om.update pageMsg model.modelOm GotOmMsg
             in ({ model | modelOm = newModel }, cmd)
+        GotLoggInnMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg LoggInn.update pageMsg model.modelLoggInn GotLoggInnMsg
+            in ({ model | modelLoggInn = newModel }, cmd)
+        GotVerifiedMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Verified.update pageMsg model.modelVerified GotVerifiedMsg
+            in ({ model | modelVerified = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
                 case linksToHome of
@@ -183,6 +204,7 @@ view model =
                             ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                         ] 
                     ]
+                , span [ class "menuItem", id "logg-inn" ] [ a [ href "/logg-inn" ] [ text "Påmelding" ] ]
                 , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
                 , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                 , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
@@ -193,12 +215,16 @@ view model =
         case model.currentPage of
             Hjem ->
                 [ showPage GotHjemMsg Hjem.view model.modelHjem ]
+            LoggInn ->
+                [ showPage GotLoggInnMsg LoggInn.view model.modelLoggInn ]
             Bedrifter ->
                 [ showPage GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
             Program ->
                 [ showPage GotProgramMsg Program.view model.modelProgram ]
             Om ->
                 [ showPage GotOmMsg Om.view model.modelOm ]
+            Verified ->
+                [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
             NotFound ->
                 [ div [ class "not-found" ]
                     [ h1 [] [ text "404" ]
@@ -234,6 +260,22 @@ getNavbar show =
     else
         span [] []
 
+startNavBtnStyle : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)  
+startNavBtnStyle =
+    (Animation.style 
+        [ Animation.rotate (deg 0)
+        , Animation.translate (px 0) (px 0)
+        , Animation.scale 1.0 
+        ]
+    , Animation.style 
+         [ Animation.rotate (deg 0)
+        , Animation.translate (px 0) (px 0)
+       , Animation.scale 1.0 
+    ])
+
+newNavBtnStyle : Bool -> 
+                (Animation.Messenger.State Msg, Animation.Messenger.State Msg) -> 
+                (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
 newNavBtnStyle menuActive style =
     if menuActive then
         (Animation.interrupt 

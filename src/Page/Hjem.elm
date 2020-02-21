@@ -99,12 +99,12 @@ getCountDown dateNow =
         if date == dateThen then 
             (List.map (\x -> div 
                 [ class "clock-item", id ("clock" ++ Tuple.second x) ]
-                [ text (fixNum (String.fromInt (Tuple.first x))) ]) 
+                [ text <| fixNum <| String.fromInt <| Tuple.first x ]) 
                 [(0,"D"),(0,"H"),(0,"M"),(0,"S")]) 
         else 
             (List.map (\x -> div 
                 [ class "clock-item", id ("clock" ++ Tuple.second x) ]
-                [ text (fixNum (String.fromInt (Tuple.first x))) ])
+                [ text <| fixNum <| String.fromInt <| Tuple.first x ])
                 (calcDate date))
 
 fixNum : String -> String

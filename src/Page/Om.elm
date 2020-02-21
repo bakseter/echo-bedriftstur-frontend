@@ -76,19 +76,21 @@ view model =
 
 getMail : Model -> Msg -> (String, String)
 getMail model msg =
-    case msg of
-        EliasMail ->
-            if model.showMailElias then
-                ("mail", "elias.djupesland@echo.uib.no")
-            else
-                ("hidden-mail", "Trykk for mail")
-        AndreasMail ->
-            if model.showMailAndreas then
-                ("mail", "andreas.bakseter@echo.uib.no")
-            else
-                ("hidden-mail", "Trykk for mail")
-        TuvaMail ->
-            if model.showMailTuva then
-                ("mail", "tuva.kvalsoren@echo.uib.no")
-            else
-                ("hidden-mail", "Trykk for mail")
+    let hiddenMail = ("hidden-mail", "Trykk for mail")
+    in
+        case msg of
+            EliasMail ->
+                if model.showMailElias then
+                    ("mail", "elias.djupesland@echo.uib.no")
+                else
+                    hiddenMail
+            AndreasMail ->
+                if model.showMailAndreas then
+                    ("mail", "andreas.bakseter@echo.uib.no")
+                else
+                    hiddenMail
+            TuvaMail ->
+                if model.showMailTuva then
+                    ("mail", "tuva.kvalsoren@echo.uib.no")
+                else
+                    hiddenMail
