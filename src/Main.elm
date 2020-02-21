@@ -14,7 +14,7 @@ import Html.Events
 import Animation exposing (deg, px)
 import Animation.Messenger
 import Svg
-import Svg.Attributes exposing (x1, x2, y1, y2, width, height)
+import Svg.Attributes exposing (x1, x2, y1, y2)
 
 main =
     Browser.application 
@@ -175,7 +175,7 @@ view model =
                         [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                     ]
                 , span [ id "navBtn", Html.Events.onClick (ShowNavbar False) ]
-                    [ Svg.svg [ width "100", height "100" ]
+                    [ Svg.svg [ Svg.Attributes.width "100", Svg.Attributes.height "100" ]
                         [ Svg.line (Animation.render (Tuple.first model.navBtnAnimation)
                             ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                         , (getMiddleLine model.hideLineNavBtn)

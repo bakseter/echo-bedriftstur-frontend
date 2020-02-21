@@ -37,30 +37,21 @@ type alias Model =
 init : Model
 init =
     { viewport = maybeViewport
-    , mnemonicAnim = Animation.style [ Animation.opacity 0.0
-                                     , Animation.left (percent -50)
-                                     ] 
-    , computasAnim = Animation.style [ Animation.opacity 0.0
-                                     , Animation.left (percent -50)
-                                     ]
-    , tbaAnim = Animation.style [ Animation.opacity 0.0
-                                , Animation.left (percent -50)
-                                ]
-    , knowitAnim = Animation.style [ Animation.opacity 0.0
-                                   , Animation.left (percent -50)
-                                   ]
-    , dnbAnim = Animation.style [ Animation.opacity 0.0
-                                , Animation.left (percent -50)
-                                ]
-    , bekkAnim = Animation.style [ Animation.opacity 0.0
-                                 , Animation.left (percent -50)
-                                 ]
+    , mnemonicAnim = startingStyle
+    , computasAnim = startingStyle
+    , tbaAnim = startingStyle
+    , knowitAnim = startingStyle
+    , dnbAnim = startingStyle
+    , bekkAnim = startingStyle
     }
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every 100 Tick
+        [ if allAreSlidIn model then 
+            Sub.none
+          else
+            Time.every 10 Tick
         , Animation.subscription AnimMnemonic [ model.mnemonicAnim ]
         , Animation.subscription AnimComputas [ model.computasAnim ]
         , Animation.subscription AnimTba [ model.tbaAnim ]
@@ -76,34 +67,28 @@ update msg model =
             let scroll = percentageOfScreenScrolled model
                 newModel = { model | viewport = newViewport}
                 deviceWidth = newViewport.scene.width
-                newStyle = Animation.interrupt
-                            [ Animation.set
-                                [ Animation.exactly "left" "auto"
-                                , Animation.opacity 1.0
-                                ]
-                            ] model.bekkAnim
             in
                 if deviceWidth < 900 then
-                   ({ model | mnemonicAnim = newStyle
-                            , computasAnim = newStyle
-                            , tbaAnim = newStyle
-                            , knowitAnim = newStyle
-                            , dnbAnim = newStyle
-                            , bekkAnim = newStyle 
+                   ({ model | mnemonicAnim = startingStyleForMobile model.mnemonicAnim
+                            , computasAnim = startingStyleForMobile model.computasAnim
+                            , tbaAnim = startingStyleForMobile model.tbaAnim
+                            , knowitAnim = startingStyleForMobile model.knowitAnim
+                            , dnbAnim = startingStyleForMobile model.dnbAnim
+                            , bekkAnim = startingStyleForMobile model.bekkAnim
                    },
                             Cmd.none)
                 else
-                    if scroll > 0.1 && scroll < 0.3 then
+                    if scroll > 0.1 && model.mnemonicAnim == startingStyle then
                         update SlideInMnemonic newModel
-                    else if scroll > 0.3 && scroll < 0.4 then
+                    else if scroll > 0.3 && model.computasAnim == startingStyle then
                         update SlideInComputas newModel
-                    else if scroll > 0.4 && scroll < 0.5 then
+                    else if scroll > 0.4 && model.knowitAnim == startingStyle then
                         update SlideInKnowit newModel
-                    else if scroll > 0.5 && scroll < 0.6 then
+                    else if scroll > 0.5 && model.dnbAnim == startingStyle then
                         update SlideInDnb newModel
-                    else if scroll > 0.6 && scroll < 0.7 then
+                    else if scroll > 0.6 && model.bekkAnim == startingStyle then
                         update SlideInBekk newModel
-                    else if scroll > 0.7 then
+                    else if scroll > 0.7 && model.tbaAnim == startingStyle then
                         update SlideInTba newModel
                     else
                         (newModel, Cmd.none)
@@ -222,7 +207,24 @@ ease : Animation.Interpolation
 ease =
     Animation.spring
         { stiffness = 80
-        , damping = 20 }
+        , damping = 20
+        }
+
+startingStyle : Animation.State
+startingStyle = 
+    Animation.style 
+        [ Animation.opacity 0.0
+        , Animation.left (percent -50)
+        ]
+
+startingStyleForMobile : Animation.State -> Animation.State
+startingStyleForMobile anim =
+    Animation.interrupt
+        [ Animation.set
+            [ Animation.exactly "left" "auto"
+            , Animation.opacity 1.0
+            ]
+        ] anim
 
 slideInStyle : Animation.State -> Animation.State
 slideInStyle anim =
@@ -232,3 +234,14 @@ slideInStyle anim =
             , Animation.left (percent 10)
             ]
         ] anim
+
+allAreSlidIn : Model -> Bool
+allAreSlidIn model =
+    List.all (\x -> x /= startingStyle) 
+        [ model.mnemonicAnim
+        , model.computasAnim
+        , model.knowitAnim
+        , model.dnbAnim
+        , model.bekkAnim
+        , model.tbaAnim
+        ]
