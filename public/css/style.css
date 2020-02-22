@@ -99,11 +99,11 @@ p {
     grid-column: 3 / span 1;
 }
 
-#bedrifter {
+#program {
     grid-column: 4 / span 1;
 }
 
-#program {
+#bedrifter {
     grid-column: 5 / span 1;
 }
 
@@ -146,7 +146,7 @@ h1.anim-text {
     font-size: 50px;
 }
 
-/* BEDRIFTER */|
+/* BEDRIFTER */
 #bedrifter-content { 
     display: grid;
     grid-template-columns: auto;

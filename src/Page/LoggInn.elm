@@ -14,7 +14,7 @@ type Msg
     | SendSignInLinkError Json.Encode.Value
 
 type Error
-    = None
+    = NoError
     | InvalidEmail
     | UnathorizedContinueUri
     | InvalidContinueUri
@@ -24,15 +24,13 @@ type alias Model =
     { email : String
     , submittedEmail : Bool
     , error : Error
-    , info : String
     }
      
 init : Model
 init =
     { email = ""
     , submittedEmail = False
-    , error = None
-    , info = ""
+    , error = NoError
     }
 
 subscriptions : Model -> Sub Msg
@@ -56,8 +54,8 @@ update msg model =
         SendSignInLinkSucceded _ ->
             ({ model | submittedEmail = True }, Cmd.none)
         SendSignInLinkError json ->
-            let error = errorFromString (getErrorCode (Json.Encode.encode 0 json))
-            in ({ model | info = (Json.Encode.encode 0 json), error = error }, Cmd.none)
+            let error = errorFromString <| getErrorCode <| Json.Encode.encode 0 json
+            in ({ model | error = error }, Cmd.none)
 
 view : Model -> Html Msg
 view model =
@@ -70,7 +68,7 @@ encode model =
 
 showPage : Model -> Html Msg
 showPage model =
-    if model.submittedEmail && model.error == None
+    if model.submittedEmail && model.error == NoError
     then
         div [ class "logg-inn" ]
             [ div [] []
@@ -123,7 +121,9 @@ showPage model =
 
 isEmailValid : String -> Bool
 isEmailValid str =
-    (String.right (String.length "@student.uib.no")) str == "@student.uib.no"
+    -- TODO: revert to correct value
+    -- (String.right (String.length "@student.uib.no")) str == "@student.uib.no"
+    True
 
 getErrorCode : String -> String
 getErrorCode json =
@@ -145,14 +145,14 @@ errorFromString str =
         "auth/argumenterror" ->
             ArgumentError
         _ ->
-            None
+            NoError
 
 errorMessageToUser : Error -> String
 errorMessageToUser error =
     case error of
         InvalidEmail ->
             "Mailen du har skrevet inn er ikke gyldig. Prøv igjen"
-        None ->
+        NoError ->
             ""
         _ ->
             "Det har skjedd en feil. Prøv igjen senere"

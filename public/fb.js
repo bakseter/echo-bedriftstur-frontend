@@ -1,3 +1,7 @@
+/* eslint-env es6 */
+
+const debug = true;
+
 var app = Elm.Main.init ({
     node: document.getElementById("elm"),
     flags: window.location.pathname
@@ -18,14 +22,14 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 
 app.ports.sendSignInLink.subscribe(function(data) {
-    var actionCodeSettings = {
+    const actionCodeSettings = {
         url : "https://echobedriftstur-userauth.firebaseapp.com/verified",
         handleCodeInApp : true
     };
     firebase.auth().sendSignInLinkToEmail(data.email, actionCodeSettings)
         .then(function() {
             window.localStorage.setItem("emailForSignIn", data.email);
-            app.ports.sendSignInLinkSucceeded(true);
+            app.ports.sendSignInLinkSucceeded.send(true);
         })
         .catch(function(error) {
             // Error is handled in Elm
@@ -35,29 +39,34 @@ app.ports.sendSignInLink.subscribe(function(data) {
 
 if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
     var email = window.localStorage.getItem("emailForSignIn");
+
     if (!email) {
-        email = window.prompt("Vennligst skriv inn din mail for verifikasjon");
+        email = window.prompt("Vennligst skriv inn din studentmail for verifikasjon");
     }
 
     firebase.auth().signInWithEmailLink(email, window.location.href)
         .then(function(result) {
             window.localStorage.removeItem("emailForSignIn");
             app.ports.signInSucceeded.send(result);
-            console.log(result);
         })
         .catch(function(error) {
             // TODO: test that error is handled properly in Elm
             app.ports.signInWithLinkError.send(error.code);
-            console.log(error.code);
+            if (debug) {
+                console.log(error.code);
+                console.log(error);
+            }
         });
 }
 
 app.ports.getUserInfo.subscribe(function(data) {
     if (data.getUserInfo) {
-        var user = firebase.auth().currentUser;
+        const user = firebase.auth().currentUser;
 
         if (!user) {
-            console.log("Du er ikke logget inn");
+            app.ports.userNotSignedIn.send(true);
+            if (debug)
+                console.log("Du er ikke logget inn");
             return;
         }
 
@@ -65,30 +74,45 @@ app.ports.getUserInfo.subscribe(function(data) {
             .get()
             .then(function(querySnapshot) {
                 if (querySnapshot.empty) {
-                    console.log("user info empty at ", user.email);
                     app.ports.userInfoEmpty.send(true);
-                    return;
+                    db.collection("users").doc(user.uid).set({
+                        email: user.email,
+                        firstName: "",
+                        lastName: "",
+                        degree: ""
+                    })
+                    .then(function(docRef) {
+                        app.ports.getUserInfoSucceeded.send(user.email);
+                        if (debug)
+                            console.log("added new user");
+                    })
+                    .catch(function(error) {
+                        // TODO: handle error properly in Elm
+                        if (debug)
+                            console.log(error);
+                    });
                 }
                 else {
                     querySnapshot.forEach(function(doc) {
-                        console.log(doc.id, " => ", doc.data());
-                        app.ports.gotUserInfo.send(doc.data());
+                        app.ports.getUserInfoSucceeded.send(doc.data());
                     });
                 }
             })
             .catch(function(error) {
                 // TODO: test that error is handled properly in Elm
-                console.log(error.code);
+                if (debug)
+                    console.log(error.code);
                 app.ports.getUserInfoError.send(error.code);
             });
     }
     else {
-        console.log("getUserInfo is false?????");
+        if (debug)
+            console.log("getUserInfo is false?????");
     }
 });
 
 app.ports.updateUserInfo.subscribe(function(data) {
-    var user = firebase.auth().currentUser;
+    const user = firebase.auth().currentUser;
     
     if (user && user.emailVerified) {
         if (data.userInfoEmpty) {
@@ -99,13 +123,13 @@ app.ports.updateUserInfo.subscribe(function(data) {
                 degree: data.degree
             })
             .then(function(docRef) {
-                console.log("Document written with ID:  ", docRef.id);
                 app.ports.updatedUserInfo.send(true);
             })
             .catch(function(error) {
                 // TODO: test that error is handled properly in Elm
                 app.ports.updateUserInfoError.send(error.code);
-                console.log(error.code);
+                if (debug)
+                    console.log(error.code);
             });
         }
         else {
@@ -120,19 +144,21 @@ app.ports.updateUserInfo.subscribe(function(data) {
                             degree: data.degree 
                         })
                         .then(function() {
-                            app.ports.updatedUserInfo.send(true);
-                            console.log("updated user info");
+                            app.ports.updateUserInfoSucceeded.send(true);
                         })
                         .catch(function(error) {
                             // TODO: test that error is handled properly in Elm
                             app.ports.updateUserInfoError.send(error.code);
-                            console.log(error.code);
+                            if (debug)
+                                console.log(error.code);
                         });
                     });
                 })
                 .catch(function(error) {
                     // TODO: handle error properly in Elm
-                    console.log(error.code);
+                    app.ports.updateUserInfoError.send(error.code);
+                    if (debug)
+                        console.log(error.code);
                 });
         }
     }

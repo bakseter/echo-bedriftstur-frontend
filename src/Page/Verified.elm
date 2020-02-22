@@ -18,8 +18,9 @@ type Msg
     | SignOutFailed Json.Encode.Value
     | RequestedUserInfo Json.Encode.Value
     | GetUserInfoError Json.Encode.Value
-    | GotUserInfo Json.Encode.Value
-    | UpdatedUserInfo Json.Encode.Value
+    | UserNotSignedIn Json.Encode.Value
+    | GetUserInfoSucceeded Json.Encode.Value
+    | UpdateUserInfoSucceeded Json.Encode.Value
     | UpdateUserInfoError Json.Encode.Value
     | UserInfoEmpty Json.Encode.Value
     | AttemptSignOut
@@ -39,6 +40,7 @@ type Error
     | InvalidActionCode
     | UserDisabled
     | PermissionDenied
+    | Unauthenticated
 
 type SubPage
     = Verified
@@ -57,15 +59,18 @@ type Degree
     | PROG
 
 port signInSucceeded : (Json.Encode.Value -> msg) -> Sub msg
+-- Errors: ExpiredActionCode, InvalidEmail, UserDisabled
 port signInWithLinkError : (Json.Encode.Value -> msg) -> Sub msg
 
 port getUserInfo : Json.Encode.Value -> Cmd msg
+port userNotSignedIn : (Json.Encode.Value -> msg) -> Sub msg
+-- Errors: PermissionDenied, Unauthenticated
 port getUserInfoError : (Json.Encode.Value -> msg) -> Sub msg
-port gotUserInfo : (Json.Encode.Value -> msg) -> Sub msg
+port getUserInfoSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
 port updateUserInfo : Json.Encode.Value -> Cmd msg
 port updateUserInfoError : (Json.Encode.Value -> msg) -> Sub msg
-port updatedUserInfo : (Json.Encode.Value -> msg) -> Sub msg
+port updateUserInfoSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 port userInfoEmpty : (Json.Encode.Value -> msg) -> Sub msg
 
 port attemptSignOut : Json.Encode.Value -> Cmd msg
@@ -84,7 +89,14 @@ type alias Model =
     , firstName : String
     , lastName : String
     , degree : Degree
+    , submittedUserInfo : SubmittedUserInfo
     }
+
+type alias SubmittedUserInfo =
+    { email : String
+    , firstName : String
+    , lastName : String
+    , degree : Degree }
 
 init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
@@ -99,6 +111,12 @@ init url key =
     , firstName = ""
     , lastName = ""
     , degree = None
+    , submittedUserInfo =
+        { email = ""
+        , firstName = ""
+        , lastName = ""
+        , degree = None
+        }
     }
 
 subscriptions : Model -> Sub Msg
@@ -108,8 +126,11 @@ subscriptions model =
         , signInWithLinkError SignInFailed
         , signOutSucceeded SignOutSucceeded
         , signOutError SignOutFailed
+        , userNotSignedIn UserNotSignedIn
         , getUserInfoError GetUserInfoError
-        , gotUserInfo GotUserInfo
+        , getUserInfoSucceeded GetUserInfoSucceeded
+        , updateUserInfoSucceeded UpdateUserInfoSucceeded
+        , updateUserInfoError UpdateUserInfoError
         , userInfoEmpty UserInfoEmpty
         ]
 
@@ -117,41 +138,54 @@ update : Msg  -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         SignInSucceeded _ ->
-            ({ model | currentSubPage = MinSide }, Cmd.batch [ getUserInfo (encode "getUserInfo" True)
-                                                             , Browser.Navigation.pushUrl model.key <| redirectUrl model.url
-                                                             ])
+            ({ model | currentSubPage = MinSide }, getUserInfo (encode "getUserInfo" True))
         SignInFailed json ->
-            let jsonStr = Json.Encode.encode 0 json
-                error = errorFromString (getErrorCode jsonStr)
+            let error = getErrorCode (Json.Encode.encode 0 json)
             in ({ model | error = error }, Cmd.none)
         RequestedUserInfo _ ->
             (model, getUserInfo (encode "requestedUserInfo" True))
+        UserNotSignedIn _ ->
+            ({ model | error = Unauthenticated }, Browser.Navigation.load "https://echobedriftstur.no")
         GetUserInfoError json ->
-            let jsonStr = Json.Encode.encode 0 json
-                error = errorFromString (getErrorCode jsonStr)
+            let error = getErrorCode (Json.Encode.encode 0 json)
             in ({ model | error = error }, Cmd.none)
-        GotUserInfo json ->
+        GetUserInfoSucceeded json ->
             let email = decodeUserInfo json "email"
                 firstName = decodeUserInfo json "firstName"
                 lastName = decodeUserInfo json "lastName"
                 degree = stringToDegree (decodeUserInfo json "degree")
             in
-                ({ model | email = email, firstName = firstName, lastName = lastName, degree = degree, userInfoEmpty = False }, Cmd.none) 
+                ({ model | email = email
+                           , firstName = firstName
+                           , lastName = lastName
+                           , degree = degree
+                           , userInfoEmpty = False 
+                           , submittedUserInfo =
+                                { email = email
+                                , firstName = firstName
+                                , lastName = lastName
+                                , degree = degree
+                                }
+                }, Cmd.none) 
         UpdateUserInfo ->
-            ({ model | userInfoEmpty = False }, updateUserInfo (encodeUserInfo model))
+            if hasChangedInfo model then
+                ({ model | userInfoEmpty = False }, updateUserInfo (encodeUserInfo model))
+            else
+                (model, Cmd.none)
         UpdateUserInfoError json ->
-            let jsonStr = Json.Encode.encode 0 json
-                error = errorFromString (getErrorCode jsonStr)
+            let error = getErrorCode (Json.Encode.encode 0 json)
             in ({ model | error = error }, Cmd.none)
-        UpdatedUserInfo _ ->
-            ({ model | msgToUser = "Brukerinformasjon oppdatert" }, Cmd.none)
+        UpdateUserInfoSucceeded _ ->
+            let oldUserInfo = model.submittedUserInfo
+            in ({ model | submittedUserInfo = { oldUserInfo | email = model.email, firstName = model.firstName, lastName = model.lastName, degree = model.degree }, 
+                          msgToUser = "Brukerinformasjon oppdatert" }, Cmd.none)
         UserInfoEmpty _ ->
             ({ model | userInfoEmpty = True }, Cmd.none)
         AttemptSignOut ->
             (model, attemptSignOut (encode "requestedLogOut" True))
         SignOutSucceeded _ ->
-            ({ model | currentSubPage = Verified }, Browser.Navigation.load "https://echobedriftstur-userauth.firebaseapp.com" )
-        SignOutFailed error ->
+            ({ model | currentSubPage = Verified }, Browser.Navigation.load "https://echobedriftstur.no" )
+        SignOutFailed json ->
             ({ model | currentSubPage = Verified }, Cmd.none)
         TypedFirstName str ->
             ({ model | firstName = str }, Cmd.none)
@@ -177,8 +211,7 @@ showPage model =
         MinSide ->
             div [ class "min-side" ]
                 [ div [ id "min-side-content" ]
-                    [ p [ class "min-side-item", id "error-message" ] [ text (errorMessageToUser model.error) ]
-                    , input [ class "min-side-item", id "email", type_ "text", value (model.email), disabled True ] [ text "Mail" ]
+                    [ input [ class "min-side-item", id "email", type_ "text", value (model.email), disabled True ] [ text "Mail" ]
                     , input [ class "min-side-item", id "firstName", type_ "text", placeholder "Fornavn", Html.Events.onInput TypedFirstName, value (model.firstName) ] [ text "Fornavn" ]
                     , br [] []
                     , input [ class "min-side-item", id "lastName", type_ "text", placeholder "Etternavn", Html.Events.onInput TypedLastName, value (model.lastName) ] [ text "Etternavn" ]
@@ -198,10 +231,10 @@ showPage model =
                             ]
                         ]
                     , div [ class "min-side-item", id "min-side-buttons" ]
-                        [ h3 [] [ text (errorMessageToUser model.error) ]
-                        , button [ type_ "button", Html.Events.onClick UpdateUserInfo ] [ text "Lagre endringer" ]
+                        [ button [ disabled <| not <| hasChangedInfo model, type_ "button", Html.Events.onClick UpdateUserInfo ] [ text "Lagre endringer" ]
                         , button [ type_ "button", Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
                         ]
+                    , p [ class "min-side-item", id "error-message" ] [ text (errorMessageToUser model.error) ]
                     ]
                 ]
 
@@ -231,13 +264,13 @@ getAuthCode url =
             Nothing ->
                 InvalidQuery
 
-getErrorCode : String -> String
+getErrorCode : String -> Error
 getErrorCode json =
     case Json.Decode.decodeString Json.Decode.string json of
         Ok code ->
-            code
+            errorFromString code
         Err _ ->
-            ""
+            NoError
 
 errorFromString : String -> Error
 errorFromString str =
@@ -261,13 +294,19 @@ errorMessageToUser error =
         InvalidEmail ->
             "Mailen du har skrevet inn har ikke riktig format. Prøv igjen."
         ExpiredActionCode ->
-            "Innlogginslinken har utløpt. Prøv å send en ny link."
+            "Innlogginslinken har utløpt. Prøv å sende en ny link."
         InvalidActionCode ->
             "Innlogginslinken er ikke gyldig. Dette kan skje om den allerede har blitt brukt."
         UserDisabled ->
             "Brukeren din har blitt deaktivert."
         PermissionDenied ->
-            "Det skjedde en feil når vi prøvde å laste inn brukerinformasjonen din. Dette kan skje om du ikke har registrert deg med en gyldig studentmail."
+            """
+            Det skjedde en feil når vi prøvde å hente/oppdatere brukerinformasjonen din. 
+            Dette kan skje om du ikke har registrert deg med en gyldig studentmail.
+            Vennligst logg ut og logg inn med en gyldig studentmail.
+            """
+        Unauthenticated ->
+            "Du har ikke tilgang til denne siden. Prøv å logg inn på nytt."
         NoError ->
             ""
 
@@ -388,8 +427,17 @@ decodeUserInfo json field =
             Ok info ->
                 info 
             Err _ ->
-                "error"
+                ""
 
 redirectUrl : Url.Url -> String
 redirectUrl url =
     Url.Builder.crossOrigin "https://echobedriftstur.no" [ "minside" ] []
+
+-- TODO: make this less ugly
+hasChangedInfo : Model -> Bool
+hasChangedInfo model =
+    let email = model.submittedUserInfo.email
+        firstName = model.submittedUserInfo.firstName
+        lastName = model.submittedUserInfo.lastName
+        degree = model.submittedUserInfo.degree
+   in email /= model.email || firstName /= model.firstName || lastName /= model.lastName || degree /= model.degree
