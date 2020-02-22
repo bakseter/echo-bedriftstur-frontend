@@ -127,7 +127,8 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    (model, Browser.Navigation.pushUrl model.key (Url.toString url))
+                    let modelLoggInn = model.modelLoggInn
+                    in ({ model | modelLoggInn = { modelLoggInn | submittedEmail = False } }, Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->

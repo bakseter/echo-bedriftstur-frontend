@@ -10,7 +10,7 @@ import String
 type Msg
     = TypedEmail String
     | SendSignInLink
-    | SendSignInLinkSucceded Json.Encode.Value
+    | SendSignInLinkSucceeded Json.Encode.Value
     | SendSignInLinkError Json.Encode.Value
 
 type Error
@@ -36,7 +36,7 @@ init =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ sendSignInLinkSucceeded SendSignInLinkSucceded
+        [ sendSignInLinkSucceeded SendSignInLinkSucceeded
         , sendSignInLinkError SendSignInLinkError
         ] 
 
@@ -51,7 +51,7 @@ update msg model =
             ({ model | email = str }, Cmd.none)
         SendSignInLink ->
             (model, sendSignInLink (encode model))
-        SendSignInLinkSucceded _ ->
+        SendSignInLinkSucceeded _ ->
             ({ model | submittedEmail = True }, Cmd.none)
         SendSignInLinkError json ->
             let error = errorFromString <| getErrorCode <| Json.Encode.encode 0 json
