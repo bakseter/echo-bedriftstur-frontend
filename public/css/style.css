@@ -82,7 +82,7 @@ a {
     border: 2px solid white;
 }
 
-.menuItem {
+.menu-item {
     text-align: center;
     padding-top: 5%;
     padding-bottom: 5%;
@@ -341,7 +341,7 @@ h1.anim-text {
         overflow: hidden;
     }
 
-    .menuItem {
+    .menu-item {
         display: none;
     }
 
