@@ -59,27 +59,26 @@ type alias Model =
 
 init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init path url key =
-    let model =
-        { key = key
-        , url = url
-        , currentPage = Hjem
-        , showNavbar = False
-        , hideLineNavBtn = False
-        , navBtnAnimation = (Animation.style 
-                                [ Animation.rotate (deg 0)
-                                , Animation.translate (px 0) (px 0)
-                                , Animation.scale 1.0 
-                                ]
-                            , Animation.style 
-                                 [ Animation.rotate (deg 0)
-                                , Animation.translate (px 0) (px 0)
-                               , Animation.scale 1.0 
-                            ])
-        , modelHjem = Hjem.init
-        , modelBedrifter = Bedrifter.init
-        , modelProgram = Program.init
-        , modelOm = Om.init
-        }
+    let model = { key = key
+                , url = url
+                , currentPage = Hjem
+                , showNavbar = False
+                , hideLineNavBtn = False
+                , navBtnAnimation = (Animation.style 
+                                        [ Animation.rotate (deg 0)
+                                        , Animation.translate (px 0) (px 0)
+                                        , Animation.scale 1.0 
+                                        ]
+                                    , Animation.style 
+                                         [ Animation.rotate (deg 0)
+                                        , Animation.translate (px 0) (px 0)
+                                       , Animation.scale 1.0 
+                                    ])
+                , modelHjem = Hjem.init
+                , modelBedrifter = Bedrifter.init
+                , modelProgram = Program.init
+                , modelOm = Om.init
+                }
     in
         case path of
             Just str ->
