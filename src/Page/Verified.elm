@@ -22,7 +22,6 @@ type Msg
     | GetUserInfoSucceeded Json.Encode.Value
     | UpdateUserInfoSucceeded Json.Encode.Value
     | UpdateUserInfoError Json.Encode.Value
-    | UserInfoEmpty Json.Encode.Value
     | AttemptSignOut
     | UpdateUserInfo
     | TypedFirstName String
@@ -71,7 +70,6 @@ port getUserInfoSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 port updateUserInfo : Json.Encode.Value -> Cmd msg
 port updateUserInfoError : (Json.Encode.Value -> msg) -> Sub msg
 port updateUserInfoSucceeded : (Json.Encode.Value -> msg) -> Sub msg
-port userInfoEmpty : (Json.Encode.Value -> msg) -> Sub msg
 
 port attemptSignOut : Json.Encode.Value -> Cmd msg
 port signOutError : (Json.Encode.Value -> msg) -> Sub msg
@@ -82,7 +80,6 @@ type alias Model =
     , key : Browser.Navigation.Key
     , authCode : AuthCode
     , msgToUser : String
-    , userInfoEmpty : Bool
     , error : Error
     , currentSubPage : SubPage
     , email : String
@@ -93,8 +90,7 @@ type alias Model =
     }
 
 type alias SubmittedUserInfo =
-    { email : String
-    , firstName : String
+    { firstName : String
     , lastName : String
     , degree : Degree }
 
@@ -104,7 +100,6 @@ init url key =
     , key = key
     , authCode = getAuthCode url
     , msgToUser = ""
-    , userInfoEmpty = True
     , error = NoError
     , currentSubPage = MinSide
     , email = ""
@@ -112,8 +107,7 @@ init url key =
     , lastName = ""
     , degree = None
     , submittedUserInfo =
-        { email = ""
-        , firstName = ""
+        { firstName = ""
         , lastName = ""
         , degree = None
         }
@@ -131,7 +125,6 @@ subscriptions model =
         , getUserInfoSucceeded GetUserInfoSucceeded
         , updateUserInfoSucceeded UpdateUserInfoSucceeded
         , updateUserInfoError UpdateUserInfoError
-        , userInfoEmpty UserInfoEmpty
         ]
 
 update : Msg  -> Model -> (Model, Cmd Msg)
@@ -159,17 +152,15 @@ update msg model =
                            , firstName = firstName
                            , lastName = lastName
                            , degree = degree
-                           , userInfoEmpty = False 
                            , submittedUserInfo =
-                                { email = email
-                                , firstName = firstName
+                                { firstName = firstName
                                 , lastName = lastName
                                 , degree = degree
                                 }
                 }, Cmd.none) 
         UpdateUserInfo ->
             if hasChangedInfo model then
-                ({ model | userInfoEmpty = False }, updateUserInfo (encodeUserInfo model))
+                (model, updateUserInfo (encodeUserInfo model))
             else
                 (model, Cmd.none)
         UpdateUserInfoError json ->
@@ -177,10 +168,8 @@ update msg model =
             in ({ model | error = error }, Cmd.none)
         UpdateUserInfoSucceeded _ ->
             let oldUserInfo = model.submittedUserInfo
-            in ({ model | submittedUserInfo = { oldUserInfo | email = model.email, firstName = model.firstName, lastName = model.lastName, degree = model.degree }, 
+            in ({ model | submittedUserInfo = { oldUserInfo | firstName = model.firstName, lastName = model.lastName, degree = model.degree }, 
                           msgToUser = "Brukerinformasjon oppdatert" }, Cmd.none)
-        UserInfoEmpty _ ->
-            ({ model | userInfoEmpty = True }, Cmd.none)
         AttemptSignOut ->
             (model, attemptSignOut (encode "requestedLogOut" True))
         SignOutSucceeded _ ->
@@ -235,6 +224,8 @@ showPage model =
                         , input [ id "signout-btn", value "Logg ut ", type_ "button", Html.Events.onClick AttemptSignOut ] []
                         ]
                     , p [ class "min-side-item", id "error-message" ] [ text (errorMessageToUser model.error) ]
+                    , p [ class "min-side-teim", id "model-debug" ]
+                        [ text (model.email ++ model.firstName ++ model.lastName) ]
                     ]
                 ]
 
@@ -285,6 +276,8 @@ errorFromString str =
             UserDisabled
         "permission-denied" ->
             PermissionDenied
+        "unathenticated" ->
+            Unauthenticated
         _ ->
             NoError
 
@@ -320,8 +313,21 @@ encodeUserInfo model =
         [ ("firstName", Json.Encode.string model.firstName)
         , ("lastName", Json.Encode.string model.lastName)
         , ("degree", Json.Encode.string (degreeToString model.degree))
-        , ("userInfoEmpty", Json.Encode.bool model.userInfoEmpty)
         ]
+
+decodeUserInfo : Json.Encode.Value -> String -> String
+decodeUserInfo json field =
+    let jsonStr = Json.Encode.encode 0 json
+    in
+        case Json.Decode.decodeString (Json.Decode.at [ field ] Json.Decode.string) jsonStr of
+            Ok info ->
+                info 
+            Err _ ->
+                ""
+
+redirectUrl : Url.Url -> String
+redirectUrl url =
+    Url.Builder.crossOrigin "https://echobedriftstur.no" [ "minside" ] []
 
 degreeToString : Degree -> String
 degreeToString degree =
@@ -419,25 +425,10 @@ degreeToStringShorthand degree =
         None ->
             ""
 
-decodeUserInfo : Json.Encode.Value -> String -> String
-decodeUserInfo json field =
-    let jsonStr = Json.Encode.encode 0 json
-    in
-        case Json.Decode.decodeString (Json.Decode.at [ field ] Json.Decode.string) jsonStr of
-            Ok info ->
-                info 
-            Err _ ->
-                ""
-
-redirectUrl : Url.Url -> String
-redirectUrl url =
-    Url.Builder.crossOrigin "https://echobedriftstur.no" [ "minside" ] []
-
 -- TODO: make this less ugly
 hasChangedInfo : Model -> Bool
 hasChangedInfo model =
-    let email = model.submittedUserInfo.email
-        firstName = model.submittedUserInfo.firstName
+    let firstName = model.submittedUserInfo.firstName
         lastName = model.submittedUserInfo.lastName
         degree = model.submittedUserInfo.degree
-   in email /= model.email || firstName /= model.firstName || lastName /= model.lastName || degree /= model.degree
+   in firstName /= model.firstName || lastName /= model.lastName || degree /= model.degree
