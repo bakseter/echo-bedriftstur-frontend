@@ -1,10 +1,9 @@
-module Page.Bedrifter exposing (init, subscriptions, update, view, Model, Msg, slideInStyle)
+module Page.Bedrifter exposing (init, subscriptions, update, view, Model, Msg)
 
 import Html exposing (Html, div, span, text, a, img, h1, h2, p)
 import Html.Attributes exposing (class, id, target, rel, href, src, alt)
 import Time
 import Browser.Dom
-import String
 import Task
 import Animation exposing (percent)
 
@@ -75,8 +74,7 @@ update msg model =
                             , knowitAnim = startingStyleForMobile model.knowitAnim
                             , dnbAnim = startingStyleForMobile model.dnbAnim
                             , bekkAnim = startingStyleForMobile model.bekkAnim
-                   },
-                            Cmd.none)
+                   }, Cmd.none)
                 else
                     if scroll > 0.1 && model.mnemonicAnim == startingStyle then
                         update SlideInMnemonic newModel
@@ -124,6 +122,7 @@ update msg model =
             ({ model | dnbAnim = Animation.update anim model.dnbAnim }, Cmd.none)
         AnimBekk anim ->
             ({ model | bekkAnim = Animation.update anim model.bekkAnim }, Cmd.none)
+
 view : Model -> Html Msg
 view model =
     div [ class "bedrifter" ]

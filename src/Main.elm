@@ -1,9 +1,9 @@
 module Main exposing (..)
 
 import Browser
-import Browser.Navigation as Nav
-import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, i)
-import Html.Attributes exposing (href, class, id, alt, src, rel, target)
+import Browser.Navigation
+import Html exposing (Html, div, span, h1, h3, text, a, img, i)
+import Html.Attributes exposing (href, class, id, alt, src)
 import Url
 import Page.Hjem as Hjem
 import Page.Bedrifter as Bedrifter
@@ -18,13 +18,13 @@ import Svg.Attributes exposing (x1, x2, y1, y2)
 
 main =
     Browser.application 
-    { init = init
-    , subscriptions = subscriptions
-    , update = update
-    , view = view
-    , onUrlChange = UrlChanged
-    , onUrlRequest = LinkClicked
-    }
+        { init = init
+        , subscriptions = subscriptions
+        , update = update
+        , view = view
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
+        }
 
 type Msg
     = UrlChanged Url.Url
@@ -45,7 +45,7 @@ type Page
     | NotFound
 
 type alias Model =
-    { key : Nav.Key
+    { key : Browser.Navigation.Key
     , url : Url.Url
     , currentPage : Page
     , showNavbar : Bool
@@ -57,28 +57,29 @@ type alias Model =
     , modelOm : Om.Model
     }
 
-init : Maybe String -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
+init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init path url key =
-    let model = { key = key
-                , url = url
-                , currentPage = Hjem
-                , showNavbar = False
-                , hideLineNavBtn = False
-                , navBtnAnimation = (Animation.style 
-                                        [ Animation.rotate (deg 0)
-                                        , Animation.translate (px 0) (px 0)
-                                        , Animation.scale 1.0 
-                                        ]
-                                    , Animation.style 
-                                         [ Animation.rotate (deg 0)
-                                        , Animation.translate (px 0) (px 0)
-                                       , Animation.scale 1.0 
-                                    ])
-                , modelHjem = Hjem.init
-                , modelBedrifter = Bedrifter.init
-                , modelProgram = Program.init
-                , modelOm = Om.init
-                }
+    let model =
+        { key = key
+        , url = url
+        , currentPage = Hjem
+        , showNavbar = False
+        , hideLineNavBtn = False
+        , navBtnAnimation = (Animation.style 
+                                [ Animation.rotate (deg 0)
+                                , Animation.translate (px 0) (px 0)
+                                , Animation.scale 1.0 
+                                ]
+                            , Animation.style 
+                                 [ Animation.rotate (deg 0)
+                                , Animation.translate (px 0) (px 0)
+                               , Animation.scale 1.0 
+                            ])
+        , modelHjem = Hjem.init
+        , modelBedrifter = Bedrifter.init
+        , modelProgram = Program.init
+        , modelOm = Om.init
+        }
     in
         case path of
             Just str ->
@@ -121,9 +122,9 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    (model, Nav.pushUrl model.key (Url.toString url))
+                    (model, Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
-                    (model, Nav.load href) 
+                    (model, Browser.Navigation.load href) 
         UrlChanged url ->
             case url.path of
                 "/" ->
@@ -150,11 +151,10 @@ update msg model =
             in ({ model | modelOm = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
-                case linksToHome of
-                    True ->
-                        (model, Cmd.none)
-                    False ->
-                        ({ model | showNavbar = True, navBtnAnimation = newNavBtnStyle False model.navBtnAnimation }, Cmd.none)
+                if linksToHome then
+                    (model, Cmd.none)
+                else
+                    ({ model | showNavbar = True, navBtnAnimation = newNavBtnStyle False model.navBtnAnimation }, Cmd.none)
             else
                 ({ model | showNavbar = False, navBtnAnimation = newNavBtnStyle True model.navBtnAnimation }, Cmd.none)
         NavBtnTransition ->

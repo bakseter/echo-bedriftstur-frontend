@@ -5,7 +5,6 @@ import Html.Attributes exposing (class, id)
 import Time
 import Animation
 import Animation.Messenger
-import String
 
 type Msg
     = Tick Time.Posix
@@ -74,7 +73,7 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         Tick time ->
-            ({ model | currentTime = time}, Cmd.none)
+            ({ model | currentTime = time }, Cmd.none)
         TransitionHeader ->
              ({ model | headerName = nextName model.headerName }, Cmd.none)
         AnimateHeader anim ->
@@ -99,18 +98,17 @@ getCountDown dateNow =
         if date == dateThen then 
             (List.map (\x -> div 
                 [ class "clock-item", id ("clock" ++ Tuple.second x) ]
-                [ text (fixNum (String.fromInt (Tuple.first x))) ]) 
-                [(0,"D"),(0,"H"),(0,"M"),(0,"S")]) 
+                [ text <| fixNum <| String.fromInt <| Tuple.first x ]) 
+                [ (0,"D"), (0,"H"), (0,"M"), (0,"S") ]) 
         else 
             (List.map (\x -> div 
                 [ class "clock-item", id ("clock" ++ Tuple.second x) ]
-                [ text (fixNum (String.fromInt (Tuple.first x))) ])
+                [ text <| fixNum <| String.fromInt <| Tuple.first x ])
                 (calcDate date))
 
 fixNum : String -> String
 fixNum str =
-    if String.length str == 1
-    then
+    if String.length str == 1 then
         "0" ++ str
     else
         str
@@ -125,7 +123,7 @@ calcDate diff =
         minMod = modBy (60 * 1000) hourMod
         sec = minMod // 1000
     in
-        [(day,"D"), (hour,"H"), (min,"M"), (sec,"S")]
+        [ (day,"D"), (hour,"H"), (min,"M"), (sec,"S") ]
 
 nextName : Names -> Names
 nextName name =
