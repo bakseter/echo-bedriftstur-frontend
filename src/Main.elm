@@ -101,7 +101,10 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.batch [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
-                    , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+                    , if model.currentPage == Bedrifter then
+                        manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+                      else
+                        Sub.none
                     , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
                     , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
                     ]
