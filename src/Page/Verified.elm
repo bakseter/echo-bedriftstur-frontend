@@ -329,6 +329,14 @@ redirectUrl : Url.Url -> String
 redirectUrl url =
     Url.Builder.crossOrigin "https://echobedriftstur.no" [ "minside" ] []
 
+hasChangedInfo : Model -> Bool
+hasChangedInfo model =
+    List.foldl (==) True 
+        [ model.firstName == model.submittedUserInfo.firstName
+        , model.lastName == model.submittedUserInfo.lastName
+        , model.degree == model.submittedUserInfo.degree
+        ]
+
 degreeToString : Degree -> String
 degreeToString degree =
     case degree of
@@ -424,11 +432,3 @@ degreeToStringShorthand degree =
             "PROG"
         None ->
             ""
-
--- TODO: make this less ugly
-hasChangedInfo : Model -> Bool
-hasChangedInfo model =
-    let firstName = model.submittedUserInfo.firstName
-        lastName = model.submittedUserInfo.lastName
-        degree = model.submittedUserInfo.degree
-   in firstName /= model.firstName || lastName /= model.lastName || degree /= model.degree

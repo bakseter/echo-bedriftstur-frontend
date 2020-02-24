@@ -254,8 +254,9 @@ getNavbar : Bool -> Html Msg
 getNavbar show =
     if show then
         div [ id "navbar-content" ] 
-            [ a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
+            [ a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Påmelding" ]
             , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
+            , a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
             , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
             ]
     else
