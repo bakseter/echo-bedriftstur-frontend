@@ -121,9 +121,7 @@ showPage model =
 
 isEmailValid : String -> Bool
 isEmailValid str =
-    -- TODO: revert to correct value
-    -- (String.right (String.length "@student.uib.no")) str == "@student.uib.no"
-    True
+    (String.right (String.length "@student.uib.no")) str == "@student.uib.no"
 
 getErrorCode : String -> String
 getErrorCode json =

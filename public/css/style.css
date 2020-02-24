@@ -10,8 +10,11 @@
     --color-bekk: #979590;
 }
 
-html {
+* {
     font-family: IBM Plex Sans;
+}
+
+html {
     background-color: var(--background);
     padding-left: 0px;
     padding-right: 0px;
@@ -368,7 +371,7 @@ input[type=text]:focus {
 }
 
 #email-valid {
-    border-color: green;
+    border-color: #33CC33;
 }
 #email-invalid {
     border-color: red;
@@ -393,6 +396,10 @@ input[type=text]:focus {
     display: block;
 }
 
+input[type=button] {
+    margin: 3%;
+    padding: 2%;
+}
 
 /* MOBILE */
 @media (max-device-width: 415px), (max-width: 900px) {
