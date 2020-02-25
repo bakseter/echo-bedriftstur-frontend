@@ -78,9 +78,9 @@ app.ports.getUserInfo.subscribe(data => {
                 
                 db.collection("users").doc(user.uid).set({
                     email: user.email,
-                    firstName: "",
-                    lastName: "",
-                    degree: ""
+                    firstName: "init",
+                    lastName: "init",
+                    degree: "init"
                 })
                 .then(docRef => {
                     const emailOnly = {
@@ -109,6 +109,7 @@ app.ports.updateUserInfo.subscribe(data => {
     
     if (user && user.emailVerified) {
         db.collection("users").doc(user.uid).set({
+            email: user.email,
             firstName: data.firstName,
             lastName: data.lastName,
             degree: data.degree

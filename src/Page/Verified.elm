@@ -332,9 +332,9 @@ redirectUrl url =
 hasChangedInfo : Model -> Bool
 hasChangedInfo model =
     List.foldl (==) True 
-        [ model.firstName == model.submittedUserInfo.firstName
-        , model.lastName == model.submittedUserInfo.lastName
-        , model.degree == model.submittedUserInfo.degree
+        [ model.firstName /= model.submittedUserInfo.firstName
+        , model.lastName /= model.submittedUserInfo.lastName
+        , model.degree /= model.submittedUserInfo.degree
         ]
 
 degreeToString : Degree -> String
