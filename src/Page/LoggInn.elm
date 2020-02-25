@@ -173,6 +173,7 @@ calcDate diff =
         sec = minMod // 1000
     in
         [(day,"D"), (hour,"H"), (min,"M"), (sec,"S")]
+
 isEmailValid : String -> Bool
 isEmailValid str =
     (String.right (String.length "@student.uib.no")) str == "@student.uib.no"
