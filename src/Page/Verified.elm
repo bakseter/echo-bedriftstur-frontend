@@ -11,12 +11,9 @@ import Json.Encode
 import Json.Decode
 import Browser.Navigation
 
--- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
--- !!!!!!CHANGE IN PRODUCTION!!!!!!
--- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 redirectToHome : String
 redirectToHome =
-    "https://echobedriftstur-userauth.firebaseapp.com"
+    "https://echobedriftstur.no"
 
 type Msg
     = UserStatusChanged Json.Encode.Value
