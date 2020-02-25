@@ -1,7 +1,7 @@
 module Page.Program exposing (init, subscriptions, update, view, Model, Msg)
 
 import Html exposing (Html, div, h1, h3, text, a, br)
-import Html.Attributes exposing (class, id, target, rel, href)
+import Html.Attributes exposing (class, id)
 import Html.Events
 import Browser.Navigation as Nav
 

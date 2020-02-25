@@ -2,8 +2,8 @@ port module Main exposing (main)
 
 import Browser
 import Browser.Navigation
-import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, i, p)
-import Html.Attributes exposing (href, class, id, alt, src, rel, target)
+import Html exposing (Html, div, span, h1, h3, text, a, img, i)
+import Html.Attributes exposing (href, class, id, alt, src)
 import Url
 import Page.Hjem as Hjem
 import Page.LoggInn as LoggInn
@@ -22,13 +22,13 @@ import Json.Decode
 
 main =
     Browser.application 
-    { init = init
-    , subscriptions = subscriptions
-    , update = update
-    , view = view
-    , onUrlChange = UrlChanged
-    , onUrlRequest = LinkClicked
-    }
+        { init = init
+        , subscriptions = subscriptions
+        , update = update
+        , view = view
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
+        }
 
 type Page 
     = Hjem
@@ -113,13 +113,14 @@ init path url key =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch 
+    Sub.batch
         [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
-        , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
-        , manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+        , if model.currentPage == Bedrifter then
+            manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+          else
+            Sub.none
         , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
         , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
-        , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
         , signOutSucceeded SignOutSucceeded
         , signOutError SignOutError
         , Animation.subscription AnimateNavBtn
@@ -180,11 +181,10 @@ update msg model =
             in ({ model | modelVerified = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
-                case linksToHome of
-                    True ->
-                        (model, Cmd.none)
-                    False ->
-                        ({ model | showNavbar = True, navBtnAnimation = newNavBtnStyle False model.navBtnAnimation }, Cmd.none)
+                if linksToHome then
+                    (model, Cmd.none)
+                else
+                    ({ model | showNavbar = True, navBtnAnimation = newNavBtnStyle False model.navBtnAnimation }, Cmd.none)
             else
                 ({ model | showNavbar = False, navBtnAnimation = newNavBtnStyle True model.navBtnAnimation }, Cmd.none)
         NavBtnTransition ->
@@ -231,12 +231,12 @@ view model =
                         ] 
                     ]
                 , if model.modelVerified.user.isSignedIn then 
-                    span [ class "menuItem", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
+                    span [ class "menu-item", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
                   else
-                    span [ class "menuItem", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
-                , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
-                , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
-                , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
+                    span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
+                , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
+                , span [ class "menu-item", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
+                , span [ class "menu-item", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
                 , span [ id "navbar" ] [ getNavbar model ]
             ]

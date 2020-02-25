@@ -5,7 +5,6 @@ import Html.Attributes exposing (class, id)
 import Time
 import Animation
 import Animation.Messenger
-import String
 
 type Msg
     = TransitionHeader
