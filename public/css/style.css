@@ -185,7 +185,7 @@ h1.anim-text {
     grid-template-columns: 12% 88%;
 }
 .program-item:hover {
-    cursor:pointer;
+    cursor: pointer;
 }
 
 .program-content {
@@ -284,6 +284,9 @@ h1.anim-text {
     max-width: 250px;
     max-height: 450px;
     border-radius: 0.7rem;
+}
+.portrett:hover {
+    cursor: pointer;
 }
 
 #om-tekst {

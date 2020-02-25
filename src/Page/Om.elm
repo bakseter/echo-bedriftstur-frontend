@@ -3,11 +3,15 @@ module Page.Om exposing (init, subscriptions, update, view, Model, Msg)
 import Html exposing (Html, div, text, img, i, a)
 import Html.Attributes exposing (class, id, src, alt, href, target, rel)
 import Html.Events
+import Browser.Navigation
 
 type Msg
     = EliasMail
     | AndreasMail
     | TuvaMail
+    | EliasLinkedIn
+    | AndreasLinkedIn
+    | TuvaLinkedIn
 
 type alias Model = 
     { showMailElias : Bool
@@ -35,6 +39,12 @@ update msg model =
             ({ model | showMailAndreas = True }, Cmd.none)
         TuvaMail ->
             ({ model | showMailTuva = True }, Cmd.none)
+        EliasLinkedIn ->
+            (model, Browser.Navigation.load "https://www.linkedin.com/in/elias-djupesland-a51462176/")
+        AndreasLinkedIn ->
+            (model, Browser.Navigation.load "https://www.linkedin.com/in/andreas-salhus-bakseter-54416316a/")
+        TuvaLinkedIn ->
+            (model, Browser.Navigation.load "https://www.linkedin.com/in/tuva-kvalsoren")
 
 view : Model -> Html Msg
 view model =
@@ -42,19 +52,19 @@ view model =
         [ div [ id "om-content" ]
             [ div [ id "om-tekst" ] 
                 [ div [ class "text" ] [ text "Bedriftsturkomitéen består av tre frivillige studenter." ] ]
-            , div [ id "elias" ] [ img [ class "portrett", src "/img/elias.png", alt "Elias" ] [] ]
+            , div [ id "elias" ] [ img [ class "portrett", src "/img/elias.png", alt "Elias", Html.Events.onClick EliasLinkedIn ] [] ]
             , div [ class "om-info", id "elias-info" ]
                 [ div [ class "navn" ] [ text "Elias Djupesland" ]
                 , div [ class "tittel" ] [ text "Bachelor, datateknologi" ]
                 , div [ class (Tuple.first (getMail model EliasMail)), Html.Events.onClick EliasMail ] [ text (Tuple.second (getMail model EliasMail)) ]
                 ]
-            , div [ id "andreas" ] [ img [ class "portrett", src "/img/andreas.png", alt "Andreas" ] [] ]
+            , div [ id "andreas" ] [ img [ class "portrett", src "/img/andreas.png", alt "Andreas", Html.Events.onClick AndreasLinkedIn ] [] ]
             , div [ class "om-info", id "andreas-info" ] 
                 [ div [ class "navn" ] [ text "Andreas Salhus Bakseter" ]
                 , div [ class "tittel" ] [ text "Bachelor, datateknologi" ]
                 , div [ class (Tuple.first (getMail model AndreasMail)), Html.Events.onClick AndreasMail ] [ text (Tuple.second (getMail model AndreasMail)) ]
                 ]
-            , div [ id "tuva" ] [ img [ class "portrett", src "/img/tuva.png", alt "Tuva" ] [] ]
+            , div [ id "tuva" ] [ img [ class "portrett", src "/img/tuva.png", alt "Tuva", Html.Events.onClick TuvaLinkedIn ] [] ]
             , div [ class "om-info", id "tuva-info" ] 
                 [ div [ class "navn" ] [ text "Tuva Kvalsøren" ]
                 , div [ class "tittel" ] [ text "Bachelor, IMØ" ]
@@ -92,3 +102,5 @@ getMail model msg =
                 ("mail", "tuva.kvalsoren@echo.uib.no")
             else
                 ("hidden-mail", "Trykk for mail")
+        _ ->
+            ("", "")
