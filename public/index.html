@@ -20,34 +20,16 @@
     <body>
         <div id="elm">
         </div>
-
+      
         <noscript>Du må aktivere Javascript for å bruke denne nettsiden</noscript>
+      
+        <script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-analytics.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-performance.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.8.2/firebase-firestore.js"></script>
 
         <script type="text/javascript" src="/main.js"></script>
-        <script>
-            var app = Elm.Main.init ({
-                node: document.getElementById("elm"),
-                flags: window.location.pathname
-            });
-        </script>
-
-        <!-- The core Firebase JS SDK is always required and must be listed first -->
-        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
-
-        <script>
-          // Your web app's Firebase configuration
-          var firebaseConfig = {
-            apiKey: "AIzaSyD-mFQI_DHw8mjhomuAcPUHAwOneYhxEK8",
-            authDomain: "echo-bedriftstur-81a2e.firebaseapp.com",
-            databaseURL: "https://echo-bedriftstur-81a2e.firebaseio.com",
-            projectId: "echo-bedriftstur-81a2e",
-            storageBucket: "echo-bedriftstur-81a2e.appspot.com",
-            messagingSenderId: "929375228711",
-            appId: "1:929375228711:web:1cfbcadd8e54e97cd14f02",
-            measurementId: "G-F0QKBQFGLD"
-          };
-          // Initialize Firebase
-          firebase.initializeApp(firebaseConfig);
-        </script>
+        <script type="text/javascript" src="/fb.js"></script>
     </body>
 </html>

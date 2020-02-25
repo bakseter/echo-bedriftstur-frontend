@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (main)
 
 import Browser
 import Browser.Navigation
@@ -6,15 +6,19 @@ import Html exposing (Html, div, span, h1, h3, text, a, img, i)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
 import Page.Hjem as Hjem
+import Page.LoggInn as LoggInn
 import Page.Bedrifter as Bedrifter
 import Page.Program as Program
 import Page.Om as Om
+import Page.Verified as Verified
 import Html exposing (Html)
 import Html.Events
 import Animation exposing (deg, px)
 import Animation.Messenger
 import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2)
+import Json.Encode
+import Json.Decode
 
 main =
     Browser.application 
@@ -26,23 +30,30 @@ main =
         , onUrlRequest = LinkClicked
         }
 
+type Page 
+    = Hjem
+    | LoggInn
+    | Bedrifter
+    | Program
+    | Om
+    | Verified
+    | NotFound
+
 type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
     | GotHjemMsg Hjem.Msg
+    | GotLoggInnMsg LoggInn.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
+    | GotVerifiedMsg Verified.Msg
+    | AttemptSignOut
+    | SignOutSucceeded Json.Encode.Value
+    | SignOutError Json.Encode.Value
     | ShowNavbar Bool
     | NavBtnTransition
     | AnimateNavBtn Animation.Msg
-
-type Page 
-    = Hjem
-    | Bedrifter
-    | Program
-    | Om
-    | NotFound
 
 type alias Model =
     { key : Browser.Navigation.Key
@@ -52,10 +63,16 @@ type alias Model =
     , hideLineNavBtn : Bool  
     , navBtnAnimation : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
     , modelHjem : Hjem.Model
-    , modelBedrifter :Bedrifter.Model
+    , modelLoggInn : LoggInn.Model
+    , modelBedrifter : Bedrifter.Model
     , modelProgram : Program.Model
     , modelOm : Om.Model
+    , modelVerified : Verified.Model
     }
+
+port attemptSignOut : Json.Encode.Value -> Cmd msg
+port signOutError : (Json.Encode.Value -> msg) -> Sub msg
+port signOutSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
 init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init path url key =
@@ -64,20 +81,13 @@ init path url key =
                 , currentPage = Hjem
                 , showNavbar = False
                 , hideLineNavBtn = False
-                , navBtnAnimation = (Animation.style 
-                                        [ Animation.rotate (deg 0)
-                                        , Animation.translate (px 0) (px 0)
-                                        , Animation.scale 1.0 
-                                        ]
-                                    , Animation.style 
-                                         [ Animation.rotate (deg 0)
-                                        , Animation.translate (px 0) (px 0)
-                                       , Animation.scale 1.0 
-                                    ])
+                , navBtnAnimation = startNavBtnStyle
                 , modelHjem = Hjem.init
+                , modelLoggInn = LoggInn.init
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
+                , modelVerified = Verified.init url key
                 }
     in
         case path of
@@ -85,12 +95,16 @@ init path url key =
                 case str of
                     "/" ->
                         ({ model | currentPage = Hjem }, Cmd.none)
+                    "/logg-inn" ->
+                        ({ model | currentPage = LoggInn }, Cmd.none)
                     "/bedrifter" ->
                         ({ model | currentPage = Bedrifter }, Cmd.none)
                     "/program" ->
                        ({ model | currentPage = Program }, Cmd.none)
                     "/om" ->
                         ({ model | currentPage = Om }, Cmd.none)
+                    "/verified" ->
+                        ({ model | currentPage = Verified }, Cmd.none)
                     _ ->
                         ({ model | currentPage = NotFound }, Cmd.none)
             Nothing ->
@@ -100,15 +114,19 @@ init path url key =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.batch [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
-                    , if model.currentPage == Bedrifter then
-                        manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
-                      else
-                        Sub.none
-                    , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
-                    , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
-                    ]
-        , Animation.subscription AnimateNavBtn [ Tuple.first model.navBtnAnimation, Tuple.second model.navBtnAnimation ]
+        [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
+        , if model.currentPage == Bedrifter then
+            manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+          else
+            Sub.none
+        , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
+        , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
+        , signOutSucceeded SignOutSucceeded
+        , signOutError SignOutError
+        , Animation.subscription AnimateNavBtn
+            [ Tuple.first model.navBtnAnimation
+            , Tuple.second model.navBtnAnimation
+            ]
         ]
 
 manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg
@@ -121,19 +139,26 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    (model, Browser.Navigation.pushUrl model.key (Url.toString url))
+                    let modelLoggInn = model.modelLoggInn
+                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown } }, Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->
             case url.path of
                 "/" ->
                     ({ model | url = url, currentPage = Hjem }, Cmd.none)
-                "/program" ->
-                    ({ model | url = url, currentPage = Program }, Cmd.none)
+                "/logg-inn" ->
+                    ({ model | url = url, currentPage = LoggInn }, Cmd.none)
                 "/bedrifter" ->
                     ({ model | url = url, currentPage = Bedrifter }, Cmd.none) 
+                "/program" ->
+                    ({ model | url = url, currentPage = Program }, Cmd.none)
                 "/om" ->
                     ({ model | url = url, currentPage = Om }, Cmd.none)
+                "/verified" ->
+                    ({ model | url = url, currentPage = Verified }, Cmd.none)
+                "/minside" ->
+                    (model, Cmd.none)
                 _ ->
                     ({ model | url = url, currentPage = NotFound}, Cmd.none)
         GotHjemMsg pageMsg ->
@@ -148,6 +173,12 @@ update msg model =
         GotOmMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg Om.update pageMsg model.modelOm GotOmMsg
             in ({ model | modelOm = newModel }, cmd)
+        GotLoggInnMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg LoggInn.update pageMsg model.modelLoggInn GotLoggInnMsg
+            in ({ model | modelLoggInn = newModel }, cmd)
+        GotVerifiedMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Verified.update pageMsg model.modelVerified GotVerifiedMsg
+            in ({ model | modelVerified = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
                 if linksToHome then
@@ -165,6 +196,20 @@ update msg model =
             let (styleFirstLineNavBtn, navBtnCmd) = Animation.Messenger.update anim (Tuple.first model.navBtnAnimation)
                 (styleSecondLineNavBtn, _) = Animation.Messenger.update anim (Tuple.second model.navBtnAnimation)
             in ({ model | navBtnAnimation = (styleFirstLineNavBtn, styleSecondLineNavBtn) }, navBtnCmd)
+        AttemptSignOut ->
+            (model, attemptSignOut (Verified.encode "requestedLogOut" True))
+        SignOutSucceeded _ ->
+            let modelVerified = model.modelVerified
+                user = model.modelVerified.user
+            in ({ model | 
+                    modelVerified = { modelVerified |
+                                      currentSubPage = Verified.verified
+                                    , user = { user | isSignedIn = False }
+                                    }
+                    , currentPage = Hjem }
+               , Browser.Navigation.pushUrl model.key Verified.redirectToHome )
+        SignOutError json ->
+            (model, Cmd.none)
 
 view : Model -> Browser.Document Msg
 view model =
@@ -173,7 +218,7 @@ view model =
         [ div [ class "site" ] 
             [ div [ class "menu" ]
                 [ span [ id "hjem" ] 
-                    [ a [ href "/", Html.Events.onClick (ShowNavbar True) ] 
+                    [ a [ id "logo-link", href "/", Html.Events.onClick (ShowNavbar True) ] 
                         [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                     ]
                 , span [ id "navBtn", Html.Events.onClick (ShowNavbar False) ]
@@ -185,22 +230,30 @@ view model =
                             ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                         ] 
                     ]
+                , if model.modelVerified.user.isSignedIn then 
+                    span [ class "menu-item", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
+                  else
+                    span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
                 , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
                 , span [ class "menu-item", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                 , span [ class "menu-item", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
-                , span [ id "navbar" ] [ getNavbar model.showNavbar ]
+                , span [ id "navbar" ] [ getNavbar model ]
             ]
         ] ++
         case model.currentPage of
             Hjem ->
                 [ showPage GotHjemMsg Hjem.view model.modelHjem ]
+            LoggInn ->
+                [ showPage GotLoggInnMsg LoggInn.view model.modelLoggInn ]
             Bedrifter ->
                 [ showPage GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
             Program ->
                 [ showPage GotProgramMsg Program.view model.modelProgram ]
             Om ->
                 [ showPage GotOmMsg Om.view model.modelOm ]
+            Verified ->
+                [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
             NotFound ->
                 [ div [ class "not-found" ]
                     [ h1 [] [ text "404" ]
@@ -225,17 +278,37 @@ getMiddleLine hide =
     else
         Svg.line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
 
-getNavbar : Bool -> Html Msg
-getNavbar show =
-    if show then
+getNavbar : Model -> Html Msg
+getNavbar model =
+    if model.showNavbar then
         div [ id "navbar-content" ] 
-            [ a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
+            [ if model.modelVerified.user.isSignedIn then
+                a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
+              else
+                a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ]
             , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
+            , a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
             , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
             ]
     else
         span [] []
 
+startNavBtnStyle : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)  
+startNavBtnStyle =
+    (Animation.style 
+        [ Animation.rotate (deg 0)
+        , Animation.translate (px 0) (px 0)
+        , Animation.scale 1.0 
+        ]
+    , Animation.style 
+         [ Animation.rotate (deg 0)
+        , Animation.translate (px 0) (px 0)
+       , Animation.scale 1.0 
+    ])
+
+newNavBtnStyle : Bool -> 
+                (Animation.Messenger.State Msg, Animation.Messenger.State Msg) -> 
+                (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
 newNavBtnStyle menuActive style =
     if menuActive then
         (Animation.interrupt 
@@ -275,3 +348,4 @@ newNavBtnStyle menuActive style =
             ] 
             (Tuple.second style)
         )
+
