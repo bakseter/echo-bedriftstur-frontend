@@ -97,7 +97,7 @@ p {
     grid-column: 1 / span 1;
 }
 
-#logg-inn
+#user-status
 {
     grid-column: 3 / span 1;
 }
@@ -130,23 +130,6 @@ h1.anim-text {
 .hjem-content {
     grid-column: 2 / span 1;
     grid-row: 1 / span 1;
-}
-
-.clock {
-    grid-column: 2 / span 1;
-    grid-row: 2 / span 1;
-
-    display: grid;
-    justify-items: center;
-    grid-template-columns: auto auto auto auto;
-    grid-template-rows: auto auto;
-
-    padding-top: 12%;
-    font-weight: bold;
-}
-
-.clock-item {
-    font-size: 50px;
 }
 
 /* BEDRIFTER */
@@ -355,11 +338,25 @@ h1.anim-text {
 
 /* LOGG INN */
 .logg-inn {
-    display: grid;
-    grid-template-columns: 20% 60% 20%;
-    justify-items: center;
 }
 
+.clock {
+    grid-columns: 2 / span 1;
+
+    display: grid;
+    justify-items: center;
+    grid-template-columns: auto auto auto auto;
+    grid-template-rows: auto auto;
+    padding-left: 20%;
+    padding-right: 20%;
+
+    padding-top: 12%;
+    font-weight: bold;
+}
+
+.clock-item {
+    font-size: 50px;
+}
 input[type=text] {
     padding: 1%;
     transition: border ease 0.4s;
@@ -409,7 +406,12 @@ input[type=button] {
 
     .menu {
         grid-template-columns: 60% 10% 30%;
+        grid-template-rows: auto;
         overflow: hidden;
+    }
+
+    .user-status {
+        display: none;
     }
 
     .menuItem {
@@ -430,6 +432,7 @@ input[type=button] {
     }
 
     .clock-item {
+        /* TODO: scale properly */
         font-size: 36px;
     }
 

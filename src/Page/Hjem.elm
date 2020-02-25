@@ -8,8 +8,7 @@ import Animation.Messenger
 import String
 
 type Msg
-    = Tick Time.Posix
-    | TransitionHeader
+    = TransitionHeader
     | AnimateHeader Animation.Msg
 
 type Name
@@ -46,9 +45,7 @@ init =
 
 subscriptions : Model -> Sub Msg 
 subscriptions model =
-    Sub.batch [ Time.every 1000 Tick
-              , Animation.subscription AnimateHeader [ model.headerStyle ]  
-              ]
+    Animation.subscription AnimateHeader [ model.headerStyle ]  
 
 view : Model -> Html Msg
 view model =
@@ -67,65 +64,17 @@ view model =
                 , br [] []
                 , div [ class "text" ] [ text "Informasjon kommer fortløpende!" ]
                 ]
-            , getClock model
             ]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        Tick time ->
-            ({ model | currentTime = time}, Cmd.none)
         TransitionHeader ->
              ({ model | headerName = nextName model.headerName }, Cmd.none)
         AnimateHeader anim ->
             let (newHeaderStyle, headerCmds) = Animation.Messenger.update anim model.headerStyle
             in
                ({ model | headerStyle = newHeaderStyle }, headerCmds)
-
-getClock : Model -> Html msg
-getClock model =
-    div [ class "clock" ]
-        ([ span [ id "days" ] [ text "D" ]
-         , span [ id "hours" ] [ text "H" ]
-         , span [ id "minutes" ] [ text "M" ]
-         , span [ id "seconds" ] [ text "S" ]
-         ] ++ getCountDown model.currentTime)
-
-getCountDown : Time.Posix -> List (Html msg)
-getCountDown dateNow =
-    let dateThen = 1598436000 * 1000
-        date = dateThen - (Time.posixToMillis dateNow)
-    in
-        if date == dateThen then 
-            (List.map (\x -> div 
-                [ class "clock-item", id ("clock" ++ Tuple.second x) ]
-                [ text <| fixNum <| String.fromInt <| Tuple.first x ]) 
-                [(0,"D"),(0,"H"),(0,"M"),(0,"S")]) 
-        else 
-            (List.map (\x -> div 
-                [ class "clock-item", id ("clock" ++ Tuple.second x) ]
-                [ text <| fixNum <| String.fromInt <| Tuple.first x ])
-                (calcDate date))
-
-fixNum : String -> String
-fixNum str =
-    if String.length str == 1
-    then
-        "0" ++ str
-    else
-        str
-
-calcDate : Int -> List (Int, String)
-calcDate diff =
-    let day = diff // (86400 * 1000)
-        dayMod = modBy (86400 * 1000) diff
-        hour = dayMod // (3600 * 1000)
-        hourMod = modBy (3600 * 1000) dayMod
-        min = hourMod // (60 * 1000)
-        minMod = modBy (60 * 1000) hourMod
-        sec = minMod // 1000
-    in
-        [(day,"D"), (hour,"H"), (min,"M"), (sec,"S")]
 
 nextName : Names -> Names
 nextName name =

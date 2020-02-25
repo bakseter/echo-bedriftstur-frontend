@@ -19,6 +19,10 @@ const app = Elm.Main.init ({
     flags: window.location.pathname
 });
 
+firebase.auth().onAuthStateChanged(user => {
+    app.ports.userStatusChanged.send(user);
+});
+
 app.ports.sendSignInLink.subscribe(data => {
     const actionCodeSettings = {
         // TODO: change this in production
@@ -26,14 +30,14 @@ app.ports.sendSignInLink.subscribe(data => {
         handleCodeInApp : true
     };
     firebase.auth().sendSignInLinkToEmail(data.email, actionCodeSettings)
-        .then(() => {
-            window.localStorage.setItem("emailForSignIn", data.email);
-            app.ports.sendSignInLinkSucceeded.send(true);
-        })
-        .catch(error => {
-            // Error is handled in Elm
-            app.ports.sendSignInLinkError.send(error.code);
-        });
+    .then(() => {
+        window.localStorage.setItem("emailForSignIn", data.email);
+        app.ports.sendSignInLinkSucceeded.send(true);
+    })
+    .catch(error => {
+        // Error is handled in Elm
+        app.ports.sendSignInLinkError.send(error.code);
+    });
 });
 
 if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
@@ -59,71 +63,11 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
 }
 
 app.ports.getUserInfo.subscribe(data => {
-    const user = firebase.auth().currentUser;
-
-    if (!user) {
-        if (debug)
-            console.log("user not signed in");
-        app.ports.userNotSignedIn.send(true);
-    }
-
-    db.collection("users").doc(user.uid).get()
-        .then(doc => {
-            if (doc.exists) {
-                app.ports.getUserInfoSucceeded.send(doc.data());
-            }
-            else {
-                if (debug)
-                    console.log("user has no info, creating info");
-                
-                db.collection("users").doc(user.uid).set({
-                    email: user.email,
-                    firstName: "init",
-                    lastName: "init",
-                    degree: "init"
-                })
-                .then(docRef => {
-                    const emailOnly = {
-                        email: user.email
-                    };
-                    app.ports.getUserInfoSucceeded.send(emailOnly);
-                })
-                .catch(error => {
-                    // TODO: handle error properly in Elm
-                    if (debug)
-                        console.log(error);
-                    app.ports.getUserInfoError.send(error.code);
-                });
-            }
-        })
-        .catch(error => {
-            // TODO: handle error properly in Elm
-            if (debug)
-                console.log(error);
-            app.ports.getUserInfoError.send(error.code);
-        });
+    getUserInfo(data.collection, data.uid, data.content);
 });
 
 app.ports.updateUserInfo.subscribe(data => {
-    const user = firebase.auth().currentUser;
-    
-    if (user && user.emailVerified) {
-        db.collection("users").doc(user.uid).set({
-            email: user.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            degree: data.degree
-        })
-        .then(docRef => {
-            app.ports.updateUserInfoSucceeded.send(true);
-        })
-        .catch(error => {
-            // TODO: test that error is handled properly in Elm
-            if (debug)
-                console.log(error.code);
-            app.ports.updateUserInfoError.send(error.code);
-        });
-    }
+    updateUserInfo(data.collection, data.uid, data.content);
 });
 
 app.ports.attemptSignOut.subscribe(data => {
@@ -134,9 +78,50 @@ app.ports.attemptSignOut.subscribe(data => {
             })
             .catch(error => {
                 // TODO: test that error is handled properly in Elm
-                if (debug)
+                if (debug) {
+                    console.log(error);
                     console.log(error.code);
+                }
                 app.ports.signOutError.send(error);
             });
     }
 });
+
+const getUserInfo = (col, doc, data) => {
+    db.collection(col).doc(doc).get()
+    .then(newDoc => {
+        if (newDoc.exists) {
+            app.ports.getUserInfoSucceeded.send(newDoc.data());
+        }
+        else {
+            const emailOnly = {
+                email: data.email,
+                firstName: "init",
+                lastName: "init",
+                degree: "init"
+            };
+            updateUserInfo(col, doc, emailOnly);
+            app.ports.getUserInfoSucceeded(true);
+        }
+    })
+    .catch(error => {
+        if (debug) {
+            console.log(error);
+            console.log(error.code);
+        }
+    });
+};
+
+const updateUserInfo = (col, doc, data) => {
+    db.collection(col).doc(doc).set(data)
+    .then(docRef => {
+        app.ports.updateUserInfoSucceeded.send(true);
+    })
+    .catch(error => {
+        if (debug) {
+            console.log(error);
+            console.log(error.code);
+        }
+        app.ports.updateUserInfoError.send(error.code);
+    });
+};

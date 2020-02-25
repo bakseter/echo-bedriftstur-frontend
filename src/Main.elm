@@ -1,8 +1,8 @@
-module Main exposing (..)
+port module Main exposing (main)
 
 import Browser
 import Browser.Navigation
-import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, i)
+import Html exposing (Html, div, span, h1, h2, h3, text, br, a, img, i, p)
 import Html.Attributes exposing (href, class, id, alt, src, rel, target)
 import Url
 import Page.Hjem as Hjem
@@ -17,6 +17,8 @@ import Animation exposing (deg, px)
 import Animation.Messenger
 import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2)
+import Json.Encode
+import Json.Decode
 
 main =
     Browser.application 
@@ -28,6 +30,15 @@ main =
     , onUrlRequest = LinkClicked
     }
 
+type Page 
+    = Hjem
+    | LoggInn
+    | Bedrifter
+    | Program
+    | Om
+    | Verified
+    | NotFound
+
 type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
@@ -37,18 +48,12 @@ type Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
     | GotVerifiedMsg Verified.Msg
+    | AttemptSignOut
+    | SignOutSucceeded Json.Encode.Value
+    | SignOutError Json.Encode.Value
     | ShowNavbar Bool
     | NavBtnTransition
     | AnimateNavBtn Animation.Msg
-
-type Page 
-    = Hjem
-    | LoggInn
-    | Bedrifter
-    | Program
-    | Om
-    | Verified
-    | NotFound
 
 type alias Model =
     { key : Browser.Navigation.Key
@@ -64,6 +69,10 @@ type alias Model =
     , modelOm : Om.Model
     , modelVerified : Verified.Model
     }
+
+port attemptSignOut : Json.Encode.Value -> Cmd msg
+port signOutError : (Json.Encode.Value -> msg) -> Sub msg
+port signOutSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
 init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init path url key =
@@ -111,6 +120,8 @@ subscriptions model =
         , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
         , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
         , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
+        , signOutSucceeded SignOutSucceeded
+        , signOutError SignOutError
         , Animation.subscription AnimateNavBtn
             [ Tuple.first model.navBtnAnimation
             , Tuple.second model.navBtnAnimation
@@ -128,7 +139,7 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     let modelLoggInn = model.modelLoggInn
-                    in ({ model | modelLoggInn = { modelLoggInn | submittedEmail = False } }, Browser.Navigation.pushUrl model.key (Url.toString url))
+                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown } }, Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->
@@ -185,6 +196,20 @@ update msg model =
             let (styleFirstLineNavBtn, navBtnCmd) = Animation.Messenger.update anim (Tuple.first model.navBtnAnimation)
                 (styleSecondLineNavBtn, _) = Animation.Messenger.update anim (Tuple.second model.navBtnAnimation)
             in ({ model | navBtnAnimation = (styleFirstLineNavBtn, styleSecondLineNavBtn) }, navBtnCmd)
+        AttemptSignOut ->
+            (model, attemptSignOut (Verified.encode "requestedLogOut" True))
+        SignOutSucceeded _ ->
+            let modelVerified = model.modelVerified
+                user = model.modelVerified.user
+            in ({ model | 
+                    modelVerified = { modelVerified |
+                                      currentSubPage = Verified.verified
+                                    , user = { user | isSignedIn = False }
+                                    }
+                    , currentPage = Hjem }
+               , Browser.Navigation.pushUrl model.key Verified.redirectToHome )
+        SignOutError json ->
+            (model, Cmd.none)
 
 view : Model -> Browser.Document Msg
 view model =
@@ -193,7 +218,7 @@ view model =
         [ div [ class "site" ] 
             [ div [ class "menu" ]
                 [ span [ id "hjem" ] 
-                    [ a [ href "/", Html.Events.onClick (ShowNavbar True) ] 
+                    [ a [ id "logo-link", href "/", Html.Events.onClick (ShowNavbar True) ] 
                         [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                     ]
                 , span [ id "navBtn", Html.Events.onClick (ShowNavbar False) ]
@@ -205,12 +230,15 @@ view model =
                             ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                         ] 
                     ]
-                , span [ class "menuItem", id "logg-inn" ] [ a [ href "/logg-inn" ] [ text "Påmelding" ] ]
+                , if model.modelVerified.user.isSignedIn then 
+                    span [ class "menuItem", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
+                  else
+                    span [ class "menuItem", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
                 , span [ class "menuItem", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
                 , span [ class "menuItem", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
                 , span [ class "menuItem", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
-                , span [ id "navbar" ] [ getNavbar model.showNavbar ]
+                , span [ id "navbar" ] [ getNavbar model ]
             ]
         ] ++
         case model.currentPage of
@@ -250,11 +278,14 @@ getMiddleLine hide =
     else
         Svg.line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
 
-getNavbar : Bool -> Html Msg
-getNavbar show =
-    if show then
+getNavbar : Model -> Html Msg
+getNavbar model =
+    if model.showNavbar then
         div [ id "navbar-content" ] 
-            [ a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Påmelding" ]
+            [ if model.modelVerified.user.isSignedIn then
+                a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
+              else
+                a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ]
             , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
             , a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
             , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
@@ -317,3 +348,4 @@ newNavBtnStyle menuActive style =
             ] 
             (Tuple.second style)
         )
+

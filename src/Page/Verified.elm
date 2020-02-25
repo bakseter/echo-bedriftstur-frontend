@@ -1,4 +1,4 @@
-port module Page.Verified exposing (init, subscriptions, update, view, Model, Msg)
+port module Page.Verified exposing (init, subscriptions, update, view, Model, Msg, encode, verified, redirectToHome)
 
 import Html exposing (Html, div, span, br, text, p, input, button, select, option, h3, h2)
 import Html.Attributes exposing (class, id, type_, value, placeholder, disabled)
@@ -11,18 +11,22 @@ import Json.Encode
 import Json.Decode
 import Browser.Navigation
 
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+-- !!!!!!CHANGE IN PRODUCTION!!!!!!
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+redirectToHome : String
+redirectToHome =
+    "https://echobedriftstur-userauth.firebaseapp.com"
+
 type Msg
-    = SignInSucceeded Json.Encode.Value
+    = UserStatusChanged Json.Encode.Value
+    | SignInSucceeded Json.Encode.Value
     | SignInFailed Json.Encode.Value
-    | SignOutSucceeded Json.Encode.Value
-    | SignOutFailed Json.Encode.Value
     | RequestedUserInfo Json.Encode.Value
     | GetUserInfoError Json.Encode.Value
-    | UserNotSignedIn Json.Encode.Value
     | GetUserInfoSucceeded Json.Encode.Value
     | UpdateUserInfoSucceeded Json.Encode.Value
     | UpdateUserInfoError Json.Encode.Value
-    | AttemptSignOut
     | UpdateUserInfo
     | TypedFirstName String
     | TypedLastName String
@@ -57,6 +61,7 @@ type Degree
     | INF
     | PROG
 
+port userStatusChanged : (Json.Encode.Value -> msg) -> Sub msg
 port signInSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 -- Errors: ExpiredActionCode, InvalidEmail, UserDisabled
 port signInWithLinkError : (Json.Encode.Value -> msg) -> Sub msg
@@ -71,15 +76,10 @@ port updateUserInfo : Json.Encode.Value -> Cmd msg
 port updateUserInfoError : (Json.Encode.Value -> msg) -> Sub msg
 port updateUserInfoSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
-port attemptSignOut : Json.Encode.Value -> Cmd msg
-port signOutError : (Json.Encode.Value -> msg) -> Sub msg
-port signOutSucceeded : (Json.Encode.Value -> msg) -> Sub msg
-
 type alias Model =
     { url : Url.Url
     , key : Browser.Navigation.Key
     , authCode : AuthCode
-    , msgToUser : String
     , error : Error
     , currentSubPage : SubPage
     , email : String
@@ -87,21 +87,27 @@ type alias Model =
     , lastName : String
     , degree : Degree
     , submittedUserInfo : SubmittedUserInfo
+    , user : User
     }
 
 type alias SubmittedUserInfo =
     { firstName : String
     , lastName : String
-    , degree : Degree }
+    , degree : Degree
+    }
+
+type alias User =
+    { uid : String
+    , isSignedIn : Bool
+    }
 
 init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
     { url = url
     , key = key
     , authCode = getAuthCode url
-    , msgToUser = ""
     , error = NoError
-    , currentSubPage = MinSide
+    , currentSubPage = Verified
     , email = ""
     , firstName = ""
     , lastName = ""
@@ -111,16 +117,18 @@ init url key =
         , lastName = ""
         , degree = None
         }
+    , user =
+        { uid = ""
+        , isSignedIn = False
+        }
     }
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ signInSucceeded SignInSucceeded
+        [ userStatusChanged UserStatusChanged
+        , signInSucceeded SignInSucceeded
         , signInWithLinkError SignInFailed
-        , signOutSucceeded SignOutSucceeded
-        , signOutError SignOutFailed
-        , userNotSignedIn UserNotSignedIn
         , getUserInfoError GetUserInfoError
         , getUserInfoSucceeded GetUserInfoSucceeded
         , updateUserInfoSucceeded UpdateUserInfoSucceeded
@@ -130,6 +138,14 @@ subscriptions model =
 update : Msg  -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
+        UserStatusChanged json ->
+            let user = decodeUser json
+                newModel = { model | user = user }
+            in
+                if not <| user.isSignedIn then
+                    ({ newModel | currentSubPage = Verified }, Browser.Navigation.pushUrl model.key redirectToHome)
+                else
+                    (newModel, Cmd.none)
         SignInSucceeded _ ->
             ({ model | currentSubPage = MinSide }, getUserInfo (encode "getUserInfo" True))
         SignInFailed json ->
@@ -137,16 +153,14 @@ update msg model =
             in ({ model | error = error }, Cmd.none)
         RequestedUserInfo _ ->
             (model, getUserInfo (encode "requestedUserInfo" True))
-        UserNotSignedIn _ ->
-            ({ model | error = Unauthenticated }, Browser.Navigation.load "https://echobedriftstur.no")
         GetUserInfoError json ->
             let error = getErrorCode (Json.Encode.encode 0 json)
             in ({ model | error = error }, Cmd.none)
         GetUserInfoSucceeded json ->
-            let email = decodeUserInfo json "email"
-                firstName = decodeUserInfo json "firstName"
-                lastName = decodeUserInfo json "lastName"
-                degree = stringToDegree (decodeUserInfo json "degree")
+            let email = decodeJsonField json "email"
+                firstName = decodeJsonField json "firstName"
+                lastName = decodeJsonField json "lastName"
+                degree = stringToDegree (decodeJsonField json "degree")
             in
                 ({ model | email = email
                            , firstName = firstName
@@ -160,7 +174,12 @@ update msg model =
                 }, Cmd.none) 
         UpdateUserInfo ->
             if hasChangedInfo model then
-                (model, updateUserInfo (encodeUserInfo model))
+                ({ model | currentSubPage = Verified }
+                , Cmd.batch
+                    [ updateUserInfo (encodeUserInfo model)
+                    , Browser.Navigation.pushUrl model.key redirectToHome
+                    ]
+                )
             else
                 (model, Cmd.none)
         UpdateUserInfoError json ->
@@ -168,14 +187,7 @@ update msg model =
             in ({ model | error = error }, Cmd.none)
         UpdateUserInfoSucceeded _ ->
             let oldUserInfo = model.submittedUserInfo
-            in ({ model | submittedUserInfo = { oldUserInfo | firstName = model.firstName, lastName = model.lastName, degree = model.degree }, 
-                          msgToUser = "Brukerinformasjon oppdatert" }, Cmd.none)
-        AttemptSignOut ->
-            (model, attemptSignOut (encode "requestedLogOut" True))
-        SignOutSucceeded _ ->
-            ({ model | currentSubPage = Verified }, Browser.Navigation.load "https://echobedriftstur.no" )
-        SignOutFailed json ->
-            ({ model | currentSubPage = Verified }, Cmd.none)
+            in ({ model | submittedUserInfo = { oldUserInfo | firstName = model.firstName, lastName = model.lastName, degree = model.degree } }, Cmd.none)
         TypedFirstName str ->
             ({ model | firstName = str }, Cmd.none)
         TypedLastName str ->
@@ -220,8 +232,7 @@ showPage model =
                             ]
                         ]
                     , div [ class "min-side-item", id "min-side-buttons" ]
-                        [ input [ id "save-btn", value "Lagre endringer", disabled <| not <| hasChangedInfo model, type_ "button", Html.Events.onClick UpdateUserInfo ] []
-                        , input [ id "signout-btn", value "Logg ut ", type_ "button", Html.Events.onClick AttemptSignOut ] []
+                        [ input [ id "save-btn", value "Lagre endringer og logg ut", disabled <| not <| hasChangedInfo model, type_ "button", Html.Events.onClick UpdateUserInfo ] []
                         ]
                     , p [ class "min-side-item", id "error-message" ] [ text (errorMessageToUser model.error) ]
                     , p [ class "min-side-teim", id "model-debug" ]
@@ -315,8 +326,8 @@ encodeUserInfo model =
         , ("degree", Json.Encode.string (degreeToString model.degree))
         ]
 
-decodeUserInfo : Json.Encode.Value -> String -> String
-decodeUserInfo json field =
+decodeJsonField : Json.Encode.Value -> String -> String
+decodeJsonField json field =
     let jsonStr = Json.Encode.encode 0 json
     in
         case Json.Decode.decodeString (Json.Decode.at [ field ] Json.Decode.string) jsonStr of
@@ -325,10 +336,6 @@ decodeUserInfo json field =
             Err _ ->
                 ""
 
-redirectUrl : Url.Url -> String
-redirectUrl url =
-    Url.Builder.crossOrigin "https://echobedriftstur.no" [ "minside" ] []
-
 hasChangedInfo : Model -> Bool
 hasChangedInfo model =
     List.foldl (==) True 
@@ -336,6 +343,21 @@ hasChangedInfo model =
         , model.lastName /= model.submittedUserInfo.lastName
         , model.degree /= model.submittedUserInfo.degree
         ]
+
+decodeUser : Json.Encode.Value -> User
+decodeUser json =
+    let jsonStr = Json.Encode.encode 0 json
+        uid = Json.Decode.decodeString (Json.Decode.at [ "uid" ] Json.Decode.string) jsonStr
+    in
+        case uid of
+            Ok value ->
+                { uid = value
+                , isSignedIn = True
+                }
+            Err _ ->
+                { uid = ""
+                , isSignedIn = False
+                }
 
 degreeToString : Degree -> String
 degreeToString degree =
@@ -432,3 +454,7 @@ degreeToStringShorthand degree =
             "PROG"
         None ->
             ""
+
+verified : SubPage
+verified =
+    Verified
