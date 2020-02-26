@@ -121,6 +121,8 @@ subscriptions model =
             Sub.none
         , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
         , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
+        , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
+        , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
         , signOutSucceeded SignOutSucceeded
         , signOutError SignOutError
         , Animation.subscription AnimateNavBtn

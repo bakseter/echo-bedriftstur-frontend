@@ -341,6 +341,14 @@ h1.anim-text {
 
 /* LOGG INN */
 .logg-inn {
+    display: grid;
+    justify-items: center;
+    grid-template-columns: 20% 60% 20%;
+    padding: 5%;
+}
+
+#logg-inn-content {
+    grid-column: 2 / span 1;
 }
 
 .clock {

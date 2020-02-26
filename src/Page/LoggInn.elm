@@ -62,7 +62,7 @@ update msg model =
                 if (Time.posixToMillis time) >= release then
                     ({ newModel | currentSubPage = SignIn }, Cmd.none)
                 else
-                    (newModel, Cmd.none)
+                    ({ newModel | currentSubPage = Countdown }, Cmd.none)
         TypedEmail str ->
             ({ model | email = str }, Cmd.none)
         SendSignInLink ->
@@ -76,59 +76,62 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "logg-inn" ]
-        (showPage model)
+        [ showPage model ]
 
 encode : Model -> Json.Encode.Value
 encode model =
     Json.Encode.object
         [ ( "email", Json.Encode.string model.email ) ]
 
-showPage : Model -> List (Html Msg)
+showPage : Model -> Html Msg
 showPage model =
     case model.currentSubPage of
         Countdown ->
-            [ getClock model ]
+            div [ id "logg-inn-content" ]
+                [ getClock model ]
         SignIn ->
-            [ h1 [] [ text "Registrer deg/logg inn" ] 
-            , div [ id "login-info" ]
-                [ p [] 
-                    [ text "For å registrere deg eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
-                , p [ style "font-style" "italic" ]
-                    [ text "Fornavn.Etternavn@student.uib.no" ]
-                , p []
-                    [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
+            div [ id "logg-inn-content" ]
+                [ h1 [] [ text "Registrer deg/logg inn" ] 
+                , div [ id "login-info" ]
+                    [ p [] 
+                        [ text "For å registrere deg eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
+                    , p [ style "font-style" "italic" ]
+                        [ text "Fornavn.Etternavn@student.uib.no" ]
+                    , p []
+                        [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
+                    ]
+                , div [ id "login-form" ]
+                    [ input 
+                        [ if model.error == InvalidEmail then
+                            id "email-invalid"
+                          else if isEmailValid model.email then
+                            id "email-valid"
+                          else
+                            id "email"
+                        , type_ "text", Html.Events.onInput TypedEmail ] []
+                    , br [] []
+                    , br [] []
+                    , input 
+                        [ id "submitBtn"
+                        , type_ "submit"
+                        , value "Logg inn"
+                        , Html.Events.onClick SendSignInLink 
+                        , if isEmailValid model.email then
+                            disabled False
+                          else
+                            disabled True
+                        ] []
+                    ]
+                , h3 [] [text (errorMessageToUser model.error) ]
                 ]
-            , div [ id "login-form" ]
-                [ input 
-                    [ if model.error == InvalidEmail then
-                        id "email-invalid"
-                      else if isEmailValid model.email then
-                        id "email-valid"
-                      else
-                        id "email"
-                    , type_ "text", Html.Events.onInput TypedEmail ] []
-                , br [] []
-                , br [] []
-                , input 
-                    [ id "submitBtn"
-                    , type_ "submit"
-                    , value "Logg inn"
-                    , Html.Events.onClick SendSignInLink 
-                    , if isEmailValid model.email then
-                        disabled False
-                      else
-                        disabled True
-                    ] []
-                ]
-            , h3 [] [text (errorMessageToUser model.error) ]
-            ]
         LinkSent ->
-            [ h1 [] [ text "Registrer deg/logg inn" ]
-            , p []
-                [ text ("Vi har nå sendt deg en mail på " ++ model.email ++ ".") ]
-            , p []
-                [ text "Husk å sjekke søppelposten din!" ]
-            ]
+            div [ id "logg-in-content" ]
+                [ h1 [] [ text "Registrer deg/logg inn" ]
+                , p []
+                    [ text ("Vi har nå sendt deg en mail på " ++ model.email ++ ".") ]
+                , p []
+                    [ text "Husk å sjekke søppelposten din!" ]
+                ]
 
 getClock : Model -> Html msg
 getClock model =
@@ -173,6 +176,7 @@ calcDate diff =
         sec = minMod // 1000
     in
         [(day,"D"), (hour,"H"), (min,"M"), (sec,"S")]
+
 isEmailValid : String -> Bool
 isEmailValid str =
     (String.right (String.length "@student.uib.no")) str == "@student.uib.no"
@@ -215,4 +219,4 @@ countdown =
 
 release : Int
 release =
-    1584442800000
+    1582722473000
