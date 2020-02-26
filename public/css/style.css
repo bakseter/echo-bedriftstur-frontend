@@ -57,7 +57,7 @@ p {
     background-color: var(--foreground);
 }
 
-#navBtn {
+#navbtn {
     display: none;
     text-align: center;
 }
@@ -91,6 +91,24 @@ p {
 #logo {
     max-width: 250px;
     padding: 5%;
+}
+
+.navbtn-line {
+    transition: 0.5s ease;
+    stroke: gray;
+    stroke-width: 4;
+}
+
+#first-line-anim {
+    transform: rotate(45deg) translate(14px, -7px) scale(0.7);
+}
+
+#middle-line-anim {
+    transform: translate(50px);
+}
+
+#second-line-anim {
+    transform: rotate(-45deg) translate(-15px, 6px) scale(0.7);
 }
 
 #hjem {
@@ -417,8 +435,9 @@ input[type=button] {
         display: none;
     }
 
-    #navBtn {
+    #navbtn {
         display: inline;
+        justify-self: center;
         grid-column: 3 / span 1;
     }
 

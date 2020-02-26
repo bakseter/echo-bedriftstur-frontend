@@ -52,16 +52,12 @@ type Msg
     | SignOutSucceeded Json.Encode.Value
     | SignOutError Json.Encode.Value
     | ShowNavbar Bool
-    | NavBtnTransition
-    | AnimateNavBtn Animation.Msg
 
 type alias Model =
     { key : Browser.Navigation.Key
     , url : Url.Url
     , currentPage : Page
     , showNavbar : Bool
-    , hideLineNavBtn : Bool  
-    , navBtnAnimation : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
     , modelHjem : Hjem.Model
     , modelLoggInn : LoggInn.Model
     , modelBedrifter : Bedrifter.Model
@@ -80,8 +76,6 @@ init path url key =
                 , url = url
                 , currentPage = Hjem
                 , showNavbar = False
-                , hideLineNavBtn = False
-                , navBtnAnimation = startNavBtnStyle
                 , modelHjem = Hjem.init
                 , modelLoggInn = LoggInn.init
                 , modelBedrifter = Bedrifter.init
@@ -125,10 +119,6 @@ subscriptions model =
         , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
         , signOutSucceeded SignOutSucceeded
         , signOutError SignOutError
-        , Animation.subscription AnimateNavBtn
-            [ Tuple.first model.navBtnAnimation
-            , Tuple.second model.navBtnAnimation
-            ]
         ]
 
 manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg
@@ -186,18 +176,9 @@ update msg model =
                 if linksToHome then
                     (model, Cmd.none)
                 else
-                    ({ model | showNavbar = True, navBtnAnimation = newNavBtnStyle False model.navBtnAnimation }, Cmd.none)
+                    ({ model | showNavbar = True }, Cmd.none)
             else
-                ({ model | showNavbar = False, navBtnAnimation = newNavBtnStyle True model.navBtnAnimation }, Cmd.none)
-        NavBtnTransition ->
-            if model.hideLineNavBtn then
-                ({ model | hideLineNavBtn = False }, Cmd.none)
-            else
-                ({ model | hideLineNavBtn = True }, Cmd.none)
-        AnimateNavBtn anim ->
-            let (styleFirstLineNavBtn, navBtnCmd) = Animation.Messenger.update anim (Tuple.first model.navBtnAnimation)
-                (styleSecondLineNavBtn, _) = Animation.Messenger.update anim (Tuple.second model.navBtnAnimation)
-            in ({ model | navBtnAnimation = (styleFirstLineNavBtn, styleSecondLineNavBtn) }, navBtnCmd)
+                ({ model | showNavbar = False }, Cmd.none)
         AttemptSignOut ->
             (model, attemptSignOut (Verified.encode "requestedLogOut" True))
         SignOutSucceeded _ ->
@@ -223,14 +204,40 @@ view model =
                     [ a [ id "logo-link", href "/", Html.Events.onClick (ShowNavbar True) ] 
                         [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
                     ]
-                , span [ id "navBtn", Html.Events.onClick (ShowNavbar False) ]
-                    [ Svg.svg [ Svg.Attributes.width "100", Svg.Attributes.height "100" ]
-                        [ Svg.line (Animation.render (Tuple.first model.navBtnAnimation)
-                            ++ [ x1 "0", x2 "50", y1 "35", y2 "35", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
-                        , (getMiddleLine model.hideLineNavBtn)
-                        , Svg.line (Animation.render (Tuple.second model.navBtnAnimation) 
-                            ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
-                        ] 
+                , Svg.svg [ id "navbtn", Html.Events.onClick (ShowNavbar False), Svg.Attributes.width "50", Svg.Attributes.height "40" ]
+                    [ Svg.line 
+                        [ Svg.Attributes.class "navbtn-line"
+                        , if model.showNavbar then
+                            Svg.Attributes.id "first-line-anim"
+                          else
+                            Svg.Attributes.id "first-line"
+                        , x1 "0"
+                        , x2 "50"
+                        , y1 "5"
+                        , y2 "5"
+                        ] []
+                    , Svg.line
+                        [ Svg.Attributes.class "navbtn-line"
+                        , if model.showNavbar then
+                            Svg.Attributes.id "middle-line-anim"
+                          else
+                            Svg.Attributes.id "middle-line"
+                        , x1 "0"
+                        , x2 "50"
+                        , y1 "20"
+                        , y2 "20"
+                        ] []
+                    , Svg.line
+                        [ Svg.Attributes.class "navbtn-line"
+                        , if model.showNavbar then
+                            Svg.Attributes.id "second-line-anim"
+                          else
+                            Svg.Attributes.id "second-line"
+                        , x1 "0"
+                        , x2 "50"
+                        , y1 "35"
+                        , y2 "35"
+                        ] []
                     ]
                 , if model.modelVerified.user.isSignedIn then 
                     span [ class "menu-item", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
@@ -273,13 +280,6 @@ updateWithAndSendMsg updateFunc msg model msg2 =
     let (newModel, cmd) = updateFunc msg model
     in (newModel, Cmd.map msg2 cmd)
 
-getMiddleLine : Bool -> Svg.Svg msg
-getMiddleLine hide =
-    if hide then 
-        Svg.line [] []
-    else
-        Svg.line [ x1 "0", x2 "50", y1 "50", y2 "50", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ] []
-
 getNavbar : Model -> Html Msg
 getNavbar model =
     if model.showNavbar then
@@ -294,60 +294,3 @@ getNavbar model =
             ]
     else
         span [] []
-
-startNavBtnStyle : (Animation.Messenger.State Msg, Animation.Messenger.State Msg)  
-startNavBtnStyle =
-    (Animation.style 
-        [ Animation.rotate (deg 0)
-        , Animation.translate (px 0) (px 0)
-        , Animation.scale 1.0 
-        ]
-    , Animation.style 
-         [ Animation.rotate (deg 0)
-        , Animation.translate (px 0) (px 0)
-       , Animation.scale 1.0 
-    ])
-
-newNavBtnStyle : Bool -> 
-                (Animation.Messenger.State Msg, Animation.Messenger.State Msg) -> 
-                (Animation.Messenger.State Msg, Animation.Messenger.State Msg)
-newNavBtnStyle menuActive style =
-    if menuActive then
-        (Animation.interrupt 
-            [ Animation.Messenger.send NavBtnTransition
-            , Animation.to 
-                [ Animation.translate (px 0) (px 0)
-                ,  Animation.rotate (deg 0)
-                ,  Animation.scale 1.0 
-                ]
-            ] 
-            (Tuple.first style)
-            , Animation.interrupt 
-            [ Animation.to 
-                [ Animation.translate (px 0) (px 0)
-                , Animation.rotate (deg 0)
-                , Animation.scale 1.0
-                ]
-            ] 
-            (Tuple.second style)
-        )
-    else
-        (Animation.interrupt 
-             [ Animation.Messenger.send NavBtnTransition
-             , Animation.to 
-                [ Animation.translate (px 34) (px -8)
-                ,  Animation.rotate (deg 45)
-                ,  Animation.scale 0.7 
-                ]
-            ] 
-            (Tuple.first style)
-            , Animation.interrupt 
-            [ Animation.to 
-                [ Animation.translate (px -35) (px 6)
-                , Animation.rotate (deg -45)
-                , Animation.scale 0.7
-                ]
-            ] 
-            (Tuple.second style)
-        )
-
