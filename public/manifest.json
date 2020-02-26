@@ -4,12 +4,12 @@
   "description": "Bedriftstur til Oslo arrangert av echo - Fagutvalget for informatikk ved Universitetet i Bergen",
   "icons": [
     {
-      "src": "/public/img/echo-favicon-192.png",
+      "src": "/img/echo-favicon-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/public/img/echo-favicon.png",
+      "src": "/img/echo-favicon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
