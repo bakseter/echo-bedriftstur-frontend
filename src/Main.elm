@@ -2,7 +2,7 @@ port module Main exposing (main)
 
 import Browser
 import Browser.Navigation
-import Html exposing (Html, div, span, h1, h3, text, a, img, i)
+import Html exposing (Html, div, span, h1, h3, text, a, img)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
 import Page.Hjem as Hjem
@@ -13,12 +13,9 @@ import Page.Om as Om
 import Page.Verified as Verified
 import Html exposing (Html)
 import Html.Events
-import Animation exposing (deg, px)
-import Animation.Messenger
 import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2)
 import Json.Encode
-import Json.Decode
 
 main =
     Browser.application 

@@ -43,7 +43,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "program" ]
-        [ div [ id "onsdag" ]
+        [ div [ class "day-item", id "onsdag" ]
             [ h1 [] [ text "Onsdag" ]
             , div [ class "program-item", Html.Events.onClick MnemonicMap ]
                 [ div [ class "program-tab", id "mnemonic-tab" ] [ br [] [] ]
@@ -66,7 +66,7 @@ view model =
                     ]
                 ]
             ]
-        , div [ id "torsdag" ]
+        , div [ class "day-item", id "torsdag" ]
             [ h1 [] [ text "Torsdag" ]
             , div [ class "program-item", Html.Events.onClick TbaMap ]
                 [ div [ class "program-tab", id "tba-tab" ] [ br [] [] ]
@@ -91,7 +91,7 @@ view model =
                     ]
                 ]
             ]
-        , div [ id "fredag" ] 
+        , div [ class "day-item", id "fredag" ] 
             [ h1 [] [ text "Fredag" ]
             , div [ class "program-item", Html.Events.onClick DnbMap ]
                 [ div [ class "program-tab", id "dnb-tab" ] [ br [] [] ]
