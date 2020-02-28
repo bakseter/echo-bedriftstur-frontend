@@ -18,11 +18,11 @@ const app = Elm.Main.init ({
     node: document.getElementById("elm"),
     flags: window.location.pathname
 });
-/*
+
 firebase.auth().onAuthStateChanged(user => {
     app.ports.userStatusChanged.send(user);
 });
-*/
+
 app.ports.sendSignInLink.subscribe(data => {
     const actionCodeSettings = {
         // TODO: change this in production
@@ -50,6 +50,9 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
     firebase.auth().signInWithEmailLink(email, window.location.href)
         .then(result => {
             window.localStorage.removeItem("emailForSignIn");
+            if (debug) {
+                console.log(result);
+            }
             app.ports.signInSucceeded.send(result);
         })
         .catch(error => {

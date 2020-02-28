@@ -86,42 +86,50 @@ type alias Model =
     , firstName : String
     , lastName : String
     , degree : Degree
-    , submittedUserInfo : SubmittedUserInfo
+    , submittedUserContent : UserContent
     , user : User
     }
 
-type alias SubmittedUserInfo =
-    { firstName : String
+type alias UserContent =
+    { email : String
+    , firstName : String
     , lastName : String
     , degree : Degree
     }
 
 type alias User =
-    { uid : String
+    { collection : String
+    , uid : String
+    , content : UserContent
     , isSignedIn : Bool
     }
 
 init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
-    { url = url
-    , key = key
-    , authCode = getAuthCode url
-    , error = NoError
-    , currentSubPage = Verified
-    , email = ""
-    , firstName = ""
-    , lastName = ""
-    , degree = None
-    , submittedUserInfo =
-        { firstName = ""
+    let userContent =
+            { email = ""
+            , firstName = ""
+            , lastName = ""
+            , degree = None
+            }
+    in
+        { url = url
+        , key = key
+        , authCode = getAuthCode url
+        , error = NoError
+        , currentSubPage = Verified
+        , email = ""
+        , firstName = ""
         , lastName = ""
         , degree = None
+        , submittedUserContent = userContent
+        , user =
+            { collection = "users"
+            , uid = ""
+            , content = userContent
+            , isSignedIn = False
+            }
         }
-    , user =
-        { uid = ""
-        , isSignedIn = False
-        }
-    }
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -145,8 +153,9 @@ update msg model =
                 if not <| user.isSignedIn then
                     ({ newModel | currentSubPage = Verified }, Browser.Navigation.pushUrl model.key redirectToHome)
                 else
-                    (newModel, Cmd.none)
-        SignInSucceeded _ ->
+                    ({ newModel | currentSubPage = MinSide }, Cmd.none)
+        SignInSucceeded userJson ->
+            let user = decodeUser userJson
             ({ model | currentSubPage = MinSide }, getUserInfo (encode "getUserInfo" True))
         SignInFailed json ->
             let error = getErrorCode (Json.Encode.encode 0 json)
@@ -176,7 +185,7 @@ update msg model =
             if hasChangedInfo model then
                 ({ model | currentSubPage = Verified }
                 , Cmd.batch
-                    [ updateUserInfo (encodeUserInfo model)
+                    [ updateUserInfo (encodeUserContent model)
                     , Browser.Navigation.pushUrl model.key redirectToHome
                     ]
                 )
@@ -318,8 +327,14 @@ encode : String -> Bool ->  Json.Encode.Value
 encode string var =
     Json.Encode.object [ (string, Json.Encode.bool var) ]
 
-encodeUserInfo : Model -> Json.Encode.Value
-encodeUserInfo model =
+
+encodeUser : Model -> Json.Encode.Value -> Json.Encode.Value
+encodeUser model content =
+    Json.Encode.onject
+        [ (
+
+encodeUserContent : Model -> Json.Encode.Value
+encodeUserContent model =
     Json.Encode.object 
         [ ("firstName", Json.Encode.string model.firstName)
         , ("lastName", Json.Encode.string model.lastName)
@@ -348,6 +363,7 @@ decodeUser : Json.Encode.Value -> User
 decodeUser json =
     let jsonStr = Json.Encode.encode 0 json
         uid = Json.Decode.decodeString (Json.Decode.at [ "uid" ] Json.Decode.string) jsonStr
+        email = Json.Decode.decodeString (Json.Decode at [ "email" ] Json.Decode.string) jsonStr
     in
         case uid of
             Ok value ->

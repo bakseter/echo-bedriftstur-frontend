@@ -142,7 +142,7 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     let modelLoggInn = model.modelLoggInn
-                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown } }, Browser.Navigation.pushUrl model.key (Url.toString url))
+                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown model.modelLoggInn } }, Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->

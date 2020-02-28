@@ -213,9 +213,12 @@ errorMessageToUser error =
         _ ->
             "Det har skjedd en feil. Prøv igjen senere"
 
-countdown : SubPage
-countdown =
-    Countdown
+countdown : Model -> SubPage
+countdown model =
+    if (Time.posixToMillis model.currentTime) >= release then
+        SignIn
+    else
+        Countdown
 
 release : Int
 release =
