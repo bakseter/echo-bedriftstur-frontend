@@ -12,6 +12,18 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+.then(() => {
+    if (debug) {
+        console.log("persistence set to SESSION");
+    }
+})
+.catch(error => {
+    if (debug) {
+        console.log("error setting persistence to SESSION");
+    }
+});
+
 const db = firebase.firestore();
 
 const app = Elm.Main.init ({
@@ -19,7 +31,58 @@ const app = Elm.Main.init ({
     flags: window.location.pathname
 });
 
+const getUserInfo = (col, doc) => {
+    db.collection(col).doc(doc).get()
+    .then(newDoc => {
+        if (newDoc.exists) {
+            app.ports.getUserInfoSucceeded.send(newDoc.data());
+        }
+        else {
+            const emailOnly = {
+                email: data.email,
+                firstName: null,
+                lastName: null,
+                degree: null
+            };
+            updateUserInfo(col, doc, emailOnly);
+            app.ports.getUserInfoSucceeded.send(true);
+        }
+    })
+    .catch(error => {
+        if (debug) {
+            console.log(error.code);
+            console.log(error);
+        }
+    });
+};
+
+const updateUserInfo = (col, doc, data) => {
+    db.collection(col).doc(doc).set(data)
+    .then(docRef => {
+        if (data.firstName !== null && data.lastName !== null && data.degree !== null) {
+            app.ports.updateUserInfoSucceeded.send(true);
+        }
+    })
+    .catch(error => {
+        if (debug) {
+            console.log(error.code);
+            console.log(error);
+        }
+        app.ports.updateUserInfoError.send(error.code);
+    });
+};
+
 firebase.auth().onAuthStateChanged(user => {
+    var signedIn = "";
+    if (user) {
+        signedIn = "signed in";
+    }
+    else {
+        signedIn = "signed out";
+    }
+    if (debug) {
+        console.log("user status changed to ", signedIn);
+    }
     app.ports.userStatusChanged.send(user);
 });
 
@@ -48,25 +111,25 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
     }
 
     firebase.auth().signInWithEmailLink(email, window.location.href)
-        .then(result => {
-            window.localStorage.removeItem("emailForSignIn");
-            if (debug) {
-                console.log(result);
-            }
-            app.ports.signInSucceeded.send(result);
-        })
-        .catch(error => {
-            // TODO: test that error is handled properly in Elm
-            if (debug) {
-                console.log(error.code);
-                console.log(error);
-            }
-            app.ports.signInWithLinkError.send(error.code);
-        });
+    .then(result => {
+        window.localStorage.removeItem("emailForSignIn");
+        if (debug) {
+            console.log(result);
+        }
+        app.ports.signInSucceeded.send(result.user);
+    })
+    .catch(error => {
+        // TODO: test that error is handled properly in Elm
+        if (debug) {
+            console.log(error.code);
+            console.log(error);
+        }
+        app.ports.signInError.send(error.code);
+    });
 }
 
 app.ports.getUserInfo.subscribe(data => {
-    getUserInfo(data.collection, data.uid, data.content);
+    getUserInfo(data.collection, data.uid);
 });
 
 app.ports.updateUserInfo.subscribe(data => {
@@ -74,7 +137,7 @@ app.ports.updateUserInfo.subscribe(data => {
 });
 
 app.ports.attemptSignOut.subscribe(data => {
-    if (data.requestedLogOut) {
+    if (data.requestedSignOut) {
         firebase.auth().signOut()
             .then(() => {
                 app.ports.signOutSucceeded.send(true);
@@ -82,49 +145,15 @@ app.ports.attemptSignOut.subscribe(data => {
             .catch(error => {
                 // TODO: test that error is handled properly in Elm
                 if (debug) {
-                    console.log(error);
                     console.log(error.code);
+                    console.log(error);
                 }
                 app.ports.signOutError.send(error);
             });
     }
+    else {
+        if (debug) {
+            console.log("user didn't request sign out???");
+        }
+    }
 });
-
-const getUserInfo = (col, doc, data) => {
-    db.collection(col).doc(doc).get()
-    .then(newDoc => {
-        if (newDoc.exists) {
-            app.ports.getUserInfoSucceeded.send(newDoc.data());
-        }
-        else {
-            const emailOnly = {
-                email: data.email,
-                firstName: "init",
-                lastName: "init",
-                degree: "init"
-            };
-            updateUserInfo(col, doc, emailOnly);
-            app.ports.getUserInfoSucceeded(true);
-        }
-    })
-    .catch(error => {
-        if (debug) {
-            console.log(error);
-            console.log(error.code);
-        }
-    });
-};
-
-const updateUserInfo = (col, doc, data) => {
-    db.collection(col).doc(doc).set(data)
-    .then(docRef => {
-        app.ports.updateUserInfoSucceeded.send(true);
-    })
-    .catch(error => {
-        if (debug) {
-            console.log(error);
-            console.log(error.code);
-        }
-        app.ports.updateUserInfoError.send(error.code);
-    });
-};

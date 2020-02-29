@@ -368,6 +368,7 @@ h1.anim-text {
 .clock-item {
     font-size: 50px;
 }
+
 input[type=text] {
     padding: 1%;
     transition: border ease 0.4s;

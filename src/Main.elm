@@ -17,8 +17,8 @@ import Animation exposing (deg, px)
 import Animation.Messenger
 import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2)
-import Json.Encode
-import Json.Decode
+import Json.Encode as Encode
+import Json.Decode as Decode
 
 main =
     Browser.application 
@@ -49,8 +49,8 @@ type Msg
     | GotOmMsg Om.Msg
     | GotVerifiedMsg Verified.Msg
     | AttemptSignOut
-    | SignOutSucceeded Json.Encode.Value
-    | SignOutError Json.Encode.Value
+    | SignOutSucceeded Encode.Value
+    | SignOutError Encode.Value
     | ShowNavbar Bool
     | NavBtnTransition
     | AnimateNavBtn Animation.Msg
@@ -70,9 +70,9 @@ type alias Model =
     , modelVerified : Verified.Model
     }
 
-port attemptSignOut : Json.Encode.Value -> Cmd msg
-port signOutError : (Json.Encode.Value -> msg) -> Sub msg
-port signOutSucceeded : (Json.Encode.Value -> msg) -> Sub msg
+port attemptSignOut : Encode.Value -> Cmd msg
+port signOutError : (Encode.Value -> msg) -> Sub msg
+port signOutSucceeded : (Encode.Value -> msg) -> Sub msg
 
 init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init path url key =
@@ -87,7 +87,7 @@ init path url key =
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
-                , modelVerified = Verified.init url key
+                , modelVerified = Verified.init url
                 }
     in
         case path of
@@ -142,7 +142,8 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     let modelLoggInn = model.modelLoggInn
-                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown model.modelLoggInn } }, Browser.Navigation.pushUrl model.key (Url.toString url))
+                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown model.modelLoggInn } }
+                        , Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->
@@ -199,17 +200,11 @@ update msg model =
                 (styleSecondLineNavBtn, _) = Animation.Messenger.update anim (Tuple.second model.navBtnAnimation)
             in ({ model | navBtnAnimation = (styleFirstLineNavBtn, styleSecondLineNavBtn) }, navBtnCmd)
         AttemptSignOut ->
-            (model, attemptSignOut (Verified.encode "requestedLogOut" True))
+            (model, Encode.object [ ("requestedSignOut", Encode.bool True) ] |> attemptSignOut)
         SignOutSucceeded _ ->
             let modelVerified = model.modelVerified
-                user = model.modelVerified.user
-            in ({ model | 
-                    modelVerified = { modelVerified |
-                                      currentSubPage = Verified.verified
-                                    , user = { user | isSignedIn = False }
-                                    }
-                    , currentPage = Hjem }
-               , Browser.Navigation.pushUrl model.key Verified.redirectToHome )
+            in ({ model | modelVerified = { modelVerified | currentSubPage = Verified.verified, isSignedIn = False }, currentPage = Hjem }
+                , Browser.Navigation.pushUrl model.key "https://echobedriftstur-userauth.firebaseapp.com" )
         SignOutError json ->
             (model, Cmd.none)
 
@@ -232,7 +227,7 @@ view model =
                             ++ [ x1 "0", x2 "50", y1 "65", y2 "65", Svg.Attributes.style "stroke:rgb(125,125,125);stroke-width:4;" ]) []
                         ] 
                     ]
-                , if model.modelVerified.user.isSignedIn then 
+                , if model.modelVerified.isSignedIn then 
                     span [ class "menu-item", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
                   else
                     span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
@@ -284,7 +279,7 @@ getNavbar : Model -> Html Msg
 getNavbar model =
     if model.showNavbar then
         div [ id "navbar-content" ] 
-            [ if model.modelVerified.user.isSignedIn then
+            [ if model.modelVerified.isSignedIn then
                 a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
               else
                 a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ]

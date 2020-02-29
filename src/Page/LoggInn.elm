@@ -59,10 +59,12 @@ update msg model =
         Tick time ->
             let newModel = { model | currentTime = time }
             in
-                if (Time.posixToMillis time) >= release then
+                if (Time.posixToMillis time) < release then
+                    ({ newModel | currentSubPage = Countdown }, Cmd.none)
+                else if model.currentSubPage /= LinkSent then
                     ({ newModel | currentSubPage = SignIn }, Cmd.none)
                 else
-                    ({ newModel | currentSubPage = Countdown }, Cmd.none)
+                    (newModel, Cmd.none)
         TypedEmail str ->
             ({ model | email = str }, Cmd.none)
         SendSignInLink ->
@@ -102,10 +104,10 @@ showPage model =
                     ]
                 , div [ id "login-form" ]
                     [ input 
-                        [ if model.error == InvalidEmail then
-                            id "email-invalid"
-                          else if isEmailValid model.email then
+                        [ if isEmailValid model.email then
                             id "email-valid"
+                          else if model.error == InvalidEmail then
+                            id "email-invalid"
                           else
                             id "email"
                         , type_ "text", Html.Events.onInput TypedEmail ] []
@@ -125,7 +127,7 @@ showPage model =
                 , h3 [] [text (errorMessageToUser model.error) ]
                 ]
         LinkSent ->
-            div [ id "logg-in-content" ]
+            div [ id "logg-inn-content" ]
                 [ h1 [] [ text "Registrer deg/logg inn" ]
                 , p []
                     [ text ("Vi har nå sendt deg en mail på " ++ model.email ++ ".") ]
