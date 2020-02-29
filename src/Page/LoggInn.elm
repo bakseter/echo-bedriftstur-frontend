@@ -72,7 +72,7 @@ update msg model =
         SendSignInLinkSucceeded _ ->
             ({ model | currentSubPage = LinkSent }, Cmd.none)
         SendSignInLinkError json ->
-            let error = errorFromString <| getErrorCode <| Json.Encode.encode 0 json
+            let error = errorFromCode <| getErrorCode <| Json.Encode.encode 0 json
             in ({ model | error = error }, Cmd.none)
 
 view : Model -> Html Msg
@@ -124,7 +124,7 @@ showPage model =
                             disabled True
                         ] []
                     ]
-                , h3 [] [text (errorMessageToUser model.error) ]
+                , h3 [] [text (userMsgFromError model.error) ]
                 ]
         LinkSent ->
             div [ id "logg-inn-content" ]
@@ -191,29 +191,40 @@ getErrorCode json =
         Err _ ->
             ""
 
-errorFromString : String -> Error
-errorFromString str =
-    case str of
-        "auth/invalid-email" ->
-            InvalidEmail
-        "auth/unauthorized-continue-uri" ->
-            UnathorizedContinueUri
-        "auth/invalid-continue-uri" ->
-            InvalidContinueUri
-        "auth/argumenterror" ->
-            ArgumentError
+errorList =
+    [   ("auth/invalid-email"
+        , InvalidEmail
+        , "Mailen du har skrevet inn er ikke gyldig. Prøv igjen."
+        )
+    ,   ("auth/unauthorized-continue-uri"
+        , UnathorizedContinueUri
+        , "Det har skjedd en feil. Vennligst prøv igjen."
+        )
+    ,   ("auth/invalid-continue-uri"
+        , InvalidContinueUri
+        , "Det har skjedd en feil. Vennligst prøv igjen."
+        )
+    ,   ("auth/argumenterror"
+        , ArgumentError
+        , "Det har skjedd en feil. Vennligst prøv igjen."
+        )
+    ]
+
+errorFromCode : String -> Error
+errorFromCode str =
+    case List.filter (\(x, y, z) -> x == str) errorList of
+        [ (code, err, msg) ] ->
+            err
         _ ->
             NoError
 
-errorMessageToUser : Error -> String
-errorMessageToUser error =
-    case error of
-        InvalidEmail ->
-            "Mailen du har skrevet inn er ikke gyldig. Prøv igjen"
-        NoError ->
-            ""
+userMsgFromError : Error -> String
+userMsgFromError error =
+    case List.filter (\(x, y, z) -> y == error) errorList of
+        [ (code, err, msg) ] ->
+            msg
         _ ->
-            "Det har skjedd en feil. Prøv igjen senere"
+            ""
 
 countdown : Model -> SubPage
 countdown model =

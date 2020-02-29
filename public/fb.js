@@ -31,21 +31,27 @@ const app = Elm.Main.init ({
     flags: window.location.pathname
 });
 
-const getUserInfo = (col, doc) => {
+const getUserInfo = (col, doc, email) => {
     db.collection(col).doc(doc).get()
     .then(newDoc => {
         if (newDoc.exists) {
             app.ports.getUserInfoSucceeded.send(newDoc.data());
+            if (debug) {
+                console.log("Got user info: ", newDoc.data());
+            }
         }
         else {
             const emailOnly = {
-                email: data.email,
+                email: email,
                 firstName: null,
                 lastName: null,
                 degree: null
             };
             updateUserInfo(col, doc, emailOnly);
-            app.ports.getUserInfoSucceeded.send(true);
+            app.ports.getUserInfoSucceeded.send(emailOnly);
+            if (debug) {
+                console.log("Create user info: ", emailOnly);
+            }
         }
     })
     .catch(error => {
@@ -129,7 +135,7 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
 }
 
 app.ports.getUserInfo.subscribe(data => {
-    getUserInfo(data.collection, data.uid);
+    getUserInfo(data.collection, data.uid, data.email);
 });
 
 app.ports.updateUserInfo.subscribe(data => {

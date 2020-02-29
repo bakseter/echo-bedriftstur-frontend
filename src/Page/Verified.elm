@@ -8,7 +8,8 @@ import Json.Decode as Decode
 import Url
 import Url.Parser as Parser exposing ((<?>))
 import Url.Parser.Query as Query
-import Result
+import Browser.Navigation
+import Debug
 
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 -- !!!!!!CHANGE IN PRODUCTION!!!!!!
@@ -31,17 +32,22 @@ port updateUserInfo : Encode.Value -> Cmd msg
 port updateUserInfoError : (Encode.Value -> msg) -> Sub msg
 port updateUserInfoSucceeded : (Encode.Value -> msg) -> Sub msg
 
+port attemptSignOut : Encode.Value -> Cmd msg
+port signOutError : (Encode.Value -> msg) -> Sub msg
+port signOutSucceeded : (Encode.Value -> msg) -> Sub msg
 
 type Msg
     = UserStatusChanged Decode.Value
     | SignInSucceeded Decode.Value
     | SignInError Decode.Value
-    | GetUserInfo User
     | GetUserInfoSucceeded Decode.Value
     | GetUserInfoError Decode.Value
     | UpdateUserInfo User Content
     | UpdateUserInfoError Decode.Value
     | UpdateUserInfoSucceeded Decode.Value
+    | AttemptSignOut
+    | SignOutSucceeded Encode.Value
+    | SignOutError Encode.Value
     | TypedFirstName String
     | TypedLastName String
     | TypedDegree String
@@ -74,6 +80,7 @@ type alias Content =
 
 type alias Model =
     { url : Url.Url
+    , key : Browser.Navigation.Key
     , email : String
     , firstName : String
     , lastName : String
@@ -81,6 +88,7 @@ type alias Model =
     , isSignedIn : Bool
     , currentSubPage : SubPage
     , user : User
+    , submittedContent : Content
     }
 
 type alias User =
@@ -88,9 +96,10 @@ type alias User =
     , email : String
     }
 
-init : Url.Url -> Model
-init url =
+init : Url.Url -> Browser.Navigation.Key -> Model
+init url key =
     { url = url
+    , key = key
     , email = ""
     , firstName = ""
     , lastName = ""
@@ -98,6 +107,7 @@ init url =
     , isSignedIn = False
     , currentSubPage = Verified
     , user = { uid = "", email = "" }
+    , submittedContent = { email = "", firstName = "", lastName = "", degree = None }
     }
 
 subscriptions : Model -> Sub Msg
@@ -110,6 +120,8 @@ subscriptions model =
         , getUserInfoSucceeded GetUserInfoSucceeded
         , updateUserInfoSucceeded UpdateUserInfoSucceeded
         , updateUserInfoError UpdateUserInfoError
+        , signOutSucceeded SignOutSucceeded
+        , signOutError SignOutError
         ]
 
 update : Msg  -> Model -> (Model, Cmd Msg)
@@ -123,12 +135,9 @@ update msg model =
                 else
                     ({ model | isSignedIn = True, user = user }, Cmd.none)
         SignInSucceeded userJson ->
-            ({ model | currentSubPage = MinSide }, Cmd.none)
+            ({ model | currentSubPage = MinSide }, getUserInfo (encodeUser (decodeUser userJson)))
         SignInError json ->
             (model, Cmd.none)
-        GetUserInfo user ->
-            (model, Encode.object [ ("collection", Encode.string "users"),
-                                    ("uid", Encode.string user.uid) ] |> getUserInfo) 
         GetUserInfoError json ->
             (model, Cmd.none)
         GetUserInfoSucceeded json ->
@@ -137,6 +146,7 @@ update msg model =
                           , firstName = content.firstName
                           , lastName = content.lastName
                           , degree = content.degree 
+                          , submittedContent = content
                           }, Cmd.none)
         UpdateUserInfo user content ->
             let newContent = { email = model.email
@@ -148,7 +158,16 @@ update msg model =
             in (model, updateUserInfo message)
         UpdateUserInfoError json ->
             (model, Cmd.none)
-        UpdateUserInfoSucceeded json ->
+        UpdateUserInfoSucceeded _ ->
+            let subCont = model.submittedContent
+                newSubCont = { subCont | firstName = model.firstName, lastName = model.lastName, degree = model.degree }
+            in ({ model | submittedContent = newSubCont }, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
+        AttemptSignOut ->
+            (model, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
+        SignOutSucceeded _ ->
+            ((init model.url model.key)
+             , Browser.Navigation.pushUrl model.key "https://echobedriftstur-userauth.firebaseapp.com" )
+        SignOutError json ->
             (model, Cmd.none)
         TypedFirstName str ->
             ({ model | firstName = str }, Cmd.none)
@@ -167,6 +186,15 @@ encodeFields list =
             [ (Tuple.first x, Tuple.second x |> Encode.string) ] ++ encodeFields xs
         [] ->
             []
+
+encodeUser : User -> Encode.Value
+encodeUser user =
+    [ ("collection", "users")
+    , ("uid", user.uid)
+    , ("email", user.email)
+    ]
+        |> encodeFields
+        |> Encode.object
 
 encodeUserInfo : User -> Content -> Encode.Value
 encodeUserInfo user content =
@@ -266,23 +294,39 @@ showPage model =
         Verified ->
             div [ class "verified" ]
                 [ p [] 
-                    [ if not <| isLinkValid model.url then
-                        text "Innlogginslinken er ikke gyldig"
-                     else
+                    [ if isLinkValid model.url then
                         text "Du har nå blitt logget inn. Vennligst vent mens du blir videresendt..."
+                     else
+                        text "Innlogginslinken er ikke gyldig"
                     ]
                 ]
         MinSide ->
             div [ class "min-side" ]
                 [ div [ id "min-side-content" ]
-                    [ input [ class "min-side-item", id "email", type_ "text", disabled True ] [ text "Mail" ]
-                    , input [ class "min-side-item", id "firstName", type_ "text", placeholder "Fornavn", Html.Events.onInput TypedFirstName ] [ text "Fornavn" ]
+                    [ input [ class "min-side-item"
+                            , id "email", type_ "text"
+                            , disabled True
+                            , value (model.email) 
+                            ] [ text "Mail" ]
+                    , input [ class "min-side-item"
+                            , id "firstName"
+                            , type_ "text"
+                            , placeholder "Fornavn"
+                            , value (model.firstName) 
+                            , Html.Events.onInput TypedFirstName
+                            ] [ text "Fornavn" ]
                     , br [] []
-                    , input [ class "min-side-item", id "lastName", type_ "text", placeholder "Etternavn", Html.Events.onInput TypedLastName ] [ text "Etternavn" ]
+                    , input [ class "min-side-item"
+                            , id "lastName"
+                            , type_ "text"
+                            , placeholder "Etternavn"
+                            , value (model.lastName)
+                            , Html.Events.onInput TypedLastName
+                            ] [ text "Etternavn" ]
                     , br [] []
                     , div [ class "min-side-item", id "degree" ]
                         [ select [ value (degreeToString True model.degree), Html.Events.onInput TypedDegree ]
-                            [ option [ value "None" ] [ text (degreeToString False None) ]
+                            [ option [ value "" ] [ text (degreeToString False None) ]
                             , option [ value "DTEK" ] [ text (degreeToString False (Valid DTEK)) ]
                             , option [ value "DVIT" ] [ text (degreeToString False (Valid DVIT)) ]
                             , option [ value "DSIK" ] [ text (degreeToString False (Valid DSIK)) ]
@@ -295,20 +339,33 @@ showPage model =
                             ]
                         ]
                     , div [ class "min-side-item", id "min-side-buttons" ]
-                        [ input [ id "save-btn", value "Lagre endringer og logg ut", disabled <| not <| hasChangedInfo model, type_ "button", Html.Events.onClick (UpdateUserInfo { uid = "", email = "" } { email = "", firstName = "", lastName = "", degree = None }) ] []
+                        [ if hasChangedInfo model && model.isSignedIn then
+                              input
+                                [ type_ "button"
+                                , value "Lagre endringer og logg ut"
+                                , Html.Events.onClick
+                                    (UpdateUserInfo model.user
+                                        { email = model.email, firstName = model.firstName, lastName = model.lastName, degree = model.degree}
+                                    )
+                                , disabled False
+                                ] []
+                            else if not <| hasChangedInfo model && model.isSignedIn then
+                                input
+                                [ type_ "button"
+                                , value "Logg ut"
+                                , Html.Events.onClick AttemptSignOut
+                                , disabled False
+                                ] []
+                            else
+                                input
+                                [ type_ "button"
+                                , value "Lagre endringer og logg ut"
+                                , disabled True
+                                ] []
                         ]
-                    , div [ class "debug" ] [ text (model.email ++
-                                                    model.firstName ++
-                                                    model.lastName ++
-                                                    (degreeToString True model.degree) ++
-                                                    model.user.uid ++
-                                                    model.user.email) ]
+                    , div [ class "debug" ] [ text (Debug.toString model) ] 
                     ]
                 ]
-
-verified : SubPage
-verified =
-    Verified
 
 -- Checks if the sign in link is valid
 isLinkValid : Url.Url -> Bool
@@ -322,8 +379,13 @@ isLinkValid url =
                 False
 
 -- Checks if the user has changed their info in the form
+hasChangedInfo : Model -> Bool
 hasChangedInfo model =
-    True
+    let con = model.submittedContent
+    in
+        con.firstName /= model.firstName ||
+        con.lastName /= model.lastName ||
+        con.degree /= model.degree
 
 
 -- DEGREE PARSERS

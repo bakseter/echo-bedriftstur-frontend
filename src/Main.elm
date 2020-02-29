@@ -1,4 +1,4 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import Browser
 import Browser.Navigation
@@ -48,9 +48,6 @@ type Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
     | GotVerifiedMsg Verified.Msg
-    | AttemptSignOut
-    | SignOutSucceeded Encode.Value
-    | SignOutError Encode.Value
     | ShowNavbar Bool
     | NavBtnTransition
     | AnimateNavBtn Animation.Msg
@@ -70,10 +67,6 @@ type alias Model =
     , modelVerified : Verified.Model
     }
 
-port attemptSignOut : Encode.Value -> Cmd msg
-port signOutError : (Encode.Value -> msg) -> Sub msg
-port signOutSucceeded : (Encode.Value -> msg) -> Sub msg
-
 init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init path url key =
     let model = { key = key
@@ -87,7 +80,7 @@ init path url key =
                 , modelBedrifter = Bedrifter.init
                 , modelProgram = Program.init
                 , modelOm = Om.init
-                , modelVerified = Verified.init url
+                , modelVerified = Verified.init url key
                 }
     in
         case path of
@@ -123,8 +116,6 @@ subscriptions model =
         , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
         , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
         , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
-        , signOutSucceeded SignOutSucceeded
-        , signOutError SignOutError
         , Animation.subscription AnimateNavBtn
             [ Tuple.first model.navBtnAnimation
             , Tuple.second model.navBtnAnimation
@@ -199,14 +190,6 @@ update msg model =
             let (styleFirstLineNavBtn, navBtnCmd) = Animation.Messenger.update anim (Tuple.first model.navBtnAnimation)
                 (styleSecondLineNavBtn, _) = Animation.Messenger.update anim (Tuple.second model.navBtnAnimation)
             in ({ model | navBtnAnimation = (styleFirstLineNavBtn, styleSecondLineNavBtn) }, navBtnCmd)
-        AttemptSignOut ->
-            (model, Encode.object [ ("requestedSignOut", Encode.bool True) ] |> attemptSignOut)
-        SignOutSucceeded _ ->
-            let modelVerified = model.modelVerified
-            in ({ model | modelVerified = { modelVerified | currentSubPage = Verified.verified, isSignedIn = False }, currentPage = Hjem }
-                , Browser.Navigation.pushUrl model.key "https://echobedriftstur-userauth.firebaseapp.com" )
-        SignOutError json ->
-            (model, Cmd.none)
 
 view : Model -> Browser.Document Msg
 view model =
@@ -228,7 +211,7 @@ view model =
                         ] 
                     ]
                 , if model.modelVerified.isSignedIn then 
-                    span [ class "menu-item", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
+                    span [ class "menu-item", id "user-status" ] [ a [ href "/verified" ] [ text "Min profil" ] ]
                   else
                     span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
                 , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
@@ -280,9 +263,9 @@ getNavbar model =
     if model.showNavbar then
         div [ id "navbar-content" ] 
             [ if model.modelVerified.isSignedIn then
-                a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
+                a [ href "/verified", Html.Events.onClick (ShowNavbar False) ] [ text "Min side" ]
               else
-                a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ]
+                a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Påmelding" ]
             , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
             , a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
             , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
