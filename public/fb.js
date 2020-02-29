@@ -133,7 +133,12 @@ app.ports.getUserInfo.subscribe(data => {
 });
 
 app.ports.updateUserInfo.subscribe(data => {
-    updateUserInfo(data.collection, data.uid, data.content);
+    const content = { email: data.email
+                    , firstName: data.firstName
+                    , lastName: data.lastName
+                    , degree: data.degree
+                    };
+    updateUserInfo(data.collection, data.uid, content);
 });
 
 app.ports.attemptSignOut.subscribe(data => {
