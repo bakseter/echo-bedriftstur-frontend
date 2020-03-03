@@ -210,6 +210,7 @@ errorList =
         )
     ]
 
+
 errorFromCode : String -> Error
 errorFromCode str =
     case List.filter (\(x, y, z) -> x == str) errorList of

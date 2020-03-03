@@ -130,7 +130,7 @@ update msg model =
         UserStatusChanged json ->
             let user = decodeUser json
             in
-                if user.uid == "niet" && user.email == "niet" then
+                if user.uid == "" || user.email == "" then
                     ({ model | isSignedIn = False }, Cmd.none)
                 else
                     ({ model | isSignedIn = True, user = user }, Cmd.none)
@@ -214,7 +214,6 @@ encodeUserInfo user content =
 
 -- Uses the userDecoder function to turn
 -- a JSON object into a User record.
--- TODO: Fails if?
 decodeUser : Encode.Value -> User
 decodeUser json =
     let jsonStr = Encode.encode 0 json
@@ -228,17 +227,17 @@ decodeUser json =
                 }
 
 -- Decoder that turns a JSON object into a User record,
--- if the object is formatted correctly
+-- if the object is formatted correctly.
+-- Fails if not all the fields required for
+-- a User record are present in the JSON.
 userDecoder : Decode.Decoder User
 userDecoder =
-    Decode.map2 User 
-        (Decode.oneOf [ (Decode.at [ "uid" ] Decode.string), Decode.null "niet" ])
-        (Decode.oneOf [ (Decode.at [ "email" ] Decode.string), Decode.null "niet" ])
-
+    Decode.map2 User
+        (stringOrNullDecoder "uid")
+        (stringOrNullDecoder "email")
 
 -- Uses the contentDecoder function to turn
--- a JSON object into a Content record
--- TODO: fails if?
+-- a JSON object into a Content record.
 decodeContent : Encode.Value -> Content
 decodeContent json =
     let jsonStr = Encode.encode 0 json
@@ -254,7 +253,9 @@ decodeContent json =
                 }
 
 -- Decoder that turns a JSON object into a Content record,
--- if the object is formatted correctly
+-- if the object is formatted correctly.
+-- Fails if not all fields required for
+-- a Content record are present in the JSON.
 contentDecoder : Decode.Decoder Content
 contentDecoder =
     Decode.map4 Content
@@ -266,7 +267,7 @@ contentDecoder =
 
 -- Decoder that either decodes the string at the given field,
 -- turning the string into a degree in the process,
--- or returns None if the degree is not valid or if the field is null
+-- or returns None if the degree is not valid or if the field is null.
 degreeOrNullDecoder : String -> List (Decode.Decoder Degree)
 degreeOrNullDecoder field =
         [ Decode.map (stringToDegree False) (Decode.at [ field ] Decode.string)
@@ -274,7 +275,7 @@ degreeOrNullDecoder field =
         ]
 
 -- Decoder that either decodes the string at the given field,
--- or returns en empty string if the field is null
+-- or returns en empty string if the field is null.
 stringOrNullDecoder : String -> Decode.Decoder String
 stringOrNullDecoder field =
     [ (Decode.at [ field ] Decode.string)
@@ -307,14 +308,14 @@ showPage model =
                             , id "email", type_ "text"
                             , disabled True
                             , value (model.email) 
-                            ] [ text "Mail" ]
+                            ] []
                     , input [ class "min-side-item"
                             , id "firstName"
                             , type_ "text"
                             , placeholder "Fornavn"
                             , value (model.firstName) 
                             , Html.Events.onInput TypedFirstName
-                            ] [ text "Fornavn" ]
+                            ] []
                     , br [] []
                     , input [ class "min-side-item"
                             , id "lastName"
@@ -322,48 +323,47 @@ showPage model =
                             , placeholder "Etternavn"
                             , value (model.lastName)
                             , Html.Events.onInput TypedLastName
-                            ] [ text "Etternavn" ]
+                            ] []
                     , br [] []
-                    , div [ class "min-side-item", id "degree" ]
-                        [ select [ value (degreeToString True model.degree), Html.Events.onInput TypedDegree ]
-                            [ option [ value "" ] [ text (degreeToString False None) ]
-                            , option [ value "DTEK" ] [ text (degreeToString False (Valid DTEK)) ]
-                            , option [ value "DVIT" ] [ text (degreeToString False (Valid DVIT)) ]
-                            , option [ value "DSIK" ] [ text (degreeToString False (Valid DSIK)) ]
-                            , option [ value "BINF" ] [ text (degreeToString False (Valid BINF)) ]
-                            , option [ value "IMØ" ] [ text (degreeToString False (Valid IMØ)) ]
-                            , option [ value "IKT" ] [ text (degreeToString False (Valid IKT)) ]
-                            , option [ value "KOGNI" ] [ text (degreeToString False (Valid KOGNI)) ]
-                            , option [ value "INF" ] [ text (degreeToString False (Valid INF)) ]
-                            , option [ value "PROG" ] [ text (degreeToString False (Valid PROG)) ]
-                            ]
+                    , select [ class "min-side-item", id "degree", value (degreeToString True model.degree), Html.Events.onInput TypedDegree ]
+                        [ option [ value "" ] [ text (degreeToString False None) ]
+                        , option [ value "DTEK" ] [ text (degreeToString False (Valid DTEK)) ]
+                        , option [ value "DVIT" ] [ text (degreeToString False (Valid DVIT)) ]
+                        , option [ value "DSIK" ] [ text (degreeToString False (Valid DSIK)) ]
+                        , option [ value "BINF" ] [ text (degreeToString False (Valid BINF)) ]
+                        , option [ value "IMØ" ] [ text (degreeToString False (Valid IMØ)) ]
+                        , option [ value "IKT" ] [ text (degreeToString False (Valid IKT)) ]
+                        , option [ value "KOGNI" ] [ text (degreeToString False (Valid KOGNI)) ]
+                        , option [ value "INF" ] [ text (degreeToString False (Valid INF)) ]
+                        , option [ value "PROG" ] [ text (degreeToString False (Valid PROG)) ]
                         ]
-                    , div [ class "min-side-item", id "min-side-buttons" ]
-                        [ if hasChangedInfo model && model.isSignedIn then
-                              input
-                                [ type_ "button"
-                                , value "Lagre endringer og logg ut"
-                                , Html.Events.onClick
-                                    (UpdateUserInfo model.user
-                                        { email = model.email, firstName = model.firstName, lastName = model.lastName, degree = model.degree}
-                                    )
-                                , disabled False
-                                ] []
-                            else if not <| hasChangedInfo model && model.isSignedIn then
-                                input
-                                [ type_ "button"
-                                , value "Logg ut"
-                                , Html.Events.onClick AttemptSignOut
-                                , disabled False
-                                ] []
-                            else
-                                input
-                                [ type_ "button"
-                                , value "Lagre endringer og logg ut"
-                                , disabled True
-                                ] []
-                        ]
-                    , div [ class "debug" ] [ text (Debug.toString model) ] 
+                    , if hasChangedInfo model && model.isSignedIn then
+                          input
+                            [ class "min-side-item"
+                            , type_ "button"
+                            , value "Lagre endringer og logg ut"
+                            , Html.Events.onClick
+                                (UpdateUserInfo model.user
+                                    { email = model.email, firstName = model.firstName, lastName = model.lastName, degree = model.degree}
+                                )
+                            , disabled False
+                            ] []
+                        else if not <| hasChangedInfo model && model.isSignedIn then
+                            input
+                            [ class "min-side-item"
+                            , type_ "button"
+                            , value "Logg ut"
+                            , Html.Events.onClick AttemptSignOut
+                            , disabled False
+                            ] []
+                        else
+                            input
+                            [ class "min-side-item"
+                            , type_ "button"
+                            , value "Lagre endringer og logg ut"
+                            , disabled True
+                            ] []
+                    , div [ class "min-side-item" ] [ text (Debug.toString model) ] 
                     ]
                 ]
 
