@@ -53,10 +53,6 @@ type alias Model =
     , modelOm : Om.Model
     }
 
-port attemptSignOut : Encode.Value -> Cmd msg
-port signOutError : (Encode.Value -> msg) -> Sub msg
-port signOutSucceeded : (Encode.Value -> msg) -> Sub msg
-
 init : () -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init _ url key =
     ({ key = key
