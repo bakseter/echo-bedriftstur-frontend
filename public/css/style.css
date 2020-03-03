@@ -4,7 +4,7 @@
 
     --color-mnemonic: #ffd876;
     --color-computas: #fcbf01;
-    --color-tba: #a9d1d9;
+    --color-cisco: #a9d1d9;
     --color-knowit: #0595ad;
     --color-dnb: #c9c7c3;
     --color-bekk: #979590;
@@ -195,10 +195,6 @@ h1 {
     transform: scale(1.2);
 }
 
-#tba {
-    display: none;
-}
-
 /* PROGRAM */
 .program {
     padding-top: 2rem;
@@ -251,11 +247,11 @@ h1 {
     background-image: linear-gradient(to right, var(--color-computas) 50%, var(--foreground) 50%);
 }
 
-#tba-tab {
-    background-color: var(--color-tba); 
+#cisco-tab {
+    background-color: var(--color-cisco); 
 }
-#tba-content {
-    background-image: linear-gradient(to right, var(--color-tba) 50%, var(--foreground) 50%);
+#cisco-content {
+    background-image: linear-gradient(to right, var(--color-cisco) 50%, var(--foreground) 50%);
 }
 
 #knowit-tab {
@@ -363,11 +359,12 @@ h1 {
 }
 
 /* NOT FOUND */
-.not-found h1 {
+#not-found-header {
+    display: block;
     font-size: 4rem;
     text-align: center;
 }
-.not-found h3 {
+#not-found-text {
     text-align: center;
 }
 

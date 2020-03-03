@@ -15,7 +15,7 @@ type alias Model =
     { viewport : Browser.Dom.Viewport
     , mnemonicSlidIn : Bool
     , computasSlidIn : Bool
-    , tbaSlidIn : Bool
+    , ciscoSlidIn : Bool
     , knowitSlidIn : Bool
     , dnbSlidIn : Bool
     , bekkSlidIn : Bool
@@ -26,7 +26,7 @@ init =
     { viewport = maybeViewport
     , mnemonicSlidIn = False
     , computasSlidIn = False
-    , tbaSlidIn = False
+    , ciscoSlidIn = False
     , knowitSlidIn = False
     , dnbSlidIn = False
     , bekkSlidIn = False
@@ -52,7 +52,7 @@ update msg model =
                 if deviceWidth < 900 then
                    ({ model | mnemonicSlidIn = True
                             , computasSlidIn = True
-                            , tbaSlidIn = True
+                            , ciscoSlidIn = True
                             , knowitSlidIn = True
                             , dnbSlidIn = True
                             , bekkSlidIn = True
@@ -62,14 +62,14 @@ update msg model =
                         ({ model | mnemonicSlidIn = True }, Cmd.none)
                     else if scroll > 0.3 && not model.computasSlidIn then
                         ({ model | computasSlidIn = True }, Cmd.none)
-                    else if scroll > 0.43 && not model.knowitSlidIn then
+                    else if scroll > 0.43 && not model.ciscoSlidIn then
+                        ({ model | ciscoSlidIn = True }, Cmd.none)
+                    else if scroll > 0.56 && not model.knowitSlidIn then
                         ({ model | knowitSlidIn = True }, Cmd.none)
-                    else if scroll > 0.56 && not model.dnbSlidIn then
+                    else if scroll > 0.69 && not model.dnbSlidIn then
                         ({ model | dnbSlidIn = True }, Cmd.none)
-                    else if scroll > 0.69 && not model.bekkSlidIn then
+                    else if scroll > 0.82 && not model.bekkSlidIn then
                         ({ model | bekkSlidIn = True }, Cmd.none)
-                    else if scroll > 0.82 && not model.tbaSlidIn then
-                        ({ model | tbaSlidIn = True }, Cmd.none)
                     else
                         (newModel, Cmd.none)
         Tick time ->
@@ -96,6 +96,14 @@ view model =
                 , div [ class "bed-text" ]
                     [ p []
                         [ text "Computas er en norsk leverandør av IT-løsninger og rådgivningstjenester innen teknologisk innovasjon. Vi leverer verdiskapende og samfunnsnyttige løsninger til både offentlig og privat sektor, og har særlig spisskompetanse innenfor offentlig forvaltning, justis, tilsyn, helse, logistikk, olje og gass. Vi jobber med alt fra apper som redder liv og prisvinnende saksbehandlingsløsninger, til dataanalyse, kunstig intelligens og omfattende, skybaserte innovasjonsprosjekter." ]
+                    ]
+                ]
+            , span [ (getClass model.ciscoSlidIn False), id "cisco" ]
+                [ a [ target "_blank", rel "noopener noreferrer", href "" ]
+                    [ img [ class "bed-logo", src "/img/cisco.png", alt "Cisco" ] [] ]
+                , div [ class "bed-text" ]
+                    [ p []
+                        [ text "Cisco er et verdensomspennende teknologiselskap som er markedsleder innen nettverk, datasenter, sikkerhet og samhandlingsløsninger." ]
                     ]
                 ]
             , span [ (getClass model.knowitSlidIn True), id "knowit" ]
@@ -125,10 +133,6 @@ view model =
                     , p []
                         [ text "Vi har ingen tro på strømlinjeformede arbeidsplasser. Kreativ frihet og muligheten til å påvirke egen arbeidsdag, sette dagsorden og styre utviklingen av selskapet, det er mener vi viktigere enn å følge opptråkkede stier. Initiativ og engasjement er hardkodet i ryggraden vår og har skapt en sterk og inkluderende kultur." ]
                     ]
-                ]
-            , span [ (getClass model.tbaSlidIn False), id "tba" ]
-                [ a [ target "_blank", rel "noopener noreferrer", href "" ]
-                    [ h1 [] [ text "To be announced" ] ]
                 ]
             ]
         ]
@@ -167,7 +171,7 @@ allAreSlidIn : Model -> Bool
 allAreSlidIn model =
     model.mnemonicSlidIn &&
     model.computasSlidIn &&
-    model.tbaSlidIn &&
+    model.ciscoSlidIn &&
     model.knowitSlidIn &&
     model.dnbSlidIn &&
     model.bekkSlidIn

@@ -13,6 +13,5 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const app = Elm.Main.init ({
-    node: document.getElementById("elm"),
-    flags: window.location.pathname
+    node: document.getElementById("elm")
 });

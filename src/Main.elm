@@ -5,6 +5,7 @@ import Browser.Navigation
 import Html exposing (Html, div, span, h1, h3, text, a, img)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
+import Page exposing (..)
 import Page.Hjem as Hjem
 import Page.LoggInn as LoggInn
 import Page.Bedrifter as Bedrifter
@@ -27,15 +28,6 @@ main =
         , onUrlRequest = LinkClicked
         }
 
-type Page 
-    = Hjem
-    | LoggInn
-    | Bedrifter
-    | Program
-    | Om
-    | Verified
-    | NotFound
-
 type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
@@ -53,60 +45,40 @@ type Msg
 type alias Model =
     { key : Browser.Navigation.Key
     , url : Url.Url
-    , currentPage : Page
+    , route : Route
     , showNavbar : Bool
     , modelHjem : Hjem.Model
     , modelLoggInn : LoggInn.Model
+    , modelVerified : Verified.Model
     , modelBedrifter : Bedrifter.Model
     , modelProgram : Program.Model
     , modelOm : Om.Model
-    , modelVerified : Verified.Model
     }
 
 port attemptSignOut : Json.Encode.Value -> Cmd msg
 port signOutError : (Json.Encode.Value -> msg) -> Sub msg
 port signOutSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
-init : Maybe String -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
-init path url key =
-    let model = { key = key
-                , url = url
-                , currentPage = Hjem
-                , showNavbar = False
-                , modelHjem = Hjem.init
-                , modelLoggInn = LoggInn.init
-                , modelBedrifter = Bedrifter.init
-                , modelProgram = Program.init
-                , modelOm = Om.init
-                , modelVerified = Verified.init url key
-                }
-    in
-        case path of
-            Just str ->
-                case str of
-                    "/" ->
-                        ({ model | currentPage = Hjem }, Cmd.none)
-                    "/logg-inn" ->
-                        ({ model | currentPage = LoggInn }, Cmd.none)
-                    "/bedrifter" ->
-                        ({ model | currentPage = Bedrifter }, Cmd.none)
-                    "/program" ->
-                       ({ model | currentPage = Program }, Cmd.none)
-                    "/om" ->
-                        ({ model | currentPage = Om }, Cmd.none)
-                    "/verified" ->
-                        ({ model | currentPage = Verified }, Cmd.none)
-                    _ ->
-                        ({ model | currentPage = NotFound }, Cmd.none)
-            Nothing ->
-                ({ model | currentPage = Hjem }, Cmd.none)
+init : () -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
+init _ url key =
+    ({ key = key
+    , url = url
+    , route = Page.urlToRoute url
+    , showNavbar = False
+    , modelHjem = Hjem.init
+    , modelLoggInn = LoggInn.init
+    , modelVerified = Verified.init url key
+    , modelBedrifter = Bedrifter.init
+    , modelProgram = Program.init
+    , modelOm = Om.init
+    }, Cmd.none)
                 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
-        , if model.currentPage == Bedrifter then
+        , if model.route == Bedrifter then
             manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
           else
             Sub.none
@@ -133,23 +105,8 @@ update msg model =
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->
-            case url.path of
-                "/" ->
-                    ({ model | url = url, currentPage = Hjem }, Cmd.none)
-                "/logg-inn" ->
-                    ({ model | url = url, currentPage = LoggInn }, Cmd.none)
-                "/bedrifter" ->
-                    ({ model | url = url, currentPage = Bedrifter }, Cmd.none) 
-                "/program" ->
-                    ({ model | url = url, currentPage = Program }, Cmd.none)
-                "/om" ->
-                    ({ model | url = url, currentPage = Om }, Cmd.none)
-                "/verified" ->
-                    ({ model | url = url, currentPage = Verified }, Cmd.none)
-                "/minside" ->
-                    (model, Cmd.none)
-                _ ->
-                    ({ model | url = url, currentPage = NotFound}, Cmd.none)
+            let route = Page.urlToRoute url
+            in ({ model | url = url, route = route }, Cmd.none)
         GotHjemMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg Hjem.update pageMsg model.modelHjem GotHjemMsg
             in ({ model | modelHjem = newModel }, cmd)
@@ -186,7 +143,7 @@ update msg model =
                                       currentSubPage = Verified.verified
                                     , user = { user | isSignedIn = False }
                                     }
-                    , currentPage = Hjem }
+                    , route = (Page.Hjem) }
                , Browser.Navigation.pushUrl model.key Verified.redirectToHome )
         SignOutError json ->
             (model, Cmd.none)
@@ -247,7 +204,7 @@ view model =
                 , span [ id "navbar" ] [ getNavbar model ]
             ]
         ] ++
-        case model.currentPage of
+        case model.route of
             Hjem ->
                 [ showPage GotHjemMsg Hjem.view model.modelHjem ]
             LoggInn ->
@@ -260,10 +217,10 @@ view model =
                 [ showPage GotOmMsg Om.view model.modelOm ]
             Verified ->
                 [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
-            NotFound ->
+            NotFound  ->
                 [ div [ class "not-found" ]
-                    [ h1 [] [ text "404" ]
-                    , h3 [] [ text "Siden du leter etter eksisterer ikke" ]
+                    [ h1 [ id "not-found-header" ] [ text "404" ]
+                    , h3 [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke" ]
                     ]
                 ]
     }
