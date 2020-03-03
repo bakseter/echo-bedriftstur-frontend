@@ -8,7 +8,7 @@ import Browser.Navigation as Nav
 type Msg
     = MnemonicMap
     | ComputasMap
-    | TbaMap
+    | CiscoMap
     | KnowitMap
     | DnbMap
     | BekkMap
@@ -31,8 +31,8 @@ update msg model =
             (model, Nav.load "https://goo.gl/maps/qx9MA3UUGHFNRjzz7")
         ComputasMap ->
             (model, Nav.load "https://goo.gl/maps/v8yhucbxmmBGT79h8")
-        TbaMap ->
-            (model, Cmd.none)
+        CiscoMap ->
+            (model, Nav.load "https://goo.gl/maps/jMfn2oLGCDRA25rLA")
         KnowitMap ->
             (model, Nav.load "https://goo.gl/maps/WtChazwnMMmPCFBv7")
         DnbMap ->
@@ -43,7 +43,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "program" ]
-        [ div [ id "onsdag" ]
+        [ div [ class "day-item", id "onsdag" ]
             [ h1 [] [ text "Onsdag" ]
             , div [ class "program-item", Html.Events.onClick MnemonicMap ]
                 [ div [ class "program-tab", id "mnemonic-tab" ] [ br [] [] ]
@@ -66,17 +66,15 @@ view model =
                     ]
                 ]
             ]
-        , div [ id "torsdag" ]
+        , div [ class "day-item", id "torsdag" ]
             [ h1 [] [ text "Torsdag" ]
-            , div [ class "program-item", Html.Events.onClick TbaMap ]
-                [ div [ class "program-tab", id "tba-tab" ] [ br [] [] ]
-                , div [ class "program-content", id "tba-content" ]
+            , div [ class "program-item", Html.Events.onClick CiscoMap ]
+                [ div [ class "program-tab", id "cisco-tab" ] [ br [] [] ]
+                , div [ class "program-content", id "cisco-content" ]
                     [ div [ class "program-text" ]
-                        [ h1 [] [ text "To be announced" ]
+                        [ h1 [] [ text "Cisco" ]
                         , h3 [] [ text "11:00 - 15:00" ]
-                        , h3 [] [ text "" ] 
-                        , br [] []
-                        , br [] []
+                        , h3 [] [ text "Philip Pedersens vei 1" ] 
                         ]
                     ]
                 ]
@@ -91,7 +89,7 @@ view model =
                     ]
                 ]
             ]
-        , div [ id "fredag" ] 
+        , div [ class "day-item", id "fredag" ] 
             [ h1 [] [ text "Fredag" ]
             , div [ class "program-item", Html.Events.onClick DnbMap ]
                 [ div [ class "program-tab", id "dnb-tab" ] [ br [] [] ]

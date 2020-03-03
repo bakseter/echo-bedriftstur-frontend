@@ -11,12 +11,9 @@ import Url.Parser.Query as Query
 import Browser.Navigation
 import Debug
 
--- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
--- !!!!!!CHANGE IN PRODUCTION!!!!!!
--- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 redirectToHome : String
 redirectToHome =
-    "https://echobedriftstur-userauth.firebaseapp.com"
+    "https://echobedriftstur.no"
 
 port userStatusChanged : (Encode.Value -> msg) -> Sub msg
 port signInSucceeded : (Encode.Value -> msg) -> Sub msg

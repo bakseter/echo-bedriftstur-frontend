@@ -27,8 +27,7 @@ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
 const db = firebase.firestore();
 
 const app = Elm.Main.init ({
-    node: document.getElementById("elm"),
-    flags: window.location.pathname
+    node: document.getElementById("elm")
 });
 
 const getUserInfo = (col, doc, email) => {

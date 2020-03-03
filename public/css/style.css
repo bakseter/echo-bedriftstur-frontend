@@ -4,7 +4,7 @@
 
     --color-mnemonic: #ffd876;
     --color-computas: #fcbf01;
-    --color-tba: #a9d1d9;
+    --color-cisco: #a9d1d9;
     --color-knowit: #0595ad;
     --color-dnb: #c9c7c3;
     --color-bekk: #979590;
@@ -22,8 +22,9 @@ html {
 
 body {
     margin: 0px;
-    width: 100%;
     overflow-y: scroll;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 a {
@@ -46,7 +47,7 @@ p {
 }
 
 .text {
-    font-size: 20px;
+    font-size: 1.2rem;
     line-height: 1.5;
 }
 
@@ -57,7 +58,7 @@ p {
     background-color: var(--foreground);
 }
 
-#navBtn {
+#navbtn {
     display: none;
     text-align: center;
 }
@@ -73,7 +74,6 @@ p {
     background-color: var(--foreground);
     border: 2px solid white;
 }
-
 #navbar-content a {
     padding: 10%;
     font-weight: bold;
@@ -84,13 +84,31 @@ p {
     text-align: center;
     padding-top: 5%;
     padding-bottom: 5%;
-    font-size: 20px;
+    font-size: 1.3rem;
     font-weight: bold;
 }
 
 #logo {
-    max-width: 250px;
+    max-width: 100%;
     padding: 5%;
+}
+
+.navbtn-line {
+    transition: 0.5s ease;
+    stroke: gray;
+    stroke-width: 4;
+}
+
+#first-line-anim {
+    transform: rotate(45deg) translate(14px, -7px) scale(0.7);
+}
+
+#middle-line-anim {
+    transform: translate(50px);
+}
+
+#second-line-anim {
+    transform: rotate(-45deg) translate(-15px, 6px) scale(0.7);
 }
 
 #hjem {
@@ -114,22 +132,20 @@ p {
     grid-column: 6 / span 1;
 }
 
-h1.anim-text {
+h1 {
     display: inline;
 }
 
 /* HJEM */
 .hjem {
     display: grid;
-    grid-template-columns: auto auto auto;
-    grid-template-rows: auto auto;
+    grid-template-columns: 15% 70% 15%;
 
-    padding: 5% 10% 10% 10%;
+    padding: 2% 0% 2% 0%;
 }
 
 .hjem-content {
     grid-column: 2 / span 1;
-    grid-row: 1 / span 1;
 }
 
 /* BEDRIFTER */
@@ -140,18 +156,32 @@ h1.anim-text {
 
 .bed-text {
     font-family: IBM Plex Sans;
-    font-size: 16px;
+    font-size: 1.1rem;
     line-height: 1.8;
 }
 
-.logo-item {
+.logo-item, .logo-item-hidden-left, .logo-item-hidden-right {
     display: grid;
     grid-template-columns: auto auto;
-    grid-gap: 5%;
+    justify-items: center;
+
     margin-top: 7%;
-    position: relative;
-    opacity: 0;
     width: 80%;
+ }
+
+.logo-item {
+    position: relative;
+    left: 10%;
+    opacity: 1.0;
+    transition: 1s ease;
+}
+.logo-item-hidden-left {
+    opacity: 0;
+    left: -50%;
+}
+.logo-item-hidden-right {
+    opacity: 0;
+    left: 100%;
 }
 
 .bed-logo {
@@ -162,10 +192,6 @@ h1.anim-text {
 }
 .bed-logo:hover {
     transform: scale(1.2);
-}
-
-#tba {
-    display: none;
 }
 
 /* PROGRAM */
@@ -191,6 +217,7 @@ h1.anim-text {
     background-size: 200% 100%;
     background-position: right bottom;
     border-radius: 0rem 0.7rem 0.7rem 0rem;
+    padding-top: 5%;
     transition: background-position 0.7s ease;
 }
 .program-content:hover {
@@ -219,11 +246,11 @@ h1.anim-text {
     background-image: linear-gradient(to right, var(--color-computas) 50%, var(--foreground) 50%);
 }
 
-#tba-tab {
-    background-color: var(--color-tba); 
+#cisco-tab {
+    background-color: var(--color-cisco); 
 }
-#tba-content {
-    background-image: linear-gradient(to right, var(--color-tba) 50%, var(--foreground) 50%);
+#cisco-content {
+    background-image: linear-gradient(to right, var(--color-cisco) 50%, var(--foreground) 50%);
 }
 
 #knowit-tab {
@@ -249,7 +276,7 @@ h1.anim-text {
 
 /* OM */
 #om-content {
-    padding: 5%;
+    padding: 2%;
     padding-bottom: 3%;
     display: grid;
     grid-template-columns: auto auto auto;
@@ -258,7 +285,7 @@ h1.anim-text {
 }
 
 #om-links {
-    font-size: 69px;
+    font-size: 4rem;
     display: grid;
     grid-template-columns: auto auto;
     grid-gap: 4%;
@@ -281,7 +308,7 @@ h1.anim-text {
 }
 
 .portrett {
-    max-width: 250px;
+    max-width: 50vw;
     max-height: 450px;
     border-radius: 0.7rem;
 }
@@ -307,7 +334,7 @@ h1.anim-text {
 
 .navn {
     font-weight: bold;
-    font-size: 22px;
+    font-size: 1.4rem;
     text-align: center;
 }
 
@@ -331,11 +358,12 @@ h1.anim-text {
 }
 
 /* NOT FOUND */
-.not-found h1 {
-    font-size: 62px;
+#not-found-header {
+    display: block;
+    font-size: 4rem;
     text-align: center;
 }
-.not-found h3 {
+#not-found-text {
     text-align: center;
 }
 
@@ -352,8 +380,6 @@ h1.anim-text {
 }
 
 .clock {
-    grid-columns: 2 / span 1;
-
     display: grid;
     justify-items: center;
     grid-template-columns: auto auto auto auto;
@@ -366,7 +392,7 @@ h1.anim-text {
 }
 
 .clock-item {
-    font-size: 50px;
+    font-size: 3.5rem;
 }
 
 input[type=text] {
@@ -419,7 +445,7 @@ select {
 /* MOBILE */
 @media (max-device-width: 415px), (max-width: 900px) {
     .text {
-        font-size: 18px;
+        font-size: 0.85rem;
     }
 
     .menu {
@@ -432,8 +458,9 @@ select {
         display: none;
     }
 
-    #navBtn {
+    #navbtn {
         display: inline;
+        justify-self: center;
         grid-column: 3 / span 1;
     }
 
@@ -445,9 +472,17 @@ select {
         max-width: 170px;
     }
 
+    .hjem {
+        grid-template-columns: 5% 90% 5%;
+    }
+
+    .clock {
+        padding: 20% 0% 0% 0%;
+    }
+
     .clock-item {
-        /* TODO: scale properly */
-        font-size: 36px;
+        font-size: 2.8rem;
+        padding: 3%;
     }
 
     .bed-logo:hover {
@@ -477,6 +512,10 @@ select {
 
     .program {
         grid-template-columns: auto;
+    }
+
+    .day-item {
+        padding-bottom: 10%;
     }
 
     .program-item {
