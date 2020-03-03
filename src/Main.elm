@@ -1,4 +1,4 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import Browser
 import Browser.Navigation
@@ -17,6 +17,7 @@ import Html.Events
 import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2)
 import Json.Encode as Encode
+import Json.Decode as Decode
 
 main =
     Browser.application 
@@ -37,9 +38,6 @@ type Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
     | GotVerifiedMsg Verified.Msg
-    | AttemptSignOut
-    | SignOutSucceeded Encode.Value
-    | SignOutError Encode.Value
     | ShowNavbar Bool
 
 type alias Model =
@@ -71,8 +69,7 @@ init _ url key =
     , modelBedrifter = Bedrifter.init
     , modelProgram = Program.init
     , modelOm = Om.init
-    }, Cmd.none)
-                
+    }, Cmd.none)            
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -86,8 +83,6 @@ subscriptions model =
           else
             Sub.none
         , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
-        , signOutSucceeded SignOutSucceeded
-        , signOutError SignOutError
         ]
 
 manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg
@@ -101,7 +96,8 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     let modelLoggInn = model.modelLoggInn
-                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown } }, Browser.Navigation.pushUrl model.key (Url.toString url))
+                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown model.modelLoggInn } }
+                        , Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->
@@ -133,20 +129,6 @@ update msg model =
                     ({ model | showNavbar = True }, Cmd.none)
             else
                 ({ model | showNavbar = False }, Cmd.none)
-        AttemptSignOut ->
-            (model, attemptSignOut (Verified.encode "requestedLogOut" True))
-        SignOutSucceeded _ ->
-            let modelVerified = model.modelVerified
-                user = model.modelVerified.user
-            in ({ model | 
-                    modelVerified = { modelVerified |
-                                      currentSubPage = Verified.verified
-                                    , user = { user | isSignedIn = False }
-                                    }
-                    , route = (Page.Hjem) }
-               , Browser.Navigation.pushUrl model.key Verified.redirectToHome )
-        SignOutError json ->
-            (model, Cmd.none)
 
 view : Model -> Browser.Document Msg
 view model =
@@ -193,8 +175,8 @@ view model =
                         , y2 "35"
                         ] []
                     ]
-                , if model.modelVerified.user.isSignedIn then 
-                    span [ class "menu-item", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
+                , if model.modelVerified.isSignedIn then 
+                    span [ class "menu-item", id "user-status" ] [ a [ href "/verified" ] [ text "Min profil" ] ]
                   else
                     span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
                 , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
@@ -238,10 +220,10 @@ getNavbar : Model -> Html Msg
 getNavbar model =
     if model.showNavbar then
         div [ id "navbar-content" ] 
-            [ if model.modelVerified.user.isSignedIn then
-                a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
+            [ if model.modelVerified.isSignedIn then
+                a [ href "/verified", Html.Events.onClick (ShowNavbar False) ] [ text "Min side" ]
               else
-                a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ]
+                a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Påmelding" ]
             , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
             , a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
             , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]

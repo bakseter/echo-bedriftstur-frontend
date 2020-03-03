@@ -369,6 +369,14 @@ h1 {
 
 /* LOGG INN */
 .logg-inn {
+    display: grid;
+    justify-items: center;
+    grid-template-columns: 20% 60% 20%;
+    padding: 5%;
+}
+
+#logg-inn-content {
+    grid-column: 2 / span 1;
 }
 
 .clock {
@@ -386,14 +394,17 @@ h1 {
 .clock-item {
     font-size: 3.5rem;
 }
+
 input[type=text] {
     padding: 1%;
     transition: border ease 0.4s;
     border: 0.2rem solid #CCCCCC;
-    border-radius: 0.3rem;
 }
 input[type=text]:focus {
     border: 0.2rem solid #888888;
+}
+
+select {
 }
 
 #email-valid {
@@ -411,8 +422,8 @@ input[type=text]:focus {
 #min-side-content {
     display: grid;
     grid-template-columns: 20% 60% 20%;
-    justify-items: center;
     padding: 5%;
+    justify-items: center;
 }
 
 .min-side-item {
@@ -424,7 +435,11 @@ input[type=text]:focus {
 
 input[type=button] {
     margin: 3%;
-    padding: 2%;
+    padding: 0%;
+    width: 20%;
+}
+select {
+    overflow: hidden;
 }
 
 /* MOBILE */

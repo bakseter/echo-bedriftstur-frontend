@@ -59,7 +59,9 @@ update msg model =
         Tick time ->
             let newModel = { model | currentTime = time }
             in
-                if (Time.posixToMillis time) >= release then
+                if (Time.posixToMillis time) < release then
+                    ({ newModel | currentSubPage = Countdown }, Cmd.none)
+                else if model.currentSubPage /= LinkSent then
                     ({ newModel | currentSubPage = SignIn }, Cmd.none)
                 else
                     (newModel, Cmd.none)
@@ -70,65 +72,68 @@ update msg model =
         SendSignInLinkSucceeded _ ->
             ({ model | currentSubPage = LinkSent }, Cmd.none)
         SendSignInLinkError json ->
-            let error = errorFromString <| getErrorCode <| Json.Encode.encode 0 json
+            let error = errorFromCode <| getErrorCode <| Json.Encode.encode 0 json
             in ({ model | error = error }, Cmd.none)
 
 view : Model -> Html Msg
 view model =
     div [ class "logg-inn" ]
-        (showPage model)
+        [ showPage model ]
 
 encode : Model -> Json.Encode.Value
 encode model =
     Json.Encode.object
         [ ( "email", Json.Encode.string model.email ) ]
 
-showPage : Model -> List (Html Msg)
+showPage : Model -> Html Msg
 showPage model =
     case model.currentSubPage of
         Countdown ->
-            [ getClock model ]
+            div [ id "logg-inn-content" ]
+                [ getClock model ]
         SignIn ->
-            [ h1 [] [ text "Registrer deg/logg inn" ] 
-            , div [ id "login-info" ]
-                [ p [] 
-                    [ text "For å registrere deg eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
-                , p [ style "font-style" "italic" ]
-                    [ text "Fornavn.Etternavn@student.uib.no" ]
-                , p []
-                    [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
+            div [ id "logg-inn-content" ]
+                [ h1 [] [ text "Registrer deg/logg inn" ] 
+                , div [ id "login-info" ]
+                    [ p [] 
+                        [ text "For å registrere deg eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
+                    , p [ style "font-style" "italic" ]
+                        [ text "Fornavn.Etternavn@student.uib.no" ]
+                    , p []
+                        [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
+                    ]
+                , div [ id "login-form" ]
+                    [ input 
+                        [ if isEmailValid model.email then
+                            id "email-valid"
+                          else if model.error == InvalidEmail then
+                            id "email-invalid"
+                          else
+                            id "email"
+                        , type_ "text", Html.Events.onInput TypedEmail ] []
+                    , br [] []
+                    , br [] []
+                    , input 
+                        [ id "submitBtn"
+                        , type_ "submit"
+                        , value "Logg inn"
+                        , Html.Events.onClick SendSignInLink 
+                        , if isEmailValid model.email then
+                            disabled False
+                          else
+                            disabled True
+                        ] []
+                    ]
+                , h3 [] [text (userMsgFromError model.error) ]
                 ]
-            , div [ id "login-form" ]
-                [ input 
-                    [ if model.error == InvalidEmail then
-                        id "email-invalid"
-                      else if isEmailValid model.email then
-                        id "email-valid"
-                      else
-                        id "email"
-                    , type_ "text", Html.Events.onInput TypedEmail ] []
-                , br [] []
-                , br [] []
-                , input 
-                    [ id "submitBtn"
-                    , type_ "submit"
-                    , value "Logg inn"
-                    , Html.Events.onClick SendSignInLink 
-                    , if isEmailValid model.email then
-                        disabled False
-                      else
-                        disabled True
-                    ] []
-                ]
-            , h3 [] [text (errorMessageToUser model.error) ]
-            ]
         LinkSent ->
-            [ h1 [] [ text "Registrer deg/logg inn" ]
-            , p []
-                [ text ("Vi har nå sendt deg en mail på " ++ model.email ++ ".") ]
-            , p []
-                [ text "Husk å sjekke søppelposten din!" ]
-            ]
+            div [ id "logg-inn-content" ]
+                [ h1 [] [ text "Registrer deg/logg inn" ]
+                , p []
+                    [ text ("Vi har nå sendt deg en mail på " ++ model.email ++ ".") ]
+                , p []
+                    [ text "Husk å sjekke søppelposten din!" ]
+                ]
 
 getClock : Model -> Html msg
 getClock model =
@@ -186,34 +191,49 @@ getErrorCode json =
         Err _ ->
             ""
 
-errorFromString : String -> Error
-errorFromString str =
-    case str of
-        "auth/invalid-email" ->
-            InvalidEmail
-        "auth/unauthorized-continue-uri" ->
-            UnathorizedContinueUri
-        "auth/invalid-continue-uri" ->
-            InvalidContinueUri
-        "auth/argumenterror" ->
-            ArgumentError
+errorList =
+    [   ("auth/invalid-email"
+        , InvalidEmail
+        , "Mailen du har skrevet inn er ikke gyldig. Prøv igjen."
+        )
+    ,   ("auth/unauthorized-continue-uri"
+        , UnathorizedContinueUri
+        , "Det har skjedd en feil. Vennligst prøv igjen."
+        )
+    ,   ("auth/invalid-continue-uri"
+        , InvalidContinueUri
+        , "Det har skjedd en feil. Vennligst prøv igjen."
+        )
+    ,   ("auth/argumenterror"
+        , ArgumentError
+        , "Det har skjedd en feil. Vennligst prøv igjen."
+        )
+    ]
+
+
+errorFromCode : String -> Error
+errorFromCode str =
+    case List.filter (\(x, y, z) -> x == str) errorList of
+        [ (code, err, msg) ] ->
+            err
         _ ->
             NoError
 
-errorMessageToUser : Error -> String
-errorMessageToUser error =
-    case error of
-        InvalidEmail ->
-            "Mailen du har skrevet inn er ikke gyldig. Prøv igjen"
-        NoError ->
-            ""
+userMsgFromError : Error -> String
+userMsgFromError error =
+    case List.filter (\(x, y, z) -> y == error) errorList of
+        [ (code, err, msg) ] ->
+            msg
         _ ->
-            "Det har skjedd en feil. Prøv igjen senere"
+            ""
 
-countdown : SubPage
-countdown =
-    Countdown
+countdown : Model -> SubPage
+countdown model =
+    if (Time.posixToMillis model.currentTime) >= release then
+        SignIn
+    else
+        Countdown
 
 release : Int
 release =
-    1584442800000
+    1582722473000
