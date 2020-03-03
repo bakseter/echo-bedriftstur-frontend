@@ -12,6 +12,7 @@ type Route
     | Om
     | NotFound
 
+urlToRoute : Url.Url -> Route
 urlToRoute url =
     case Parser.parse parseRoute url of
         Just route ->
@@ -19,6 +20,7 @@ urlToRoute url =
         Nothing ->
             NotFound
 
+parseRoute : Parser.Parser (Route -> b) b
 parseRoute =
     Parser.oneOf
         [ Parser.map Hjem Parser.top

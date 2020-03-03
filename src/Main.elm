@@ -16,7 +16,7 @@ import Html exposing (Html)
 import Html.Events
 import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2)
-import Json.Encode
+import Json.Encode as Encode
 
 main =
     Browser.application 
@@ -38,8 +38,8 @@ type Msg
     | GotOmMsg Om.Msg
     | GotVerifiedMsg Verified.Msg
     | AttemptSignOut
-    | SignOutSucceeded Json.Encode.Value
-    | SignOutError Json.Encode.Value
+    | SignOutSucceeded Encode.Value
+    | SignOutError Encode.Value
     | ShowNavbar Bool
 
 type alias Model =
@@ -55,9 +55,9 @@ type alias Model =
     , modelOm : Om.Model
     }
 
-port attemptSignOut : Json.Encode.Value -> Cmd msg
-port signOutError : (Json.Encode.Value -> msg) -> Sub msg
-port signOutSucceeded : (Json.Encode.Value -> msg) -> Sub msg
+port attemptSignOut : Encode.Value -> Cmd msg
+port signOutError : (Encode.Value -> msg) -> Sub msg
+port signOutSucceeded : (Encode.Value -> msg) -> Sub msg
 
 init : () -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init _ url key =
@@ -78,14 +78,14 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
+        , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
+        , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
+        , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
         , if model.route == Bedrifter then
             manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
           else
             Sub.none
-        , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
         , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
-        , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
-        , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
         , signOutSucceeded SignOutSucceeded
         , signOutError SignOutError
         ]
@@ -110,21 +110,21 @@ update msg model =
         GotHjemMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg Hjem.update pageMsg model.modelHjem GotHjemMsg
             in ({ model | modelHjem = newModel }, cmd)
-        GotBedrifterMsg pageMsg ->
-            let (newModel, cmd) = updateWithAndSendMsg Bedrifter.update pageMsg model.modelBedrifter GotBedrifterMsg
-            in ({ model | modelBedrifter = newModel }, cmd)
-        GotProgramMsg pageMsg ->
-            let (newModel, cmd) = updateWithAndSendMsg Program.update pageMsg model.modelProgram GotProgramMsg
-            in ({ model | modelProgram = newModel }, cmd)
-        GotOmMsg pageMsg ->
-            let (newModel, cmd) = updateWithAndSendMsg Om.update pageMsg model.modelOm GotOmMsg
-            in ({ model | modelOm = newModel }, cmd)
         GotLoggInnMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg LoggInn.update pageMsg model.modelLoggInn GotLoggInnMsg
             in ({ model | modelLoggInn = newModel }, cmd)
         GotVerifiedMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg Verified.update pageMsg model.modelVerified GotVerifiedMsg
             in ({ model | modelVerified = newModel }, cmd)
+        GotProgramMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Program.update pageMsg model.modelProgram GotProgramMsg
+            in ({ model | modelProgram = newModel }, cmd)
+        GotBedrifterMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Bedrifter.update pageMsg model.modelBedrifter GotBedrifterMsg
+            in ({ model | modelBedrifter = newModel }, cmd)
+        GotOmMsg pageMsg ->
+            let (newModel, cmd) = updateWithAndSendMsg Om.update pageMsg model.modelOm GotOmMsg
+            in ({ model | modelOm = newModel }, cmd)
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
                 if linksToHome then
@@ -209,14 +209,14 @@ view model =
                 [ showPage GotHjemMsg Hjem.view model.modelHjem ]
             LoggInn ->
                 [ showPage GotLoggInnMsg LoggInn.view model.modelLoggInn ]
+            Verified ->
+                [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
             Bedrifter ->
                 [ showPage GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
             Program ->
                 [ showPage GotProgramMsg Program.view model.modelProgram ]
             Om ->
                 [ showPage GotOmMsg Om.view model.modelOm ]
-            Verified ->
-                [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
             NotFound  ->
                 [ div [ class "not-found" ]
                     [ h1 [ id "not-found-header" ] [ text "404" ]
