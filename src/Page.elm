@@ -3,7 +3,7 @@ module Page exposing (..)
 import Url
 import Url.Parser as Parser exposing ((</>))
 
-type Route
+type Page
     = Hjem
     | LoggInn
     | Verified
@@ -12,15 +12,15 @@ type Route
     | Om
     | NotFound
 
-urlToRoute : Url.Url -> Route
-urlToRoute url =
+urlToPage : Url.Url -> Page
+urlToPage url =
     case Parser.parse parseRoute url of
         Just route ->
             route
         Nothing ->
             NotFound
 
-parseRoute : Parser.Parser (Route -> b) b
+parseRoute : Parser.Parser (Page -> b) b
 parseRoute =
     Parser.oneOf
         [ Parser.map Hjem Parser.top
