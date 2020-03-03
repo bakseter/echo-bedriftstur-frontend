@@ -1,7 +1,7 @@
 port module Page.Verified exposing (..)
 
-import Html exposing (Html, div, span, br, text, p, input, button, select, option, h3, h2)
-import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style)
+import Html exposing (Html, div, span, br, text, p, input, button, select, option, h3, h2, label)
+import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, for)
 import Html.Events
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -51,6 +51,9 @@ type Msg
     | TypedFirstName String
     | TypedLastName String
     | TypedDegree String
+    | CheckedBoxOne String
+    | CheckedBoxTwo String
+    | CheckedBoxThree String
 
 type Degree
     = Valid Degrees
@@ -85,6 +88,7 @@ type alias Model =
     , firstName : String
     , lastName : String
     , degree : Degree
+    , checkedRules : List (Bool)
     , isSignedIn : Bool
     , currentSubPage : SubPage
     , user : User
@@ -104,8 +108,9 @@ init url key =
     , firstName = ""
     , lastName = ""
     , degree = None
+    , checkedRules = [False, False, False]
     , isSignedIn = False
-    , currentSubPage = Verified
+    , currentSubPage = MinSide
     , user = { uid = "", email = "" }
     , submittedContent = { email = "", firstName = "", lastName = "", degree = None }
     }
@@ -166,7 +171,7 @@ update msg model =
             (model, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         SignOutSucceeded _ ->
             ((init model.url model.key)
-             , Browser.Navigation.pushUrl model.key "https://echobedriftstur-userauth.firebaseapp.com" )
+             , Browser.Navigation.pushUrl model.key redirectToHome )
         SignOutError json ->
             (model, Cmd.none)
         TypedFirstName str ->
@@ -175,7 +180,24 @@ update msg model =
             ({ model | lastName = str }, Cmd.none)
         TypedDegree str ->
             ({ model | degree = (stringToDegree True str) }, Cmd.none)
-
+        CheckedBoxOne _ ->
+            case model.checkedRules of
+                [ one, two, three ] ->
+                    ({ model | checkedRules = [ (not one), two, three ] }, Cmd.none)
+                _ ->
+                    (model, Cmd.none)
+        CheckedBoxTwo _ ->
+            case model.checkedRules of
+                [ one, two, three ] ->
+                    ({ model | checkedRules = [ one, (not two), three ] }, Cmd.none)
+                _ ->
+                    (model, Cmd.none)
+        CheckedBoxThree _ ->
+            case model.checkedRules of
+                [ one, two, three ] ->
+                    ({ model | checkedRules = [ one, two, (not three) ] }, Cmd.none)
+                _ ->
+                    (model, Cmd.none)
 
 -- ENCODERS
 
@@ -337,6 +359,12 @@ showPage model =
                         , option [ value "INF" ] [ text (degreeToString False (Valid INF)) ]
                         , option [ value "PROG" ] [ text (degreeToString False (Valid PROG)) ]
                         ]
+                    , input [ id "rule1", type_ "checkbox", Html.Events.onInput CheckedBoxOne ] []
+                    , label [ for "rule1" ] [ text "Jeg bekrefter at jeg er påmeldt et bachelorprogram og begynner mitt 5. semester august 2020, eller er påmeldt et masterprogram og begynner mitt 1. eller 2. semester august 2020." ]
+                    , input [ id "rule2", type_ "checkbox", Html.Events.onInput CheckedBoxTwo ] []
+                    , label [ for "rule2" ] [ text "Jeg bekrefter at jeg er representert av echo, og faller under begrepet 'Våre studenter' i echo sine statutter per 17. mars 2020" ]
+                    , input [ id "rule3", type_ "checkbox", Html.Events.onInput CheckedBoxThree ] []
+                    , label [ for "rule3" ] [ text "Jeg bekrefter at all informasjonen ovenfor er korrekt" ]
                     , if hasChangedInfo model && model.isSignedIn then
                           input
                             [ class "min-side-item"
