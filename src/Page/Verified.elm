@@ -133,7 +133,7 @@ init url key =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every 1000 Tick
+        [ Time.every 100 Tick
         , userStatusChanged UserStatusChanged
         , signInSucceeded SignInSucceeded
         , signInError SignInError
@@ -366,7 +366,8 @@ showPage model =
                         , div [ class "min-side-item text" ]
                             [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
                             , div [] [ text "Påmeldingen vil dukke opp her 3. april kl. 12:00, gitt at du er logget inn og har registrert deg." ]
-                            , div [ style "font-weight" "bold"] [ text "Det er ikke nødvendig å refreshe siden for å få påmeldingen til å vises" ]
+                            , br [] []
+                            , div [ style "font-weight" "bold"] [ text "Det er IKKE nødvendig å refreshe siden for å få påmeldingen til å vises." ]
                             ]
                         , input [ class "min-side-item"
                                 , id "email", type_ "text"
@@ -436,7 +437,7 @@ showPage model =
                             input [ class "min-side-item", type_ "button", value "Meld meg på!", Html.Events.onClick CreateTicket ] []
                          else
                              div [ class "min-side-item", id "countdown" ]
-                                countdown
+                                []
                         ]
                     ]
 

@@ -50,7 +50,7 @@ init =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every 1000 Tick
+        [ Time.every 100 Tick
         , sendSignInLinkSucceeded SendSignInLinkSucceeded
         , sendSignInLinkError SendSignInLinkError
         ] 
@@ -123,7 +123,7 @@ showPage model =
                     , br [] []
                     , input 
                         [ id "submitBtn"
-                        , type_ "submit"
+                        , type_ "button"
                         , value "Logg inn"
                         , Html.Events.onClick SendSignInLink 
                         , if isEmailValid model.email then

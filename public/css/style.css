@@ -401,12 +401,11 @@ h1 {
 }
 
 input[type=text] {
-    padding: 1%;
     font-size: 1.5rem;
     transition: border ease 0.4s;
     border: 0.2rem #CCCCCC;
     border-style: hidden hidden solid hidden;
-    padding-bottom: 2%;
+    padding-bottom: 1%;
 }
 input[type=text]:focus {
     border: 0.2rem #888888;
@@ -427,7 +426,7 @@ input[type=text]:focus {
 /* MIN SIDE */
 #min-side-content {
     display: grid;
-    grid-template-columns: 20% 60% 20%;
+    grid-template-columns: auto;
     justify-items: center;
 }
 
@@ -437,10 +436,10 @@ input[type=text]:focus {
 }
 
 .min-side-item {
-    width: 60%;
-    grid-column: 2;
+    width: 45%;
     margin: 1.5%;
     display: inline;
+    overflow: hidden;
 }
 
 .checkbox-grid {
@@ -537,6 +536,10 @@ select {
     .clock-item {
         font-size: 2.8rem;
         padding: 3%;
+    }
+
+    .min-side-item {
+        width: 80%;
     }
 
     .bed-logo:hover {
