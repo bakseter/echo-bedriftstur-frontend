@@ -43,7 +43,7 @@ type Msg
 type alias Model =
     { key : Browser.Navigation.Key
     , url : Url.Url
-    , route : Route
+    , route : Page
     , showNavbar : Bool
     , modelHjem : Hjem.Model
     , modelLoggInn : LoggInn.Model
@@ -57,7 +57,7 @@ init : () -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init _ url key =
     ({ key = key
     , url = url
-    , route = Page.urlToRoute url
+    , route = Page.urlToPage url
     , showNavbar = False
     , modelHjem = Hjem.init
     , modelLoggInn = LoggInn.init
@@ -97,7 +97,7 @@ update msg model =
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->
-            let route = Page.urlToRoute url
+            let route = Page.urlToPage url
             in ({ model | url = url, route = route }, Cmd.none)
         GotHjemMsg pageMsg ->
             let (newModel, cmd) = updateWithAndSendMsg Hjem.update pageMsg model.modelHjem GotHjemMsg

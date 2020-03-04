@@ -1,9 +1,9 @@
 module Page exposing (..)
 
 import Url
-import Url.Parser as Parser exposing ((</>))
+import Url.Parser as Parser
 
-type Route
+type Page
     = Hjem
     | LoggInn
     | Verified
@@ -12,16 +12,16 @@ type Route
     | Om
     | NotFound
 
-urlToRoute : Url.Url -> Route
-urlToRoute url =
-    case Parser.parse parseRoute url of
-        Just route ->
-            route
+urlToPage : Url.Url -> Page
+urlToPage url =
+    case Parser.parse parsePage url of
+        Just page ->
+            page
         Nothing ->
             NotFound
 
-parseRoute : Parser.Parser (Route -> b) b
-parseRoute =
+parsePage : Parser.Parser (Page -> b) b
+parsePage =
     Parser.oneOf
         [ Parser.map Hjem Parser.top
         , Parser.map LoggInn (Parser.s "logg-inn")

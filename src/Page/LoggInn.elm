@@ -6,6 +6,12 @@ import Html.Events
 import Json.Encode
 import Json.Decode
 import Time
+import Countdown
+
+launch : Int
+launch =
+--  1584442800000
+    0
 
 type Msg
     = Tick Time.Posix
@@ -59,7 +65,7 @@ update msg model =
         Tick time ->
             let newModel = { model | currentTime = time }
             in
-                if (Time.posixToMillis time) < release then
+                if (Time.posixToMillis time) < launch then
                     ({ newModel | currentSubPage = Countdown }, Cmd.none)
                 else if model.currentSubPage /= LinkSent then
                     ({ newModel | currentSubPage = SignIn }, Cmd.none)
@@ -90,7 +96,9 @@ showPage model =
     case model.currentSubPage of
         Countdown ->
             div [ id "logg-inn-content" ]
-                [ getClock model ]
+                [ div [ id "countdown" ]
+                    (Tuple.first (Countdown.countdownFromTo (Time.posixToMillis model.currentTime) launch))
+                ]
         SignIn ->
             div [ id "logg-inn-content" ]
                 [ h1 [] [ text "Registrer deg/logg inn" ] 
@@ -134,50 +142,6 @@ showPage model =
                 , p []
                     [ text "Husk å sjekke søppelposten din!" ]
                 ]
-
-getClock : Model -> Html msg
-getClock model =
-    div [ class "clock" ]
-        ([ span [ id "days" ] [ text "D" ]
-         , span [ id "hours" ] [ text "H" ]
-         , span [ id "minutes" ] [ text "M" ]
-         , span [ id "seconds" ] [ text "S" ]
-         ] ++ getCountDown model.currentTime)
-
-getCountDown : Time.Posix -> List (Html msg)
-getCountDown dateNow =
-    let date = release - (Time.posixToMillis dateNow)
-    in
-        if date == release then 
-            (List.map (\x -> div 
-                [ class "clock-item", id ("clock" ++ Tuple.second x) ]
-                [ text <| fixNum <| String.fromInt <| Tuple.first x ]) 
-                [(0,"D"),(0,"H"),(0,"M"),(0,"S")]) 
-        else 
-            (List.map (\x -> div 
-                [ class "clock-item", id ("clock" ++ Tuple.second x) ]
-                [ text <| fixNum <| String.fromInt <| Tuple.first x ])
-                (calcDate date))
-
-fixNum : String -> String
-fixNum str =
-    if String.length str == 1
-    then
-        "0" ++ str
-    else
-        str
-
-calcDate : Int -> List (Int, String)
-calcDate diff =
-    let day = diff // (86400 * 1000)
-        dayMod = modBy (86400 * 1000) diff
-        hour = dayMod // (3600 * 1000)
-        hourMod = modBy (3600 * 1000) dayMod
-        min = hourMod // (60 * 1000)
-        minMod = modBy (60 * 1000) hourMod
-        sec = minMod // 1000
-    in
-        [(day,"D"), (hour,"H"), (min,"M"), (sec,"S")]
 
 isEmailValid : String -> Bool
 isEmailValid str =
@@ -229,11 +193,7 @@ userMsgFromError error =
 
 countdown : Model -> SubPage
 countdown model =
-    if (Time.posixToMillis model.currentTime) >= release then
+    if (Time.posixToMillis model.currentTime) >= launch then
         SignIn
     else
         Countdown
-
-release : Int
-release =
-    1582722473000

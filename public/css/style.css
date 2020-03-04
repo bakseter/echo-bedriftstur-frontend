@@ -148,6 +148,11 @@ h1 {
     grid-column: 2 / span 1;
 }
 
+#statutter-link {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
 /* BEDRIFTER */
 #bedrifter-content { 
     display: grid;
@@ -371,6 +376,7 @@ h1 {
 .logg-inn {
     display: grid;
     justify-items: center;
+    align-items: center;
     grid-template-columns: 20% 60% 20%;
     padding: 5%;
 }
@@ -379,15 +385,14 @@ h1 {
     grid-column: 2 / span 1;
 }
 
-.clock {
+#countdown {
     display: grid;
     justify-items: center;
     grid-template-columns: auto auto auto auto;
     grid-template-rows: auto auto;
-    padding-left: 20%;
-    padding-right: 20%;
+    padding-top: 2%;
+    grid-gap: 15%;
 
-    padding-top: 12%;
     font-weight: bold;
 }
 
@@ -397,14 +402,15 @@ h1 {
 
 input[type=text] {
     padding: 1%;
+    font-size: 1.5rem;
     transition: border ease 0.4s;
-    border: 0.2rem solid #CCCCCC;
+    border: 0.2rem #CCCCCC;
+    border-style: hidden hidden solid hidden;
+    padding-bottom: 2%;
 }
 input[type=text]:focus {
-    border: 0.2rem solid #888888;
-}
-
-select {
+    border: 0.2rem #888888;
+    border-style: hidden hidden solid hidden;
 }
 
 #email-valid {
@@ -422,24 +428,72 @@ select {
 #min-side-content {
     display: grid;
     grid-template-columns: 20% 60% 20%;
-    padding: 5%;
     justify-items: center;
 }
 
+#min-side-header {
+    text-align: center;
+    padding-top: 3%;
+}
+
 .min-side-item {
-    width: 30%;
+    width: 60%;
     grid-column: 2;
     margin: 1.5%;
-    display: block;
+    display: inline;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: 20% 80%;
+    align-items: center;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.unchecked-box {
+    fill: none;
+    stroke: #bbbbbb;
+    stroke-width: 10px;
+    transition: transform ease 0.2s;
+}
+.checked-box {
+    fill: none;
+    stroke: green;
+    stroke-width: 13px;
+    transform: translate(-9px, -16px) rotate(34deg);
+    transition: transform ease 0.2s;
+}
+
+.submit-buttons {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-items: center;
+    align-items: center;
+}
+
+#signout-btn, #save-btn {
+    margin: 3%;
 }
 
 input[type=button] {
-    margin: 3%;
-    padding: 0%;
-    width: 20%;
+    padding: 1% 5% 1% 5%;
+    font-size: 1.3rem;
+    font-weight: bold;
+    background-color: #dddddd;
+    border: none;
+    border-radius: 0.5rem;
 }
+input[type=button]:hover {
+    background-color: #bbbbbb;
+}
+input[type=button]:disabled:hover{
+    background-color: #dddddd;
+}
+
 select {
     overflow: hidden;
+    font-size: 1.3rem;
 }
 
 /* MOBILE */

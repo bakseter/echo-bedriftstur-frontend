@@ -61,6 +61,23 @@ const getUserInfo = (col, doc, email) => {
     });
 };
 
+const createTicket = (col, doc, data) => {
+    db.collection(col).doc(doc).set(data)
+    .then(docRef => {
+        app.ports.createTicketSucceeded.send(true);
+    })
+    .catch(error => {
+        if (debug) {
+            console.log(error.code);
+            console.log(error);
+            console.log("collection ", col);
+            console.log("doc ", doc);
+            console.log("data ", data);
+        }
+        app.ports.createTicketError.send(error);
+    });
+};
+
 const updateUserInfo = (col, doc, data) => {
     db.collection(col).doc(doc).set(data)
     .then(docRef => {
@@ -144,6 +161,16 @@ app.ports.updateUserInfo.subscribe(data => {
                     , degree: data.degree
                     };
     updateUserInfo(data.collection, data.uid, content);
+});
+
+
+app.ports.createTicket.subscribe(data => {
+    const newData = {
+        email: data.email,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    createTicket(data.collection, data.uid, newData);
 });
 
 app.ports.attemptSignOut.subscribe(data => {
