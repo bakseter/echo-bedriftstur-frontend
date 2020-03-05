@@ -49,7 +49,7 @@ const getUserInfo = (col, doc, email) => {
             updateUserInfo(col, doc, emailOnly);
             app.ports.getUserInfoSucceeded.send(emailOnly);
             if (debug) {
-                console.log("Create user info: ", emailOnly);
+                console.log("Created user info: ", emailOnly);
             }
         }
     })
@@ -104,6 +104,7 @@ firebase.auth().onAuthStateChanged(user => {
     }
     if (debug) {
         console.log("user status changed to ", signedIn);
+        console.log(user);
     }
     app.ports.userStatusChanged.send(user);
 });

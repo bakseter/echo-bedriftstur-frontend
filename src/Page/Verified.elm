@@ -13,7 +13,14 @@ import Svg
 import Svg.Attributes exposing (x, y, rx, ry)
 import Svg.Events
 import Time
+
 import Countdown
+import User exposing (..)
+import Uid exposing (..)
+import Email exposing (..)
+import Degree exposing (..)
+import Content exposing (..)
+import Session exposing (..)
 
 release : Int
 release =
@@ -52,7 +59,7 @@ type Msg
     | SignInError Decode.Value
     | GetUserInfoSucceeded Decode.Value
     | GetUserInfoError Decode.Value
-    | UpdateUserInfo User Content
+    | UpdateUserInfo Session Content
     | UpdateUserInfoSucceeded Decode.Value
     | UpdateUserInfoError Decode.Value
     | CreateTicket
@@ -68,66 +75,33 @@ type Msg
     | CheckedBoxTwo
     | CheckedBoxThree
 
-type Degree
-    = Valid Degrees
-    | None
-
-type Degrees
-    = DTEK
-    | DSIK
-    | DVIT
-    | BINF
-    | IMØ
-    | IKT
-    | KOGNI
-    | INF
-    | PROG
-
 type SubPage
     = Verified
     | MinSide
 
-type alias Content =
-    { email : String
-    , firstName : String
-    , lastName : String
-    , degree : Degree
-    }
-
 type alias Model =
     { url : Url.Url
     , key : Browser.Navigation.Key
-    , currentTime : Time.Posix
-    , email : String
-    , firstName : String
-    , lastName : String
-    , degree : Degree
-    , checkedRules : List (Bool)
-    , isSignedIn : Bool
-    , currentSubPage : SubPage
     , user : User
+    , currentTime : Time.Posix
+    , inputContent : Content
     , submittedContent : Content
-    }
-
-type alias User =
-    { uid : String
-    , email : String
+    , checkedRules : List (Bool)
+    , currentSubPage : SubPage
+    , session : Session
     }
 
 init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
     { url = url
     , key = key
+    , user = User.empty
     , currentTime = Time.millisToPosix 0
-    , email = ""
-    , firstName = ""
-    , lastName = ""
-    , degree = None
-    , checkedRules = [False, False, False]
-    , isSignedIn = False
+    , inputContent = Content.empty
+    , submittedContent = Content.empty
+    , checkedRules = [ False, False, False ]
     , currentSubPage = Verified
-    , user = { uid = "", email = "" }
-    , submittedContent = { email = "", firstName = "", lastName = "", degree = None }
+    , session = Session.empty
     }
 
 subscriptions : Model -> Sub Msg
@@ -153,42 +127,46 @@ update msg model =
         Tick time ->
             ({ model | currentTime = time }, Cmd.none)
         UserStatusChanged json ->
-            let user = decodeUser json
+            let session = Session.decodeSession json
             in
-                if user.uid == "" || user.email == "" then
-                    ({ model | isSignedIn = False }, Cmd.none)
+                if Session.isSignedIn session then
+                    ({ model | session = session }, getUserInfo (Session.encode session))
                 else
-                    ({ model | isSignedIn = True, user = user }, getUserInfo (encodeUser user))
+                    (model, Cmd.none)
         SignInSucceeded userJson ->
-            ({ model | currentSubPage = MinSide }, getUserInfo (encodeUser (decodeUser userJson)))
+            ({ model | currentSubPage = MinSide }, Cmd.none)
         SignInError json ->
             (model, Cmd.none)
         GetUserInfoSucceeded json ->
-            let content = decodeContent json
-            in ({ model | email = content.email
-                          , firstName = content.firstName
-                          , lastName = content.lastName
-                          , degree = content.degree 
-                          , submittedContent = content
-                          }, Cmd.none)
+            let content = User.decode json
+                user = { email = content.email
+                       , firstName = content.firstName
+                       , lastName = content.lastName
+                       , degree = content.degree
+                       }
+                submittedContent = { firstName = content.firstName
+                                   , lastName = content.lastName
+                                   , degree = content.degree
+                                   }
+            in
+                ({ model | user = user, submittedContent = submittedContent, inputContent = submittedContent }, Cmd.none)
         GetUserInfoError json ->
             (model, Cmd.none)
-        UpdateUserInfo user content ->
-            let newContent = { email = model.email
-                             , firstName = model.firstName
-                             , lastName = model.lastName
-                             , degree = model.degree
+        UpdateUserInfo session content ->
+            let newContent = { firstName = model.inputContent.firstName
+                             , lastName = model.inputContent.lastName
+                             , degree = model.inputContent.degree
                              } 
-                message = encodeUserInfo model.user newContent
-            in (model, Cmd.batch [ updateUserInfo message, Browser.Navigation.load redirectToHome ])
+                message = Content.encode session newContent
+            in (model, Cmd.batch [ updateUserInfo message, Browser.Navigation.pushUrl model.key redirectToHome ])
         UpdateUserInfoSucceeded _ ->
             let subCont = model.submittedContent
-                newSubCont = { subCont | firstName = model.firstName, lastName = model.lastName, degree = model.degree }
+                newSubCont = Content.updateAll subCont model.user.firstName model.user.lastName model.user.degree
             in ({ model | submittedContent = newSubCont }, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         UpdateUserInfoError json ->
             (model, Cmd.none)
         CreateTicket ->
-            (model, createTicket (encodeTicket model.user))
+            (model, createTicket (encodeTicket model.session model.user))
         CreateTicketSucceeded json ->
             (model, Cmd.none)
         CreateTicketError json ->
@@ -201,11 +179,14 @@ update msg model =
         SignOutError json ->
             (model, Cmd.none)
         TypedFirstName str ->
-            ({ model | firstName = str }, Cmd.none)
+            let input = Content.updateFirstName str model.inputContent
+            in ({ model | inputContent = input }, Cmd.none)
         TypedLastName str ->
-            ({ model | lastName = str }, Cmd.none)
+            let input = Content.updateLastName str model.inputContent
+            in ({ model | inputContent = input }, Cmd.none)
         TypedDegree str ->
-            ({ model | degree = (stringToDegree True str) }, Cmd.none)
+            let input = Content.updateDegree (Degree.fromString True str) model.inputContent
+            in ({ model | inputContent = input }, Cmd.none)
         CheckedBoxOne ->
             case model.checkedRules of
                 [ one, two, three ] ->
@@ -235,109 +216,13 @@ encodeFields list =
         [] ->
             []
 
-encodeTicket : User -> Encode.Value
-encodeTicket user =
+encodeTicket : Session -> User -> Encode.Value
+encodeTicket session user =
     Encode.object <| encodeFields
         [ ("collection", "tickets")
-        , ("uid", user.uid)
-        , ("email", user.email)
+        , ("uid", (Uid.toString session.uid))
+        , ("email", (Email.toString user.email))
         ]
-
-encodeUser : User -> Encode.Value
-encodeUser user =
-    [ ("collection", "users")
-    , ("uid", user.uid)
-    , ("email", user.email)
-    ]
-        |> encodeFields
-        |> Encode.object
-
-encodeUserInfo : User -> Content -> Encode.Value
-encodeUserInfo user content =
-    [ ("collection", "users")
-    , ("uid", user.uid)
-    , ("email", content.email)
-    , ("firstName", content.firstName)
-    , ("lastName", content.lastName)
-    , ("degree", (degreeToString False content.degree))  
-    ]
-        |> encodeFields
-        |> Encode.object
-                      
-
--- DECODERS
-
-
--- Uses the userDecoder function to turn
--- a JSON object into a User record.
-decodeUser : Encode.Value -> User
-decodeUser json =
-    let jsonStr = Encode.encode 0 json
-    in 
-        case Decode.decodeString userDecoder jsonStr of
-            Ok val ->
-                val
-            Err err ->
-                { uid = Decode.errorToString err
-                , email = ""
-                }
-
--- Decoder that turns a JSON object into a User record,
--- if the object is formatted correctly.
--- Fails if not all the fields required for
--- a User record are present in the JSON.
-userDecoder : Decode.Decoder User
-userDecoder =
-    Decode.map2 User
-        (stringOrNullDecoder "uid")
-        (stringOrNullDecoder "email")
-
--- Uses the contentDecoder function to turn
--- a JSON object into a Content record.
-decodeContent : Encode.Value -> Content
-decodeContent json =
-    let jsonStr = Encode.encode 0 json
-    in
-        case Decode.decodeString contentDecoder jsonStr of
-            Ok val ->
-                val
-            Err err ->
-                { email = Decode.errorToString err
-                , firstName = ""
-                , lastName = ""
-                , degree = None
-                }
-
--- Decoder that turns a JSON object into a Content record,
--- if the object is formatted correctly.
--- Fails if not all fields required for
--- a Content record are present in the JSON.
-contentDecoder : Decode.Decoder Content
-contentDecoder =
-    Decode.map4 Content
-        (stringOrNullDecoder "email")
-        (stringOrNullDecoder "firstName")
-        (stringOrNullDecoder "lastName")
-        (Decode.oneOf (degreeOrNullDecoder "degree"))
-
-
--- Decoder that either decodes the string at the given field,
--- turning the string into a degree in the process,
--- or returns None if the degree is not valid or if the field is null.
-degreeOrNullDecoder : String -> List (Decode.Decoder Degree)
-degreeOrNullDecoder field =
-        [ Decode.map (stringToDegree False) (Decode.at [ field ] Decode.string)
-        , Decode.at [ field ] (Decode.null None)
-        ]
-
--- Decoder that either decodes the string at the given field,
--- or returns en empty string if the field is null.
-stringOrNullDecoder : String -> Decode.Decoder String
-stringOrNullDecoder field =
-    [ (Decode.at [ field ] Decode.string)
-    , (Decode.at [ field ] (Decode.null ""))
-    ] |> Decode.oneOf
-
 
 view : Model -> Html Msg
 view model =
@@ -372,13 +257,13 @@ showPage model =
                         , input [ class "min-side-item"
                                 , id "email", type_ "text"
                                 , disabled True
-                                , value (model.email) 
+                                , value (Email.toString model.user.email) 
                                 ] []
                         , input [ class "min-side-item"
                                 , id "firstName"
                                 , type_ "text"
                                 , placeholder "Fornavn"
-                                , value (model.firstName) 
+                                , value (model.inputContent.firstName) 
                                 , Html.Events.onInput TypedFirstName
                                 ] []
                         , br [] []
@@ -386,21 +271,21 @@ showPage model =
                                 , id "lastName"
                                 , type_ "text"
                                 , placeholder "Etternavn"
-                                , value (model.lastName)
+                                , value (model.inputContent.lastName)
                                 , Html.Events.onInput TypedLastName
                                 ] []
                         , br [] []
-                        , select [ class "min-side-item", id "degree", value (degreeToString True model.degree), Html.Events.onInput TypedDegree ]
-                            [ option [ value "" ] [ text (degreeToString False None) ]
-                            , option [ value "DTEK" ] [ text (degreeToString False (Valid DTEK)) ]
-                            , option [ value "DVIT" ] [ text (degreeToString False (Valid DVIT)) ]
-                            , option [ value "DSIK" ] [ text (degreeToString False (Valid DSIK)) ]
-                            , option [ value "BINF" ] [ text (degreeToString False (Valid BINF)) ]
-                            , option [ value "IMØ" ] [ text (degreeToString False (Valid IMØ)) ]
-                            , option [ value "IKT" ] [ text (degreeToString False (Valid IKT)) ]
-                            , option [ value "KOGNI" ] [ text (degreeToString False (Valid KOGNI)) ]
-                            , option [ value "INF" ] [ text (degreeToString False (Valid INF)) ]
-                            , option [ value "PROG" ] [ text (degreeToString False (Valid PROG)) ]
+                        , select [ class "min-side-item", id "degree", value (Degree.toString True model.inputContent.degree), Html.Events.onInput TypedDegree ]
+                            [ option [ value "" ] [ text (Degree.toString False None) ]
+                            , option [ value "DTEK" ] [ text (Degree.toString False (Valid DTEK)) ]
+                            , option [ value "DVIT" ] [ text (Degree.toString False (Valid DVIT)) ]
+                            , option [ value "DSIK" ] [ text (Degree.toString False (Valid DSIK)) ]
+                            , option [ value "BINF" ] [ text (Degree.toString False (Valid BINF)) ]
+                            , option [ value "IMØ" ] [ text (Degree.toString False (Valid IMØ)) ]
+                            , option [ value "IKT" ] [ text (Degree.toString False (Valid IKT)) ]
+                            , option [ value "KOGNI" ] [ text (Degree.toString False (Valid KOGNI)) ]
+                            , option [ value "INF" ] [ text (Degree.toString False (Valid INF)) ]
+                            , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
                             ]
                         , div [ class "min-side-item checkbox-grid" ]
                             [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 1 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
@@ -426,10 +311,10 @@ showPage model =
                                 , type_ "button"
                                 , value "Lagre endringer og logg ut"
                                 , Html.Events.onClick
-                                    (UpdateUserInfo model.user
-                                        { email = model.email, firstName = model.firstName, lastName = model.lastName, degree = model.degree }
+                                    (UpdateUserInfo model.session
+                                        { firstName = model.inputContent.firstName, lastName = model.inputContent.lastName, degree = model.inputContent.degree }
                                     )
-                                , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && model.isSignedIn))
+                                , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && Session.isSignedIn model.session))
                                 ] []
                             , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
                             ]
@@ -480,64 +365,19 @@ isLinkValid url =
 -- Checks if the user has changed their info in the form
 hasChangedInfo : Model -> Bool
 hasChangedInfo model =
-    let con = model.submittedContent
+    let inp = model.inputContent
+        sub = model.submittedContent
     in
-        con.firstName /= model.firstName ||
-        con.lastName /= model.lastName ||
-        con.degree /= model.degree
+        inp.firstName /= sub.firstName ||
+        inp.lastName /= sub.lastName ||
+        inp.degree /= sub.degree
 
 infoIsNotEmpty : Model -> Bool
 infoIsNotEmpty model =
-    model.firstName /= "" &&
-    model.lastName /= "" &&
-    model.degree /= None
+    model.inputContent.firstName /= "" &&
+    model.inputContent.lastName /= "" &&
+    model.inputContent.degree /= None
 
 hasCheckedAllRules : Model -> Bool
 hasCheckedAllRules model =
     List.all (\x -> x == True) model.checkedRules
-
--- DEGREE PARSERS
-
--- List of valid degrees with their shorthand and long strings
-degreesList : List (Degrees, (String, String))
-degreesList =
-    [ (DTEK, ("DTEK", "Datateknologi"))
-    , (DVIT, ("DVIT", "Datatvitenskap"))
-    , (DSIK, ("DSIK", "Datasikkerhet"))
-    , (BINF, ("BINF", "Bioinformatikk"))
-    , (IMØ, ("IMØ", "Informatikk-matematikk-økonomi"))
-    , (IKT, ("IKT", "Informasjons- og kommunikasjonsteknologi"))
-    , (KOGNI, ("KOGNI", "Kognitiv vitenskap med spesialisering i informatikk"))
-    , (INF, ("INF", "Master i informatikk"))
-    , (PROG, ("PROG", "Felles master i programutvkling"))
-    ]
-
--- Convert degree to either shorthand or long string
-degreeToString : Bool -> Degree -> String
-degreeToString shorthand degree =
-    case degree of
-        Valid d ->
-            case List.filter (\(x,(y,z)) -> x == d) degreesList of
-                [ (deg, (short, long)) ] ->
-                    if shorthand then
-                        short
-                    else
-                        long
-                _ ->
-                    ""
-        None ->
-            ""
-
--- Convert either shorthand or long string to degree
-stringToDegree : Bool -> String -> Degree
-stringToDegree shorthand str =
-    let filter arg = if shorthand then
-                        (\(x,(y,z)) -> y == str)
-                     else
-                       (\(x,(y,z)) -> z == str)
-    in
-        case List.filter (filter str) degreesList of
-            [ (deg, (short, long)) ] ->
-                Valid deg
-            _ ->
-                None

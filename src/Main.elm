@@ -5,6 +5,13 @@ import Browser.Navigation
 import Html exposing (Html, div, span, h1, h3, text, a, img)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
+import Html exposing (Html)
+import Html.Events
+import Svg
+import Svg.Attributes exposing (x1, x2, y1, y2)
+import Json.Encode as Encode
+import Json.Decode as Decode
+
 import Page exposing (..)
 import Page.Hjem as Hjem
 import Page.LoggInn as LoggInn
@@ -12,12 +19,8 @@ import Page.Bedrifter as Bedrifter
 import Page.Program as Program
 import Page.Om as Om
 import Page.Verified as Verified
-import Html exposing (Html)
-import Html.Events
-import Svg
-import Svg.Attributes exposing (x1, x2, y1, y2)
-import Json.Encode as Encode
-import Json.Decode as Decode
+import User
+import Session
 
 main =
     Browser.application 
@@ -171,7 +174,7 @@ view model =
                         , y2 "35"
                         ] []
                     ]
-                , if model.modelVerified.isSignedIn then 
+                , if Session.isSignedIn model.modelVerified.session then 
                     span [ class "menu-item", id "user-status" ] [ a [ href "/verified" ] [ text "Min profil" ] ]
                   else
                     span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
@@ -216,7 +219,7 @@ getNavbar : Model -> Html Msg
 getNavbar model =
     if model.showNavbar then
         div [ id "navbar-content" ] 
-            [ if model.modelVerified.isSignedIn then
+            [ if Session.isSignedIn model.modelVerified.session then
                 a [ href "/verified", Html.Events.onClick (ShowNavbar False) ] [ text "Min side" ]
               else
                 a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Påmelding" ]
