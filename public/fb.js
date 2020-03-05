@@ -1,15 +1,15 @@
 const debug = true;
 
-const firebaseConfig = {
-    apiKey: "AIzaSyD-mFQI_DHw8mjhomuAcPUHAwOneYhxEK8",
-    authDomain: "echo-bedriftstur-81a2e.firebaseapp.com",
-    databaseURL: "https://echo-bedriftstur-81a2e.firebaseio.com",
-    projectId: "echo-bedriftstur-81a2e",
-    storageBucket: "echo-bedriftstur-81a2e.appspot.com",
-    messagingSenderId: "929375228711",
-    appId: "1:929375228711:web:1cfbcadd8e54e97cd14f02",
-    measurementId: "G-F0QKBQFGLD"
-};
+const firebaseConfig = 
+    { apiKey: "AIzaSyD-mFQI_DHw8mjhomuAcPUHAwOneYhxEK8"
+    , authDomain: "echo-bedriftstur-81a2e.firebaseapp.com"
+    , databaseURL: "https://echo-bedriftstur-81a2e.firebaseio.com"
+    , projectId: "echo-bedriftstur-81a2e"
+    , storageBucket: "echo-bedriftstur-81a2e.appspot.com"
+    , messagingSenderId: "929375228711"
+    , appId: "1:929375228711:web:1cfbcadd8e54e97cd14f02"
+    , measurementId: "G-F0QKBQFGLD"
+    };
 firebase.initializeApp(firebaseConfig);
 
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
@@ -30,23 +30,33 @@ const app = Elm.Main.init ({
     node: document.getElementById("elm")
 });
 
-const getUserInfo = (col, doc, email) => {
+const getUserInfo = (col, doc, data) => {
     db.collection(col).doc(doc).get()
-    .then(newDoc => {
-        if (newDoc.exists) {
-            app.ports.getUserInfoSucceeded.send(newDoc.data());
+    .then(docRef => {
+        if (docRef.exists) {
+            app.ports.getUserInfoSucceeded.send(docRef.data());
             if (debug) {
-                console.log("Got user info: ", newDoc.data());
+                console.log("Got user info: ", docRef.data());
             }
         }
         else {
-            const emailOnly = {
-                email: email,
-                firstName: null,
-                lastName: null,
-                degree: null
-            };
-            updateUserInfo(col, doc, emailOnly);
+            const emailOnly =
+                { email: data
+                , firstName: null
+                , lastName: null
+                , degree: null
+                };
+            db.collection(col).doc(doc).set()
+            .then(newDoc => {
+                app.ports.getUserInfoSucceeded.send(emailOnly);
+            })
+            .catch(error => {
+                if (debug) {
+                    console.log(error.code);
+                    console.log(error);
+                }
+                getUserInfoError.send(error);
+            });
             app.ports.getUserInfoSucceeded.send(emailOnly);
             if (debug) {
                 console.log("Created user info: ", emailOnly);
@@ -58,10 +68,12 @@ const getUserInfo = (col, doc, email) => {
             console.log(error.code);
             console.log(error);
         }
+        app.ports.getUserInfoError.send(error);
     });
 };
 
 const createTicket = (col, doc, data) => {
+    console.log(col, doc, data);
     db.collection(col).doc(doc).set(data)
     .then(docRef => {
         app.ports.createTicketSucceeded.send(true);
@@ -70,9 +82,6 @@ const createTicket = (col, doc, data) => {
         if (debug) {
             console.log(error.code);
             console.log(error);
-            console.log("collection ", col);
-            console.log("doc ", doc);
-            console.log("data ", data);
         }
         app.ports.createTicketError.send(error);
     });
@@ -164,13 +173,11 @@ app.ports.updateUserInfo.subscribe(data => {
     updateUserInfo(data.collection, data.uid, content);
 });
 
-
 app.ports.createTicket.subscribe(data => {
-    const newData = {
-        email: data.email,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
+    const newData =
+        { timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+        , email: data.email
+        };
     createTicket(data.collection, data.uid, newData);
 });
 

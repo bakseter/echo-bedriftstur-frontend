@@ -21,6 +21,7 @@ import Email exposing (..)
 import Degree exposing (..)
 import Content exposing (..)
 import Session exposing (..)
+import Ticket exposing (..)
 
 release : Int
 release =
@@ -166,7 +167,7 @@ update msg model =
         UpdateUserInfoError json ->
             (model, Cmd.none)
         CreateTicket ->
-            (model, createTicket (encodeTicket model.session model.user))
+            (model, createTicket (Ticket.encode model.session))
         CreateTicketSucceeded json ->
             (model, Cmd.none)
         CreateTicketError json ->
@@ -206,23 +207,61 @@ update msg model =
                 _ ->
                     (model, Cmd.none)
 
--- ENCODERS
+-- Checks if the sign in link is valid
+isLinkValid : Url.Url -> Bool
+isLinkValid url =
+    let decoder = Parser.s "verified" <?> Query.string "apiKey"
+    in
+        case Parser.parse decoder url of
+            Just code ->
+                Maybe.withDefault False (Just True)
+            Nothing ->
+                False
 
-encodeFields : List (String, String) -> List (String, Encode.Value)
-encodeFields list =
-    case list of
-        (x :: xs) ->
-            [ (Tuple.first x, Tuple.second x |> Encode.string) ] ++ encodeFields xs
-        [] ->
-            []
+-- Checks if the user has changed their info in the form
+hasChangedInfo : Model -> Bool
+hasChangedInfo model =
+    let inp = model.inputContent
+        sub = model.submittedContent
+    in
+        inp.firstName /= sub.firstName ||
+        inp.lastName /= sub.lastName ||
+        inp.degree /= sub.degree
 
-encodeTicket : Session -> User -> Encode.Value
-encodeTicket session user =
-    Encode.object <| encodeFields
-        [ ("collection", "tickets")
-        , ("uid", (Uid.toString session.uid))
-        , ("email", (Email.toString user.email))
-        ]
+infoIsNotEmpty : Model -> Bool
+infoIsNotEmpty model =
+    model.inputContent.firstName /= "" &&
+    model.inputContent.lastName /= "" &&
+    model.inputContent.degree /= None
+
+hasCheckedAllRules : Model -> Bool
+hasCheckedAllRules model =
+    List.all (\x -> x == True) model.checkedRules
+
+getCheckboxClass : Int -> Model -> String
+getCheckboxClass id model =
+    case model.checkedRules of
+        [ one, two, three ] ->
+            case id of
+                1 ->
+                    if one then
+                        "checked-box"
+                    else
+                        "unchecked-box"
+                2 ->
+                    if two then
+                        "checked-box"
+                    else
+                        "unchecked-box"
+                3 ->
+                    if three then
+                        "checked-box"
+                    else
+                        "unchecked-box"
+                _ ->
+                    ""
+        _ ->
+            ""
 
 view : Model -> Html Msg
 view model =
@@ -318,66 +357,10 @@ showPage model =
                                 ] []
                             , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
                             ]
-                        , if isRelease then
+                        , if True then
                             input [ class "min-side-item", type_ "button", value "Meld meg på!", Html.Events.onClick CreateTicket ] []
                          else
                              div [ class "min-side-item", id "countdown" ]
                                 []
                         ]
                     ]
-
-getCheckboxClass : Int -> Model -> String
-getCheckboxClass id model =
-    case model.checkedRules of
-        [ one, two, three ] ->
-            case id of
-                1 ->
-                    if one then
-                        "checked-box"
-                    else
-                        "unchecked-box"
-                2 ->
-                    if two then
-                        "checked-box"
-                    else
-                        "unchecked-box"
-                3 ->
-                    if three then
-                        "checked-box"
-                    else
-                        "unchecked-box"
-                _ ->
-                    ""
-        _ ->
-            ""
-
--- Checks if the sign in link is valid
-isLinkValid : Url.Url -> Bool
-isLinkValid url =
-    let decoder = Parser.s "verified" <?> Query.string "apiKey"
-    in
-        case Parser.parse decoder url of
-            Just code ->
-                Maybe.withDefault False (Just True)
-            Nothing ->
-                False
-
--- Checks if the user has changed their info in the form
-hasChangedInfo : Model -> Bool
-hasChangedInfo model =
-    let inp = model.inputContent
-        sub = model.submittedContent
-    in
-        inp.firstName /= sub.firstName ||
-        inp.lastName /= sub.lastName ||
-        inp.degree /= sub.degree
-
-infoIsNotEmpty : Model -> Bool
-infoIsNotEmpty model =
-    model.inputContent.firstName /= "" &&
-    model.inputContent.lastName /= "" &&
-    model.inputContent.degree /= None
-
-hasCheckedAllRules : Model -> Bool
-hasCheckedAllRules model =
-    List.all (\x -> x == True) model.checkedRules
