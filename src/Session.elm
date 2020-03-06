@@ -19,7 +19,7 @@ empty =
 
 isSignedIn : Session -> Bool
 isSignedIn session =
-    (Uid.toString session.uid) /= "" ||
+    (Uid.toString session.uid) /= "" &&
     (Email.toString session.email) /= ""
 
 encode : Session -> Encode.Value
@@ -32,8 +32,8 @@ encode user =
                       
 -- Uses the userDecoder function to turn
 -- a JSON object into a Session record.
-decodeSession : Encode.Value -> Session
-decodeSession json =
+decode : Encode.Value -> Session
+decode json =
     let jsonStr = Encode.encode 0 json
     in 
         case Decode.decodeString sessionDecoder jsonStr of

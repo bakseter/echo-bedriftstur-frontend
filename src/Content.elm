@@ -19,8 +19,8 @@ empty =
     , degree = None
     }
 
-updateAll : Content -> String -> String -> Degree -> Content
-updateAll content firstName lastName degree =
+updateAll : String -> String -> Degree -> Content -> Content
+updateAll firstName lastName degree content =
     updateFirstName firstName content
         |> updateLastName lastName
         |> updateDegree degree
