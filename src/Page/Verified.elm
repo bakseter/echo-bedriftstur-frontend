@@ -128,7 +128,7 @@ update msg model =
         Tick time ->
             ({ model | currentTime = time }, Cmd.none)
         UserStatusChanged json ->
-            let session = Session.decodeSession json
+            let session = Session.decode json
             in
                 if Session.isSignedIn session then
                     ({ model | session = session }, getUserInfo (Session.encode session))
@@ -162,7 +162,7 @@ update msg model =
             in (model, Cmd.batch [ updateUserInfo message, Browser.Navigation.pushUrl model.key redirectToHome ])
         UpdateUserInfoSucceeded _ ->
             let subCont = model.submittedContent
-                newSubCont = Content.updateAll subCont model.user.firstName model.user.lastName model.user.degree
+                newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree subCont
             in ({ model | submittedContent = newSubCont }, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         UpdateUserInfoError json ->
             (model, Cmd.none)
