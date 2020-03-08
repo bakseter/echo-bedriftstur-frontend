@@ -13,12 +13,6 @@ type alias Content =
     , degree : Degree
     }
 
-empty =
-    { firstName = ""
-    , lastName = ""
-    , degree = None
-    }
-
 updateAll : String -> String -> Degree -> Content -> Content
 updateAll firstName lastName degree content =
     updateFirstName firstName content

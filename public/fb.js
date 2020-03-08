@@ -55,7 +55,7 @@ const getUserInfo = (col, doc, data) => {
                     console.log(error.code);
                     console.log(error);
                 }
-                getUserInfoError.send(error);
+                getUserInfoError.send(error.code);
             });
             app.ports.getUserInfoSucceeded.send(emailOnly);
             if (debug) {
@@ -68,7 +68,7 @@ const getUserInfo = (col, doc, data) => {
             console.log(error.code);
             console.log(error);
         }
-        app.ports.getUserInfoError.send(error);
+        app.ports.getUserInfoError.send(error.code);
     });
 };
 
@@ -83,7 +83,7 @@ const createTicket = (col, doc, data) => {
             console.log(error.code);
             console.log(error);
         }
-        app.ports.createTicketError.send(error);
+        app.ports.createTicketError.send(error.code);
     });
 };
 

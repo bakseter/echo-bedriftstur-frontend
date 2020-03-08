@@ -8,6 +8,8 @@ import Json.Decode
 import Time
 import Countdown
 
+import Error exposing (..)
+
 launch : Int
 launch =
 --  1584442800000
@@ -19,13 +21,6 @@ type Msg
     | SendSignInLink
     | SendSignInLinkSucceeded Json.Encode.Value
     | SendSignInLinkError Json.Encode.Value
-
-type Error
-    = NoError
-    | InvalidEmail
-    | UnathorizedContinueUri
-    | InvalidContinueUri
-    | ArgumentError
 
 type SubPage
     = Countdown
@@ -78,8 +73,7 @@ update msg model =
         SendSignInLinkSucceeded _ ->
             ({ model | currentSubPage = LinkSent }, Cmd.none)
         SendSignInLinkError json ->
-            let error = errorFromCode <| getErrorCode <| Json.Encode.encode 0 json
-            in ({ model | error = error }, Cmd.none)
+            ({ model | error = (errorFromJson json) }, Cmd.none)
 
 view : Model -> Html Msg
 view model =
@@ -114,7 +108,7 @@ showPage model =
                     [ input 
                         [ if isEmailValid model.email then
                             id "email-valid"
-                          else if model.error == InvalidEmail then
+                          else if model.error /= NoError then
                             id "email-invalid"
                           else
                             id "email"
@@ -132,7 +126,7 @@ showPage model =
                             disabled True
                         ] []
                     ]
-                , h3 [] [text (userMsgFromError model.error) ]
+                , h3 [] [ text (Error.toString model.error) ]
                 ]
         LinkSent ->
             div [ id "logg-inn-content" ]
@@ -146,50 +140,6 @@ showPage model =
 isEmailValid : String -> Bool
 isEmailValid str =
     (String.right (String.length "@student.uib.no")) str == "@student.uib.no"
-
-getErrorCode : String -> String
-getErrorCode json =
-    case Json.Decode.decodeString Json.Decode.string json of
-        Ok code ->
-            code
-        Err _ ->
-            ""
-
-errorList =
-    [   ("auth/invalid-email"
-        , InvalidEmail
-        , "Mailen du har skrevet inn er ikke gyldig. Prøv igjen."
-        )
-    ,   ("auth/unauthorized-continue-uri"
-        , UnathorizedContinueUri
-        , "Det har skjedd en feil. Vennligst prøv igjen."
-        )
-    ,   ("auth/invalid-continue-uri"
-        , InvalidContinueUri
-        , "Det har skjedd en feil. Vennligst prøv igjen."
-        )
-    ,   ("auth/argumenterror"
-        , ArgumentError
-        , "Det har skjedd en feil. Vennligst prøv igjen."
-        )
-    ]
-
-
-errorFromCode : String -> Error
-errorFromCode str =
-    case List.filter (\(x, y, z) -> x == str) errorList of
-        [ (code, err, msg) ] ->
-            err
-        _ ->
-            NoError
-
-userMsgFromError : Error -> String
-userMsgFromError error =
-    case List.filter (\(x, y, z) -> y == error) errorList of
-        [ (code, err, msg) ] ->
-            msg
-        _ ->
-            ""
 
 countdown : Model -> SubPage
 countdown model =

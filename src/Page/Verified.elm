@@ -22,6 +22,7 @@ import Degree exposing (..)
 import Content exposing (..)
 import Session exposing (..)
 import Ticket exposing (..)
+import Error exposing (..)
 
 release : Int
 release =
@@ -90,6 +91,7 @@ type alias Model =
     , checkedRules : List (Bool)
     , currentSubPage : SubPage
     , session : Session
+    , error : Error
     }
 
 init : Url.Url -> Browser.Navigation.Key -> Model
@@ -98,11 +100,12 @@ init url key =
     , key = key
     , user = User.empty
     , currentTime = Time.millisToPosix 0
-    , inputContent = Content.empty
-    , submittedContent = Content.empty
+    , inputContent = Content "" "" None
+    , submittedContent = Content "" "" None
     , checkedRules = [ False, False, False ]
     , currentSubPage = Verified
     , session = Session.empty
+    , error = NoError
     }
 
 subscriptions : Model -> Sub Msg
@@ -131,13 +134,13 @@ update msg model =
             let session = Session.decode json
             in
                 if Session.isSignedIn session then
-                    ({ model | session = session }, getUserInfo (Session.encode session))
+                    ({ model | session = session, currentSubPage = MinSide }, getUserInfo (Session.encode session))
                 else
                     (model, Cmd.none)
         SignInSucceeded userJson ->
             ({ model | currentSubPage = MinSide }, Cmd.none)
         SignInError json ->
-            (model, Cmd.none)
+            ({ model | error = (errorFromJson json) }, Cmd.none)
         GetUserInfoSucceeded json ->
             let content = User.decode json
                 user = { email = content.email
@@ -152,7 +155,7 @@ update msg model =
             in
                 ({ model | user = user, submittedContent = submittedContent, inputContent = submittedContent }, Cmd.none)
         GetUserInfoError json ->
-            (model, Cmd.none)
+            ({ model | error = (errorFromJson json) }, Cmd.none)
         UpdateUserInfo session content ->
             let newContent = { firstName = model.inputContent.firstName
                              , lastName = model.inputContent.lastName
@@ -165,20 +168,20 @@ update msg model =
                 newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree subCont
             in ({ model | submittedContent = newSubCont }, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         UpdateUserInfoError json ->
-            (model, Cmd.none)
+            ({ model | error = (errorFromJson json) }, Cmd.none)
         CreateTicket ->
             (model, createTicket (Ticket.encode model.session))
         CreateTicketSucceeded json ->
             (model, Cmd.none)
         CreateTicketError json ->
-            (model, Cmd.none)
+            ({ model | error = (errorFromJson json) }, Cmd.none)
         AttemptSignOut ->
             (model, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         SignOutSucceeded _ ->
             ((init model.url model.key)
              , Browser.Navigation.load redirectToHome )
         SignOutError json ->
-            (model, Cmd.none)
+            ({ model | error = (errorFromJson json) }, Cmd.none)
         TypedFirstName str ->
             let input = Content.updateFirstName str model.inputContent
             in ({ model | inputContent = input }, Cmd.none)
@@ -272,15 +275,16 @@ view model =
 showPage : Model -> Html Msg
 showPage model =
     let (countdown, isRelease) = Countdown.countdownFromTo (Time.posixToMillis model.currentTime) release
+        msgToUser = Error.toString model.error
     in
         case model.currentSubPage of
             Verified ->
                 div [ class "verified" ]
-                    [ p [] 
-                        [ if isLinkValid model.url then
+                    [ div [ class "text" ] 
+                        [ if model.error == NoError then
                             text "Du har nå blitt logget inn. Vennligst vent mens du blir videresendt..."
                          else
-                            text "Innlogginslinken er ikke gyldig"
+                             text msgToUser
                         ]
                     ]
             MinSide ->
@@ -293,6 +297,7 @@ showPage model =
                             , br [] []
                             , div [ style "font-weight" "bold"] [ text "Det er IKKE nødvendig å refreshe siden for å få påmeldingen til å vises." ]
                             ]
+                        , h3 [ class "err-msg" ] [ text msgToUser ]
                         , input [ class "min-side-item"
                                 , id "email", type_ "text"
                                 , disabled True
