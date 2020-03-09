@@ -1,4 +1,4 @@
-port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg, countdown)
+port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg)
 
 import Html exposing (Html, div, text, h1, h3, img, form, input, br, p, span)
 import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled)
@@ -8,7 +8,7 @@ import Json.Decode
 import Time
 import Countdown
 
-import Error exposing (..)
+import Error exposing (Error(..))
 
 launch : Int
 launch =
@@ -73,7 +73,7 @@ update msg model =
         SendSignInLinkSucceeded _ ->
             ({ model | currentSubPage = LinkSent }, Cmd.none)
         SendSignInLinkError json ->
-            ({ model | error = (errorFromJson json) }, Cmd.none)
+            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
 
 view : Model -> Html Msg
 view model =

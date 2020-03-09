@@ -1,25 +1,18 @@
-module User exposing (..)
+module User exposing (User, decode)
 
 import Json.Encode as Encode
 import Json.Decode as Decode
 
-import Session exposing (..)
-import Degree exposing (..)
-import Email exposing (..)
-import Uid exposing (..)
+import Session exposing (Session)
+import Degree exposing (Degree(..))
+import Email exposing (Email(..))
+import Uid exposing (Uid(..))
 
 type alias User =
     { email : Email
     , firstName : String
     , lastName : String
     , degree : Degree
-    }
-
-empty =
-    { email = Email ""
-    , firstName = ""
-    , lastName = ""
-    , degree = None
     }
 
 -- Uses the contentDecoder function to turn

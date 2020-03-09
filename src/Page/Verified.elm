@@ -1,7 +1,7 @@
 port module Page.Verified exposing (..)
 
-import Html exposing (Html, div, span, br, text, p, input, button, select, option, h1, h2, h3, label)
-import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, for)
+import Html exposing (Html, div, span, br, text, p, input, select, option, h1, h2, h3 )
+import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style)
 import Html.Events
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -15,18 +15,19 @@ import Svg.Events
 import Time
 
 import Countdown
-import User exposing (..)
-import Uid exposing (..)
-import Email exposing (..)
-import Degree exposing (..)
-import Content exposing (..)
-import Session exposing (..)
-import Ticket exposing (..)
-import Error exposing (..)
+import User exposing (User)
+import Uid exposing (Uid(..))
+import Email exposing (Email(..))
+import Degree exposing (Degree(..), Degrees(..))
+import Content exposing (Content)
+import Session exposing (Session)
+import Ticket
+import Error exposing (Error(..))
 
 release : Int
 release =
-    1585908000000
+--  1585908000000
+    0
 
 redirectToHome : String
 redirectToHome =
@@ -98,13 +99,13 @@ init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
     { url = url
     , key = key
-    , user = User.empty
+    , user = User (Email "") "" "" None
     , currentTime = Time.millisToPosix 0
     , inputContent = Content "" "" None
     , submittedContent = Content "" "" None
     , checkedRules = [ False, False, False ]
     , currentSubPage = Verified
-    , session = Session.empty
+    , session = Session (Uid "") (Email "")
     , error = NoError
     }
 
@@ -140,27 +141,17 @@ update msg model =
         SignInSucceeded userJson ->
             ({ model | currentSubPage = MinSide }, Cmd.none)
         SignInError json ->
-            ({ model | error = (errorFromJson json) }, Cmd.none)
+            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         GetUserInfoSucceeded json ->
             let content = User.decode json
-                user = { email = content.email
-                       , firstName = content.firstName
-                       , lastName = content.lastName
-                       , degree = content.degree
-                       }
-                submittedContent = { firstName = content.firstName
-                                   , lastName = content.lastName
-                                   , degree = content.degree
-                                   }
+                user = User content.email content.firstName content.lastName content.degree
+                submittedContent = Content content.firstName content.lastName content.degree
             in
                 ({ model | user = user, submittedContent = submittedContent, inputContent = submittedContent }, Cmd.none)
         GetUserInfoError json ->
-            ({ model | error = (errorFromJson json) }, Cmd.none)
+            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         UpdateUserInfo session content ->
-            let newContent = { firstName = model.inputContent.firstName
-                             , lastName = model.inputContent.lastName
-                             , degree = model.inputContent.degree
-                             } 
+            let newContent = Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree
                 message = Content.encode session newContent
             in (model, Cmd.batch [ updateUserInfo message, Browser.Navigation.pushUrl model.key redirectToHome ])
         UpdateUserInfoSucceeded _ ->
@@ -168,20 +159,20 @@ update msg model =
                 newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree subCont
             in ({ model | submittedContent = newSubCont }, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         UpdateUserInfoError json ->
-            ({ model | error = (errorFromJson json) }, Cmd.none)
+            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         CreateTicket ->
             (model, createTicket (Ticket.encode model.session))
         CreateTicketSucceeded json ->
             (model, Cmd.none)
         CreateTicketError json ->
-            ({ model | error = (errorFromJson json) }, Cmd.none)
+            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         AttemptSignOut ->
             (model, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         SignOutSucceeded _ ->
             ((init model.url model.key)
              , Browser.Navigation.load redirectToHome )
         SignOutError json ->
-            ({ model | error = (errorFromJson json) }, Cmd.none)
+            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         TypedFirstName str ->
             let input = Content.updateFirstName str model.inputContent
             in ({ model | inputContent = input }, Cmd.none)
@@ -362,7 +353,7 @@ showPage model =
                                 ] []
                             , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
                             ]
-                        , if True then
+                        , if isRelease then
                             input [ class "min-side-item", type_ "button", value "Meld meg på!", Html.Events.onClick CreateTicket ] []
                          else
                              div [ class "min-side-item", id "countdown" ]

@@ -1,4 +1,4 @@
-module Degree exposing (..)
+module Degree exposing (Degree(..), Degrees(..), toString, fromString, orNullDecoder)
 
 import Json.Decode as Decode
 

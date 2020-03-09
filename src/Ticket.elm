@@ -1,8 +1,8 @@
-module Ticket exposing (..)
+module Ticket exposing (encode)
 
 import Json.Encode as Encode
 
-import Session exposing (..)
+import Session exposing (Session)
 import Uid exposing (toString)
 import Email exposing (toString)
 
