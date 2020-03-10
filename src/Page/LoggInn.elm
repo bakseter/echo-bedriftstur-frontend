@@ -216,4 +216,4 @@ countdown =
 
 release : Int
 release =
-    1584442800000
+    1584961200000
