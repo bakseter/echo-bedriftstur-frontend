@@ -448,6 +448,19 @@ input[type=text]:focus {
     font-weight: bold;
 }
 
+#has-ticket-no {
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: 3px solid red;
+    border-radius: 0.5rem;
+}
+#has-ticket-yes {
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: 3px solid green;
+    border-radius: 0.5rem;
+}
+
 .checkbox-grid {
     display: grid;
     grid-template-columns: 20% 80%;

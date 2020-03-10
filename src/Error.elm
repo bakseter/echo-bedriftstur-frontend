@@ -80,6 +80,6 @@ errorMsgList =
             , ("unavailable", "Tjenesten er ikke tilgjengelig akkurat nå. Vennligst prøv igjen senere")
             , ("data-loss", stdMsg)
             , ("unauthenticated", "Du har ikke tilgang til å utføre denne handlingen")
-            , ("json-parse-error", stdMsg)
+            , ("json-parse-error", "Json parse error")
             , ("not-signed-in", "Du er ikke logget inn. Vennligst logg inn og prøv på nytt")
             ]

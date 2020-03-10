@@ -13,6 +13,7 @@ import Svg
 import Svg.Attributes exposing (x, y, rx, ry)
 import Svg.Events
 import Time
+import Debug
 
 import Countdown
 import User exposing (User)
@@ -21,13 +22,14 @@ import Email exposing (Email(..))
 import Degree exposing (Degree(..), Degrees(..))
 import Content exposing (Content)
 import Session exposing (Session)
-import Ticket exposing (Ticket(..))
+import Ticket exposing (Ticket(..), toBool)
 import Error exposing (Error(..))
 
 release : Int
 release =
---  1585908000000
-    0
+    1585908000000
+--  0
+--  1583842380000
 
 redirectToHome : String
 redirectToHome =
@@ -131,7 +133,7 @@ update msg model =
             case Session.decode json of
                 Just session ->
                     if Session.isSignedIn session then
-                        ({ model | session = session, currentSubPage = MinSide }, getUserInfo (Session.encode session))
+                        ({ model | session = session, currentSubPage = MinSide, error = NoError }, getUserInfo (Session.encode session))
                     else
                         (model, Cmd.none)
                 Nothing ->
@@ -148,7 +150,10 @@ update msg model =
             case User.decode json of
                 Just content ->
                     let submittedContent = Content content.firstName content.lastName content.degree
-                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.hasTicket }, Cmd.none)
+                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.hasTicket
+                        , submittedContent = submittedContent
+                        , inputContent = submittedContent }
+                        , Cmd.none)
                 Nothing ->
                     update (GotError (Error.encode "json-parse-error")) model
         UpdateUserInfo session content ->
@@ -257,13 +262,15 @@ getCheckboxClass id model =
 view : Model -> Html Msg
 view model =
     div []
-        [ showPage model ]
+        [ showPage model
+        , text (Debug.toString model)
+        ]
 
 -- Shows a subpage
 showPage : Model -> Html Msg
 showPage model =
-    let (countdown, isRelease) = Countdown.countdownFromTo (Time.posixToMillis model.currentTime) release
-        msgToUser = Error.toString model.error
+    let msgToUser = Error.toString model.error
+        isRelease = (Time.posixToMillis model.currentTime) >= release
     in
         case model.currentSubPage of
             Verified ->
@@ -277,83 +284,103 @@ showPage model =
                     ]
             MinSide ->
                 div [ class "min-side" ]
-                    [ div [ id "min-side-content" ]
-                        [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering" ]
-                        , div [ class "min-side-item text" ]
-                            [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
-                            , div [] [ text "Påmeldingen vil dukke opp her 3. april kl. 12:00, gitt at du er logget inn og har registrert deg." ]
-                            , br [] []
-                            , div [ style "font-weight" "bold"] [ text "Det er IKKE nødvendig å refreshe siden for å få påmeldingen til å vises." ]
-                            ]
-                        , div [ id "err-msg" ] [ text msgToUser ]
-                        , input [ class "min-side-item"
-                                , id "email", type_ "text"
-                                , disabled True
-                                , value (Email.toString model.user.email) 
-                                ] []
-                        , input [ class "min-side-item"
-                                , id "firstName"
-                                , type_ "text"
-                                , placeholder "Fornavn"
-                                , value (model.inputContent.firstName) 
-                                , Html.Events.onInput TypedFirstName
-                                ] []
-                        , br [] []
-                        , input [ class "min-side-item"
-                                , id "lastName"
-                                , type_ "text"
-                                , placeholder "Etternavn"
-                                , value (model.inputContent.lastName)
-                                , Html.Events.onInput TypedLastName
-                                ] []
-                        , br [] []
-                        , select [ class "min-side-item", id "degree", value (Degree.toString True model.inputContent.degree), Html.Events.onInput TypedDegree ]
-                            [ option [ value "" ] [ text (Degree.toString False None) ]
-                            , option [ value "DTEK" ] [ text (Degree.toString False (Valid DTEK)) ]
-                            , option [ value "DVIT" ] [ text (Degree.toString False (Valid DVIT)) ]
-                            , option [ value "DSIK" ] [ text (Degree.toString False (Valid DSIK)) ]
-                            , option [ value "BINF" ] [ text (Degree.toString False (Valid BINF)) ]
-                            , option [ value "IMØ" ] [ text (Degree.toString False (Valid IMØ)) ]
-                            , option [ value "IKT" ] [ text (Degree.toString False (Valid IKT)) ]
-                            , option [ value "KOGNI" ] [ text (Degree.toString False (Valid KOGNI)) ]
-                            , option [ value "INF" ] [ text (Degree.toString False (Valid INF)) ]
-                            , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
-                            ]
-                        , div [ class "min-side-item checkbox-grid" ]
-                            [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 1 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
-                                [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
-                            , div [ class "text" ]
-                                [ text "Jeg bekrefter at ..." ]
-                            ]
-                        , div [ class "min-side-item checkbox-grid" ]
-                            [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 2 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
-                                [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
-                            , div [ class "text" ]
-                                [ text "Jeg bekrefter også at ..." ]
-                            ]
-                        , div [ class "min-side-item checkbox-grid" ]
-                            [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 3 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
-                                [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
-                            , div [ class "text" ]
-                                [ text "Jeg bekrefter i tillegg at ..." ]
-                            ]
-                        , div [ class "min-side-item min-side-buttons" ]
-                            [ input
-                                [ id "save-btn"
-                                , type_ "button"
-                                , value "Lagre endringer og logg ut"
-                                , Html.Events.onClick
-                                    (UpdateUserInfo model.session
-                                        { firstName = model.inputContent.firstName, lastName = model.inputContent.lastName, degree = model.inputContent.degree }
-                                    )
-                                , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && Session.isSignedIn model.session))
-                                ] []
-                            , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
-                            ]
-                        , if isRelease then
-                            input [ class "min-side-item", type_ "button", value "Meld meg på!", Html.Events.onClick CreateTicket ] []
-                         else
-                             div [ class "min-side-item", id "countdown" ]
-                                []
-                        ]
+                    [ if isRelease then
+                        påmelding model
+                      else
+                        registrering model
                     ]
+
+registrering : Model -> Html Msg
+registrering model =
+    let msgToUser = Error.toString model.error
+    in
+        div [ id "min-side-content" ]
+            [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering" ]
+            , div [ class "min-side-item text" ]
+                [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
+                , div [] [ text "Påmeldingen vil dukke opp her 3. april kl. 12:00, gitt at du er logget inn og har registrert deg." ]
+                , br [] []
+                , div [ style "font-weight" "bold"] [ text "Det er IKKE nødvendig å refreshe siden for å få påmeldingen til å vises." ]
+                ]
+            , div [ id "err-msg" ] [ text msgToUser ]
+            , if (Ticket.toBool model.user.hasTicket) then
+                div [ id "has-ticket-yes" ]
+                    [ text "Du har fått plass" ]
+              else
+                div [ id "has-ticket-no" ]
+                    [ text "Du har ikke fått plass enda." ]   
+            , input [ class "min-side-item"
+                    , id "email", type_ "text"
+                    , disabled True
+                    , value (Email.toString model.user.email) 
+                    ] []
+            , input [ class "min-side-item"
+                    , id "firstName"
+                    , type_ "text"
+                    , placeholder "Fornavn"
+                    , value (model.inputContent.firstName) 
+                    , Html.Events.onInput TypedFirstName
+                    ] []
+            , br [] []
+            , input [ class "min-side-item"
+                    , id "lastName"
+                    , type_ "text"
+                    , placeholder "Etternavn"
+                    , value (model.inputContent.lastName)
+                    , Html.Events.onInput TypedLastName
+                    ] []
+            , br [] []
+            , select [ class "min-side-item", id "degree", value (Degree.toString True model.inputContent.degree), Html.Events.onInput TypedDegree ]
+                [ option [ value "" ] [ text (Degree.toString False None) ]
+                , option [ value "DTEK" ] [ text (Degree.toString False (Valid DTEK)) ]
+                , option [ value "DVIT" ] [ text (Degree.toString False (Valid DVIT)) ]
+                , option [ value "DSIK" ] [ text (Degree.toString False (Valid DSIK)) ]
+                , option [ value "BINF" ] [ text (Degree.toString False (Valid BINF)) ]
+                , option [ value "IMØ" ] [ text (Degree.toString False (Valid IMØ)) ]
+                , option [ value "IKT" ] [ text (Degree.toString False (Valid IKT)) ]
+                , option [ value "KOGNI" ] [ text (Degree.toString False (Valid KOGNI)) ]
+                , option [ value "INF" ] [ text (Degree.toString False (Valid INF)) ]
+                , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
+                ]
+            , div [ class "min-side-item checkbox-grid" ]
+                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 1 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
+                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                , div [ class "text" ]
+                    [ text "Jeg bekrefter at ..." ]
+                ]
+            , div [ class "min-side-item checkbox-grid" ]
+                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 2 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
+                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                , div [ class "text" ]
+                    [ text "Jeg bekrefter også at ..." ]
+                ]
+            , div [ class "min-side-item checkbox-grid" ]
+                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 3 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
+                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                , div [ class "text" ]
+                    [ text "Jeg bekrefter i tillegg at ..." ]
+                ]
+            , div [ class "min-side-item min-side-buttons" ]
+                [ input
+                    [ id "save-btn"
+                    , type_ "button"
+                    , value "Lagre endringer og logg ut"
+                    , Html.Events.onClick
+                        (UpdateUserInfo model.session
+                            { firstName = model.inputContent.firstName, lastName = model.inputContent.lastName, degree = model.inputContent.degree }
+                        )
+                    , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && Session.isSignedIn model.session))
+                    ] []
+                , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
+                ]
+            ]
+
+påmelding : Model -> Html Msg
+påmelding model =
+    let msgToUser = Error.toString model.error
+    in
+        div [ id "min-side-content" ]
+            [ h1 [ id "min-side-header" ] [ text "Påmelding" ]
+            , input [ class "min-side-item", id "meld-paa-btn", type_ "button", value "Meld meg på!", Html.Events.onClick CreateTicket ] []
+            , div [ id "err-msg" ] [ text msgToUser ]
+            ]

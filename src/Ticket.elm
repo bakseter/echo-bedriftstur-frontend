@@ -1,4 +1,4 @@
-module Ticket exposing (Ticket(..), orNullDecoder, encode)
+module Ticket exposing (Ticket(..), orNullDecoder, encode, toBool)
 
 import Session exposing (Session)
 import Uid exposing (toString)
@@ -9,6 +9,9 @@ import Json.Decode as Decode
 
 type Ticket =
     Ticket Bool
+
+toBool : Ticket -> Bool
+toBool (Ticket bool) = bool
 
 encode : Session -> Encode.Value
 encode session =

@@ -47,7 +47,7 @@ const getUserInfo = (col, doc, data) => {
                 , degree: null
                 , hasTicket: null
                 };
-            db.collection(col).doc(doc).set()
+            db.collection(col).doc(doc).set(emailOnly)
             .then(newDoc => {
                 app.ports.getUserInfoSucceeded.send(emailOnly);
             })
