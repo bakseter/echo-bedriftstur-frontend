@@ -1,4 +1,4 @@
-port module Page.Verified exposing (..)
+port module Page.Verified exposing (init, subscriptions, view, update, Model, Msg, route)
 
 import Html exposing (Html, div, span, br, text, p, input, select, option, h1, h2, h3 )
 import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style)
@@ -93,6 +93,10 @@ type alias Model =
     , error : Error
     }
 
+route : String
+route =
+    "verified"
+
 init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
     { url = url
@@ -145,7 +149,7 @@ update msg model =
                             Err _ ->
                                 update (GotError (Error.encode "json-parse-error")) model
         SignInSucceeded userJson ->
-            ({ model | currentSubPage = MinSide }, Cmd.none)
+            ({ model | currentSubPage = MinSide }, Browser.Navigation.pushUrl model.key (redirectToHome ++ "/" ++ route))
         GetUserInfoSucceeded json ->
             case User.decode json of
                 Just content ->

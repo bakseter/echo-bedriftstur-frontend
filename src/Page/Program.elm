@@ -1,4 +1,4 @@
-module Page.Program exposing (init, subscriptions, update, view, Model, Msg)
+module Page.Program exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, h1, h3, text, a, br)
 import Html.Attributes exposing (class, id)
@@ -15,6 +15,10 @@ type Msg
 
 type alias Model = 
     Html Msg
+
+route : String
+route =
+    "program"
 
 init : Model
 init =

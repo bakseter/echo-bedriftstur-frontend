@@ -1,4 +1,4 @@
-module Page.Bedrifter exposing (init, subscriptions, update, view, Model, Msg)
+module Page.Bedrifter exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, span, text, a, img, h1, h2, p)
 import Html.Attributes exposing (class, id, target, rel, href, src, alt)
@@ -20,6 +20,10 @@ type alias Model =
     , dnbSlidIn : Bool
     , bekkSlidIn : Bool
     }
+
+route : String
+route =
+    "bedrifter"
 
 init : Model
 init =

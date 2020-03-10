@@ -1,4 +1,4 @@
-module Page.Om exposing (init, subscriptions, update, view, Model, Msg)
+module Page.Om exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, text, img, i, a)
 import Html.Attributes exposing (class, id, src, alt, href, target, rel)
@@ -18,6 +18,10 @@ type alias Model =
     , showMailAndreas : Bool
     , showMailTuva : Bool
     }
+
+route : String
+route =
+    "om"
 
 init : Model
 init =

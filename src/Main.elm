@@ -12,7 +12,7 @@ import Svg.Attributes exposing (x1, x2, y1, y2)
 import Json.Encode as Encode
 import Json.Decode as Decode
 
-import Page exposing (..)
+import Page exposing (Page(..))
 import Page.Hjem as Hjem
 import Page.LoggInn as LoggInn
 import Page.Bedrifter as Bedrifter

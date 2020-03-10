@@ -1,4 +1,4 @@
-port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg)
+port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, text, h1, h3, img, form, input, br, p, span)
 import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled)
@@ -14,6 +14,10 @@ launch : Int
 launch =
 --  1584442800000
     0
+
+route : String
+route =
+    "logg-inn"
 
 type Msg
     = Tick Time.Posix
