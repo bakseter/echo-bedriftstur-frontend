@@ -40,4 +40,5 @@ encode session content =
         , ("firstName", Encode.string content.firstName)
         , ("lastName", Encode.string content.lastName)
         , ("degree", Encode.string (Degree.toString False content.degree))
+        , ("hasTicket", Encode.null)
         ]

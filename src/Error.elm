@@ -81,4 +81,5 @@ errorMsgList =
             , ("data-loss", stdMsg)
             , ("unauthenticated", "Du har ikke tilgang til å utføre denne handlingen")
             , ("json-parse-error", stdMsg)
+            , ("not-signed-in", "Du er ikke logget inn. Vennligst logg inn og prøv på nytt")
             ]

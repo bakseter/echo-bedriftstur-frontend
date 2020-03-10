@@ -22,16 +22,6 @@ import Page.Verified as Verified
 import User
 import Session
 
-main =
-    Browser.application 
-        { init = init
-        , subscriptions = subscriptions
-        , update = update
-        , view = view
-        , onUrlChange = UrlChanged
-        , onUrlRequest = LinkClicked
-        }
-
 type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
@@ -129,85 +119,104 @@ update msg model =
             else
                 ({ model | showNavbar = False }, Cmd.none)
 
+header : Model -> List (Html Msg)
+header model =
+    [ div [ class "site" ] 
+        [ div [ class "menu" ]
+            [ span [ id "hjem" ] 
+                [ a [ id "logo-link", href "/", Html.Events.onClick (ShowNavbar True) ] 
+                    [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
+                ]
+            , Svg.svg [ id "navbtn", Html.Events.onClick (ShowNavbar False), Svg.Attributes.width "50", Svg.Attributes.height "40" ]
+                [ Svg.line 
+                    [ Svg.Attributes.class "navbtn-line"
+                    , if model.showNavbar then
+                        Svg.Attributes.id "first-line-anim"
+                      else
+                        Svg.Attributes.id "first-line"
+                    , x1 "0"
+                    , x2 "50"
+                    , y1 "5"
+                    , y2 "5"
+                    ] []
+                , Svg.line
+                    [ Svg.Attributes.class "navbtn-line"
+                    , if model.showNavbar then
+                        Svg.Attributes.id "middle-line-anim"
+                      else
+                        Svg.Attributes.id "middle-line"
+                    , x1 "0"
+                    , x2 "50"
+                    , y1 "20"
+                    , y2 "20"
+                    ] []
+                , Svg.line
+                    [ Svg.Attributes.class "navbtn-line"
+                    , if model.showNavbar then
+                        Svg.Attributes.id "second-line-anim"
+                      else
+                        Svg.Attributes.id "second-line"
+                    , x1 "0"
+                    , x2 "50"
+                    , y1 "35"
+                    , y2 "35"
+                    ] []
+                ]
+            , if Session.isSignedIn model.modelVerified.session then 
+                span [ class "menu-item", id "user-status" ] [ a [ href "/verified" ] [ text "Min profil" ] ]
+              else
+                span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
+            , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
+            , span [ class "menu-item", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
+            , span [ class "menu-item", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
+            ]
+            , span [ id "navbar" ] [ getNavbar model ]
+        ]
+    ]
+
 view : Model -> Browser.Document Msg
 view model =
-    { title = "echo bedriftstur"
-    , body = 
-        [ div [ class "site" ] 
-            [ div [ class "menu" ]
-                [ span [ id "hjem" ] 
-                    [ a [ id "logo-link", href "/", Html.Events.onClick (ShowNavbar True) ] 
-                        [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
-                    ]
-                , Svg.svg [ id "navbtn", Html.Events.onClick (ShowNavbar False), Svg.Attributes.width "50", Svg.Attributes.height "40" ]
-                    [ Svg.line 
-                        [ Svg.Attributes.class "navbtn-line"
-                        , if model.showNavbar then
-                            Svg.Attributes.id "first-line-anim"
-                          else
-                            Svg.Attributes.id "first-line"
-                        , x1 "0"
-                        , x2 "50"
-                        , y1 "5"
-                        , y2 "5"
-                        ] []
-                    , Svg.line
-                        [ Svg.Attributes.class "navbtn-line"
-                        , if model.showNavbar then
-                            Svg.Attributes.id "middle-line-anim"
-                          else
-                            Svg.Attributes.id "middle-line"
-                        , x1 "0"
-                        , x2 "50"
-                        , y1 "20"
-                        , y2 "20"
-                        ] []
-                    , Svg.line
-                        [ Svg.Attributes.class "navbtn-line"
-                        , if model.showNavbar then
-                            Svg.Attributes.id "second-line-anim"
-                          else
-                            Svg.Attributes.id "second-line"
-                        , x1 "0"
-                        , x2 "50"
-                        , y1 "35"
-                        , y2 "35"
-                        ] []
-                    ]
-                , if Session.isSignedIn model.modelVerified.session then 
-                    span [ class "menu-item", id "user-status" ] [ a [ href "/verified" ] [ text "Min profil" ] ]
-                  else
-                    span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
-                , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
-                , span [ class "menu-item", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
-                , span [ class "menu-item", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
-                ]
-                , span [ id "navbar" ] [ getNavbar model ]
-            ]
-        ] ++
-        case model.route of
-            Hjem ->
-                [ showPage GotHjemMsg Hjem.view model.modelHjem ]
-            LoggInn ->
-                [ showPage GotLoggInnMsg LoggInn.view model.modelLoggInn ]
-            Verified ->
-                [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
-            Bedrifter ->
-                [ showPage GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
-            Program ->
-                [ showPage GotProgramMsg Program.view model.modelProgram ]
-            Om ->
-                [ showPage GotOmMsg Om.view model.modelOm ]
-            NotFound  ->
+    showPage model
+
+showPage : Model -> Browser.Document Msg
+showPage model =
+    case model.route of
+        Hjem ->
+            { title = "echo bedriftstur"
+            , body = (header model) ++ [ translateHtmlMsg GotHjemMsg Hjem.view model.modelHjem ]
+            }
+        LoggInn ->
+            { title = "Logg inn"
+            , body = (header model) ++ [ translateHtmlMsg GotLoggInnMsg LoggInn.view model.modelLoggInn ]
+            }
+        Verified ->
+            { title = "Min side"
+            , body = (header model) ++ [ translateHtmlMsg GotVerifiedMsg Verified.view model.modelVerified ]
+            }
+        Program ->
+            { title = "Program"
+            , body = (header model) ++ [ translateHtmlMsg GotProgramMsg Program.view model.modelProgram ]
+            }
+        Bedrifter ->
+            { title = "Bedrifter"
+            , body = (header model) ++ [ translateHtmlMsg GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
+            }
+        Om ->
+            { title = "Om oss"
+            , body = (header model) ++ [ translateHtmlMsg GotOmMsg Om.view model.modelOm ]
+            }
+        NotFound ->
+            { title = "Fant ikke siden"
+            , body = (header model) ++
                 [ div [ class "not-found" ]
                     [ h1 [ id "not-found-header" ] [ text "404" ]
                     , h3 [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke" ]
                     ]
                 ]
-    }
+            }
 
-showPage : (a -> msg) -> (b -> Html.Html a) -> b -> Html.Html msg
-showPage msg viewFunc model =
+translateHtmlMsg : (a -> msg) -> (b -> Html.Html a) -> b -> Html.Html msg
+translateHtmlMsg msg viewFunc model =
     Html.map msg (viewFunc model)
 
 updateWithAndSendMsg : (b -> c -> (d, Cmd a)) -> b -> c -> (a -> msg) -> (d, Cmd msg)
@@ -229,3 +238,13 @@ getNavbar model =
             ]
     else
         span [] []
+
+main =
+    Browser.application 
+        { init = init
+        , subscriptions = subscriptions
+        , update = update
+        , view = view
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
+        }

@@ -2,6 +2,7 @@ module Page exposing (..)
 
 import Url
 import Url.Parser as Parser
+import Browser
 
 type Page
     = Hjem

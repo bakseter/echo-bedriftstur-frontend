@@ -36,10 +36,6 @@ decode json =
             Err _ ->
                 Nothing
 
--- Decoder that turns a JSON object into a Session record,
--- if the object is formatted correctly.
--- Fails if not all the fields required for
--- a User record are present in the JSON.
 sessionDecoder : Decode.Decoder Session
 sessionDecoder =
     Decode.map2 Session

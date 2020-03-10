@@ -432,7 +432,7 @@ input[type=text]:focus {
 
 #min-side-header {
     text-align: center;
-    padding-top: 3%;
+    padding-top: 1%;
 }
 
 .min-side-item {
@@ -440,6 +440,12 @@ input[type=text]:focus {
     margin: 1.5%;
     display: inline;
     overflow: hidden;
+}
+
+#err-msg {
+    color: red;
+    font-size: 1.2rem;
+    font-weight: bold;
 }
 
 .checkbox-grid {

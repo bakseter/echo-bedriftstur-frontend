@@ -45,6 +45,7 @@ const getUserInfo = (col, doc, data) => {
                 , firstName: null
                 , lastName: null
                 , degree: null
+                , hasTicket: null
                 };
             db.collection(col).doc(doc).set()
             .then(newDoc => {
@@ -112,9 +113,10 @@ firebase.auth().onAuthStateChanged(user => {
         signedIn = "signed out";
     }
     if (debug) {
-        console.log("user status changed to ", signedIn);
+        console.log("user status changed to", signedIn);
         console.log(user);
     }
+
     app.ports.userStatusChanged.send(user);
 });
 
@@ -169,6 +171,7 @@ app.ports.updateUserInfo.subscribe(data => {
                     , firstName: data.firstName
                     , lastName: data.lastName
                     , degree: data.degree
+                    , hasTicket: null
                     };
     updateUserInfo(data.collection, data.uid, content);
 });

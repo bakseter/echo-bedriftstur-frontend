@@ -73,7 +73,7 @@ update msg model =
         SendSignInLinkSucceeded _ ->
             ({ model | currentSubPage = LinkSent }, Cmd.none)
         SendSignInLinkError json ->
-            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
+            ({ model | error = (Error.fromJson json) }, Cmd.none)
 
 view : Model -> Html Msg
 view model =

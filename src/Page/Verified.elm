@@ -100,7 +100,7 @@ init url key =
     , inputContent = Content "" "" None
     , submittedContent = Content "" "" None
     , checkedRules = [ False, False, False ]
-    , currentSubPage = Verified
+    , currentSubPage = MinSide
     , session = Session (Uid "") (Email "")
     , error = NoError
     }
@@ -135,7 +135,13 @@ update msg model =
                     else
                         (model, Cmd.none)
                 Nothing ->
-                    update (GotError (Error.encode "json-parse-error")) model
+                    let maybeNull = Decode.decodeString (Decode.null "not-signed-in") (Encode.encode 0 json)
+                    in
+                        case maybeNull of
+                            Ok err ->
+                                update (GotError (Error.encode err)) model
+                            Err _ ->
+                                update (GotError (Error.encode "json-parse-error")) model
         SignInSucceeded userJson ->
             ({ model | currentSubPage = MinSide }, Cmd.none)
         GetUserInfoSucceeded json ->
@@ -279,7 +285,7 @@ showPage model =
                             , br [] []
                             , div [ style "font-weight" "bold"] [ text "Det er IKKE nødvendig å refreshe siden for å få påmeldingen til å vises." ]
                             ]
-                        , h3 [ class "err-msg" ] [ text msgToUser ]
+                        , div [ id "err-msg" ] [ text msgToUser ]
                         , input [ class "min-side-item"
                                 , id "email", type_ "text"
                                 , disabled True
