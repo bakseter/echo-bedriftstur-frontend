@@ -21,7 +21,7 @@ import Email exposing (Email(..))
 import Degree exposing (Degree(..), Degrees(..))
 import Content exposing (Content)
 import Session exposing (Session)
-import Ticket
+import Ticket exposing (Ticket(..))
 import Error exposing (Error(..))
 
 release : Int
@@ -59,24 +59,20 @@ type Msg
     = Tick Time.Posix
     | UserStatusChanged Decode.Value
     | SignInSucceeded Decode.Value
-    | SignInError Decode.Value
     | GetUserInfoSucceeded Decode.Value
-    | GetUserInfoError Decode.Value
     | UpdateUserInfo Session Content
     | UpdateUserInfoSucceeded Decode.Value
-    | UpdateUserInfoError Decode.Value
     | CreateTicket
     | CreateTicketSucceeded Decode.Value
-    | CreateTicketError Decode.Value
     | AttemptSignOut
     | SignOutSucceeded Encode.Value
-    | SignOutError Encode.Value
     | TypedFirstName String
     | TypedLastName String
     | TypedDegree String
     | CheckedBoxOne
     | CheckedBoxTwo
     | CheckedBoxThree
+    | GotError Encode.Value
 
 type SubPage
     = Verified
@@ -99,7 +95,7 @@ init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
     { url = url
     , key = key
-    , user = User (Email "") "" "" None
+    , user = User (Email "") "" "" None (Ticket False)
     , currentTime = Time.millisToPosix 0
     , inputContent = Content "" "" None
     , submittedContent = Content "" "" None
@@ -115,15 +111,15 @@ subscriptions model =
         [ Time.every 100 Tick
         , userStatusChanged UserStatusChanged
         , signInSucceeded SignInSucceeded
-        , signInError SignInError
+        , signInError GotError
         , createTicketSucceeded CreateTicketSucceeded
-        , createTicketError CreateTicketError
+        , createTicketError GotError
         , getUserInfoSucceeded GetUserInfoSucceeded
-        , getUserInfoError GetUserInfoError
+        , getUserInfoError GotError
         , updateUserInfoSucceeded UpdateUserInfoSucceeded
-        , updateUserInfoError UpdateUserInfoError
+        , updateUserInfoError GotError
         , signOutSucceeded SignOutSucceeded
-        , signOutError SignOutError
+        , signOutError GotError
         ]
 
 update : Msg  -> Model -> (Model, Cmd Msg)
@@ -132,24 +128,23 @@ update msg model =
         Tick time ->
             ({ model | currentTime = time }, Cmd.none)
         UserStatusChanged json ->
-            let session = Session.decode json
-            in
-                if Session.isSignedIn session then
-                    ({ model | session = session, currentSubPage = MinSide }, getUserInfo (Session.encode session))
-                else
-                    (model, Cmd.none)
+            case Session.decode json of
+                Just session ->
+                    if Session.isSignedIn session then
+                        ({ model | session = session, currentSubPage = MinSide }, getUserInfo (Session.encode session))
+                    else
+                        (model, Cmd.none)
+                Nothing ->
+                    update (GotError (Error.encode "json-parse-error")) model
         SignInSucceeded userJson ->
             ({ model | currentSubPage = MinSide }, Cmd.none)
-        SignInError json ->
-            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         GetUserInfoSucceeded json ->
-            let content = User.decode json
-                user = User content.email content.firstName content.lastName content.degree
-                submittedContent = Content content.firstName content.lastName content.degree
-            in
-                ({ model | user = user, submittedContent = submittedContent, inputContent = submittedContent }, Cmd.none)
-        GetUserInfoError json ->
-            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
+            case User.decode json of
+                Just content ->
+                    let submittedContent = Content content.firstName content.lastName content.degree
+                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.hasTicket }, Cmd.none)
+                Nothing ->
+                    update (GotError (Error.encode "json-parse-error")) model
         UpdateUserInfo session content ->
             let newContent = Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree
                 message = Content.encode session newContent
@@ -158,21 +153,15 @@ update msg model =
             let subCont = model.submittedContent
                 newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree subCont
             in ({ model | submittedContent = newSubCont }, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
-        UpdateUserInfoError json ->
-            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         CreateTicket ->
             (model, createTicket (Ticket.encode model.session))
         CreateTicketSucceeded json ->
             (model, Cmd.none)
-        CreateTicketError json ->
-            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         AttemptSignOut ->
             (model, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         SignOutSucceeded _ ->
             ((init model.url model.key)
              , Browser.Navigation.load redirectToHome )
-        SignOutError json ->
-            ({ model | error = (Error.errorFromJson json) }, Cmd.none)
         TypedFirstName str ->
             let input = Content.updateFirstName str model.inputContent
             in ({ model | inputContent = input }, Cmd.none)
@@ -200,6 +189,8 @@ update msg model =
                     ({ model | checkedRules = [ one, two, (not three) ] }, Cmd.none)
                 _ ->
                     (model, Cmd.none)
+        GotError json ->
+            ({ model | error = (Error.fromJson json) }, Cmd.none)
 
 -- Checks if the sign in link is valid
 isLinkValid : Url.Url -> Bool

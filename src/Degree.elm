@@ -61,6 +61,7 @@ fromString shorthand str =
             _ ->
                 None
 
+orNullDecoder : String -> Decode.Decoder Degree
 orNullDecoder field =
     Decode.oneOf
         [ Decode.map (fromString False) (Decode.at [ field ] Decode.string)

@@ -26,17 +26,15 @@ encode user =
                       
 -- Uses the userDecoder function to turn
 -- a JSON object into a Session record.
-decode : Encode.Value -> Session
+decode : Encode.Value -> Maybe Session
 decode json =
     let jsonStr = Encode.encode 0 json
     in 
         case Decode.decodeString sessionDecoder jsonStr of
-            Ok val ->
-                val
-            Err err ->
-                { uid = Uid ""
-                , email = Email ""
-                }
+            Ok session ->
+                Just session
+            Err _ ->
+                Nothing
 
 -- Decoder that turns a JSON object into a Session record,
 -- if the object is formatted correctly.

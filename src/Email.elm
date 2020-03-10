@@ -9,6 +9,7 @@ toString : Email -> String
 toString (Email email) =
     email
 
+orNullDecoder : String -> Decode.Decoder Email
 orNullDecoder field =
     Decode.oneOf
         [ Decode.map Email (Decode.at [ field ] Decode.string)

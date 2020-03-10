@@ -7,37 +7,36 @@ import Session exposing (Session)
 import Degree exposing (Degree(..))
 import Email exposing (Email(..))
 import Uid exposing (Uid(..))
+import Ticket exposing (Ticket(..))
 
 type alias User =
     { email : Email
     , firstName : String
     , lastName : String
     , degree : Degree
+    , hasTicket : Ticket
     }
 
 -- Uses the contentDecoder function to turn
 -- a JSON object into a User record.
-decode : Encode.Value -> User
+decode : Encode.Value -> Maybe User
 decode json =
     let jsonStr = Encode.encode 0 json
     in
         case Decode.decodeString userDecoder jsonStr of
-            Ok val ->
-                val
-            Err err ->
-                { email = Email ""
-                , firstName = ""
-                , lastName = ""
-                , degree = None
-                }
+            Ok user ->
+                Just user
+            Err _ ->
+                Nothing
 
 userDecoder : Decode.Decoder User
 userDecoder =
-    Decode.map4 User
+    Decode.map5 User
         (Email.orNullDecoder "email")
         (stringOrNullDecoder "firstName")
         (stringOrNullDecoder "lastName")
         (Degree.orNullDecoder "degree")
+        (Ticket.orNullDecoder "hasTicket")
 
 stringOrNullDecoder : String -> Decode.Decoder String
 stringOrNullDecoder field =

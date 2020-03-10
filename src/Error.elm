@@ -1,4 +1,4 @@
-module Error exposing (Error(..), errorFromJson, toString)
+module Error exposing (Error(..), fromJson, toString, encode)
 
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -19,8 +19,12 @@ toString error =
         NoError ->
             ""
 
-errorFromJson : Encode.Value -> Error
-errorFromJson json =
+encode : String -> Encode.Value
+encode str =
+    Encode.string str
+
+fromJson : Encode.Value -> Error
+fromJson json =
     let jsonStr = Encode.encode 0 json
         maybeCode = Decode.decodeString Decode.string jsonStr
     in
@@ -76,4 +80,5 @@ errorMsgList =
             , ("unavailable", "Tjenesten er ikke tilgjengelig akkurat nå. Vennligst prøv igjen senere")
             , ("data-loss", stdMsg)
             , ("unauthenticated", "Du har ikke tilgang til å utføre denne handlingen")
+            , ("json-parse-error", stdMsg)
             ]
