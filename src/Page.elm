@@ -27,7 +27,6 @@ urlToPage url =
             NotFound
 
 parsePage : Parser.Parser (Page -> b) b
-parsePage =
     Parser.oneOf
         [ Parser.map Hjem Parser.top
         , Parser.map LoggInn (Parser.s LoggInn.route)

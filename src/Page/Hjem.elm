@@ -3,41 +3,31 @@ module Page.Hjem exposing (init, subscriptions, update, view, Model, Msg)
 import Html exposing (Html, div, span, h1, text, br, ul, li, i, a)
 import Html.Attributes exposing (class, id, href, target, rel)
 import Html.Events
-import Time
 import Animation
 import Animation.Messenger
+import Time
 
 type Msg
     = TransitionHeader
     | AnimateHeader Animation.Msg
-    | NextTextBlock Bool
 
 type Name
     = Initial
     | Mnemonic
     | Computas
+    | Cisco
     | Knowit
     | Dnb
     | Bekk
 
-type alias Names
-    = (Name, String)
-
-type TextBlock
-    = Påmelding
-    | TransportHotell
-    | Regler
-
 type alias Model =
-    { headerName : Names
+    { headerName : Name
     , headerStyle : Animation.Messenger.State Msg
-    , currentTime : Time.Posix
-    , currentTextBlock : TextBlock
     }
 
 init : Model
 init =
-    { headerName = (Initial, "bedriftstur")
+    { headerName = Bekk
     , headerStyle = Animation.interrupt
                         [ Animation.loop 
                             [ Animation.wait (Time.millisToPosix 4000)
@@ -47,8 +37,6 @@ init =
                             , Animation.to [ Animation.opacity 1 ]
                             ] 
                         ] (Animation.style [ Animation.opacity 1 ])
-    , currentTime = (Time.millisToPosix 0)
-    , currentTextBlock = Påmelding
     }
 
 subscriptions : Model -> Sub Msg 
@@ -57,10 +45,23 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "hjem" ]
-        [ div [ class "hjem-content" ]
-            [ getTextBlock model ]
-        ]
+    let name = nameToString (nextName model.headerName)
+    in
+        div [ class "hjem" ]
+            [ div [ class "hjem-content" ]
+                [ div [ class "text" ]
+                    [ h1 [ class "anim-text" ] [ text "echo | " ]
+                    , h1
+                        (Animation.render model.headerStyle ++ [ class "anim-text" ]) [ text name ]
+                    , br [] []
+                    , br [] []
+                    , div [] [ text "echo har startet en komité for å arrangere bedriftstur til Oslo høsten 2020." ]
+                    , div [] [ text "Formålet med arrangementet er å gjøre våre informatikkstudenter kjent med karrieremulighetene i Oslo." ]
+                    , br [] []
+                    , div [] [ text "Mer informasjon kommer snart!" ]
+                    ]
+                ]
+            ]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -71,13 +72,21 @@ update msg model =
             let (newHeaderStyle, headerCmds) = Animation.Messenger.update anim model.headerStyle
             in
                ({ model | headerStyle = newHeaderStyle }, headerCmds)
-        NextTextBlock toRight ->
-            let block = nextTextBlock model.currentTextBlock toRight
-            in ({ model | currentTextBlock = block }, Cmd.none)
 
-getTextBlock : Model -> Html Msg
-getTextBlock model =
-    let (_, name) = nextName model.headerName
+namesList : List (Name, String)
+namesList = 
+    [ (Initial, "bedriftstur")
+    , (Mnemonic, "mnemonic")
+    , (Computas, "Computas")
+    , (Cisco, "Cisco")
+    , (Knowit, "Knowit")
+    , (Dnb, "DNB")
+    , (Bekk, "Bekk")
+    ]
+
+stringToName : String -> Name
+stringToName str =
+    let result = List.filter (\(x,y) -> y == str) namesList
     in
         div [ class "text text-block" ]
             [ h1 [ class "anim-text" ] [ text "echo | " ]
@@ -140,40 +149,26 @@ getTextBlock model =
                 ]
             ]
 
-nextName : Names -> Names
+nameToString : Name -> String
+nameToString name =
+    let result = List.filter (\(x,y) -> x == name) namesList
+    in
+        case result of
+            [ (_, string) ] ->
+                string
+            _ ->
+                ""
+
+nextName : Name -> Name
 nextName name =
     case name of
-        (Initial, _) ->
-            (Mnemonic, "mnemonic")
-        (Mnemonic, _) ->
-            (Computas, "Computas")
-        (Computas, _) ->
-            (Knowit, "Knowit")
-        (Knowit, _) ->
-            (Dnb, "DNB")
-        (Dnb, _) ->
-            (Bekk, "Bekk")
-        (Bekk, _) ->
-            (Initial, "bedriftstur")
-
-nextTextBlock : TextBlock -> Bool -> TextBlock
-nextTextBlock block toRight =
-    if toRight then
-        case block of
-            Påmelding ->
-                TransportHotell
-            TransportHotell ->
-                Regler
-            Regler ->
-                Påmelding
-    else
-        case block of
-            Påmelding ->
-                Regler
-            TransportHotell ->
-                Påmelding
-            Regler ->
-                TransportHotell
+        Initial -> Mnemonic
+        Mnemonic -> Computas
+        Computas -> Cisco
+        Cisco -> Knowit
+        Knowit -> Dnb
+        Dnb -> Bekk
+        Bekk -> Initial
 
 mail : String
 mail =

@@ -157,6 +157,7 @@ h1 {
 #bedrifter-content { 
     display: grid;
     grid-template-columns: auto;
+    padding-bottom: 5%;
 }
 
 .bed-text {
@@ -567,6 +568,7 @@ select {
 
     #bedrifter-content {
         justify-items: center;
+        padding-bottom: 0%;
     }
 
     .bed-logo {

@@ -2,12 +2,12 @@
 
 [![Build Status](https://travis-ci.org/bakseter/echo-bedriftstur.svg?branch=master)](https://travis-ci.org/bakseter/echo-bedriftstur)
 
-### Info
+## Info
 
 Website of echo bedriftstur - a student trip to Oslo organized by volunteers from _echo - Fagutvalget for Informatikk_ at the University of Bergen.
 The website is written in Elm and hosted using Firebase.
 
-### Local setup
+## Local setup
 
 **1. Clone the git repository**
     
