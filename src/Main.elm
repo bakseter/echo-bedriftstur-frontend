@@ -1,32 +1,26 @@
-port module Main exposing (main)
+module Main exposing (main)
 
 import Browser
 import Browser.Navigation
 import Html exposing (Html, div, span, h1, h3, text, a, img)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
-import Page exposing (..)
+import Html exposing (Html)
+import Html.Events
+import Svg
+import Svg.Attributes exposing (x1, x2, y1, y2)
+import Json.Encode as Encode
+import Json.Decode as Decode
+
+import Page exposing (Page(..))
 import Page.Hjem as Hjem
 import Page.LoggInn as LoggInn
 import Page.Bedrifter as Bedrifter
 import Page.Program as Program
 import Page.Om as Om
 import Page.Verified as Verified
-import Html exposing (Html)
-import Html.Events
-import Svg
-import Svg.Attributes exposing (x1, x2, y1, y2)
-import Json.Encode as Encode
-
-main =
-    Browser.application 
-        { init = init
-        , subscriptions = subscriptions
-        , update = update
-        , view = view
-        , onUrlChange = UrlChanged
-        , onUrlRequest = LinkClicked
-        }
+import User
+import Session
 
 type Msg
     = UrlChanged Url.Url
@@ -37,9 +31,6 @@ type Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
     | GotVerifiedMsg Verified.Msg
-    | AttemptSignOut
-    | SignOutSucceeded Encode.Value
-    | SignOutError Encode.Value
     | ShowNavbar Bool
 
 type alias Model =
@@ -55,10 +46,6 @@ type alias Model =
     , modelOm : Om.Model
     }
 
-port attemptSignOut : Encode.Value -> Cmd msg
-port signOutError : (Encode.Value -> msg) -> Sub msg
-port signOutSucceeded : (Encode.Value -> msg) -> Sub msg
-
 init : () -> Url.Url -> Browser.Navigation.Key -> (Model, Cmd Msg)
 init _ url key =
     ({ key = key
@@ -71,8 +58,7 @@ init _ url key =
     , modelBedrifter = Bedrifter.init
     , modelProgram = Program.init
     , modelOm = Om.init
-    }, Cmd.none)
-                
+    }, Cmd.none)            
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -86,8 +72,6 @@ subscriptions model =
           else
             Sub.none
         , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
-        , signOutSucceeded SignOutSucceeded
-        , signOutError SignOutError
         ]
 
 manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg
@@ -101,7 +85,8 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     let modelLoggInn = model.modelLoggInn
-                    in ({ model | modelLoggInn = { modelLoggInn | currentSubPage = LoggInn.countdown } }, Browser.Navigation.pushUrl model.key (Url.toString url))
+                    in ({ model | modelLoggInn = LoggInn.init }
+                        , Browser.Navigation.pushUrl model.key (Url.toString url))
                 Browser.External href ->
                     (model, Browser.Navigation.load href) 
         UrlChanged url ->
@@ -133,100 +118,105 @@ update msg model =
                     ({ model | showNavbar = True }, Cmd.none)
             else
                 ({ model | showNavbar = False }, Cmd.none)
-        AttemptSignOut ->
-            (model, attemptSignOut (Verified.encode "requestedLogOut" True))
-        SignOutSucceeded _ ->
-            let modelVerified = model.modelVerified
-                user = model.modelVerified.user
-            in ({ model | 
-                    modelVerified = { modelVerified |
-                                      currentSubPage = Verified.verified
-                                    , user = { user | isSignedIn = False }
-                                    }
-                    , route = (Page.Hjem) }
-               , Browser.Navigation.pushUrl model.key Verified.redirectToHome )
-        SignOutError json ->
-            (model, Cmd.none)
+
+header : Model -> List (Html Msg)
+header model =
+    [ div [ class "site" ] 
+        [ div [ class "menu" ]
+            [ span [ id "hjem" ] 
+                [ a [ id "logo-link", href "/", Html.Events.onClick (ShowNavbar True) ] 
+                    [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
+                ]
+            , Svg.svg [ id "navbtn", Html.Events.onClick (ShowNavbar False), Svg.Attributes.width "50", Svg.Attributes.height "40" ]
+                [ Svg.line 
+                    [ Svg.Attributes.class "navbtn-line"
+                    , if model.showNavbar then
+                        Svg.Attributes.id "first-line-anim"
+                      else
+                        Svg.Attributes.id "first-line"
+                    , x1 "0"
+                    , x2 "50"
+                    , y1 "5"
+                    , y2 "5"
+                    ] []
+                , Svg.line
+                    [ Svg.Attributes.class "navbtn-line"
+                    , if model.showNavbar then
+                        Svg.Attributes.id "middle-line-anim"
+                      else
+                        Svg.Attributes.id "middle-line"
+                    , x1 "0"
+                    , x2 "50"
+                    , y1 "20"
+                    , y2 "20"
+                    ] []
+                , Svg.line
+                    [ Svg.Attributes.class "navbtn-line"
+                    , if model.showNavbar then
+                        Svg.Attributes.id "second-line-anim"
+                      else
+                        Svg.Attributes.id "second-line"
+                    , x1 "0"
+                    , x2 "50"
+                    , y1 "35"
+                    , y2 "35"
+                    ] []
+                ]
+            , if Session.isSignedIn model.modelVerified.session then 
+                span [ class "menu-item", id "user-status" ] [ a [ href "/verified" ] [ text "Min profil" ] ]
+              else
+                span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
+            , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
+            , span [ class "menu-item", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
+            , span [ class "menu-item", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
+            ]
+            , span [ id "navbar" ] [ getNavbar model ]
+        ]
+    ]
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "echo bedriftstur"
-    , body = 
-        [ div [ class "site" ] 
-            [ div [ class "menu" ]
-                [ span [ id "hjem" ] 
-                    [ a [ id "logo-link", href "/", Html.Events.onClick (ShowNavbar True) ] 
-                        [ img [ id "logo", alt "logo", src "/img/echo-logo-very-wide.png" ] [] ] 
-                    ]
-                , Svg.svg [ id "navbtn", Html.Events.onClick (ShowNavbar False), Svg.Attributes.width "50", Svg.Attributes.height "40" ]
-                    [ Svg.line 
-                        [ Svg.Attributes.class "navbtn-line"
-                        , if model.showNavbar then
-                            Svg.Attributes.id "first-line-anim"
-                          else
-                            Svg.Attributes.id "first-line"
-                        , x1 "0"
-                        , x2 "50"
-                        , y1 "5"
-                        , y2 "5"
-                        ] []
-                    , Svg.line
-                        [ Svg.Attributes.class "navbtn-line"
-                        , if model.showNavbar then
-                            Svg.Attributes.id "middle-line-anim"
-                          else
-                            Svg.Attributes.id "middle-line"
-                        , x1 "0"
-                        , x2 "50"
-                        , y1 "20"
-                        , y2 "20"
-                        ] []
-                    , Svg.line
-                        [ Svg.Attributes.class "navbtn-line"
-                        , if model.showNavbar then
-                            Svg.Attributes.id "second-line-anim"
-                          else
-                            Svg.Attributes.id "second-line"
-                        , x1 "0"
-                        , x2 "50"
-                        , y1 "35"
-                        , y2 "35"
-                        ] []
-                    ]
-                , if model.modelVerified.user.isSignedIn then 
-                    span [ class "menu-item", id "user-status" ] [ a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ] ]
-                  else
-                    span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
-                , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
-                , span [ class "menu-item", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
-                , span [ class "menu-item", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
-                ]
-                , span [ id "navbar" ] [ getNavbar model ]
-            ]
-        ] ++
-        case model.route of
-            Hjem ->
-                [ showPage GotHjemMsg Hjem.view model.modelHjem ]
-            LoggInn ->
-                [ showPage GotLoggInnMsg LoggInn.view model.modelLoggInn ]
-            Verified ->
-                [ showPage GotVerifiedMsg Verified.view model.modelVerified ]
-            Bedrifter ->
-                [ showPage GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
-            Program ->
-                [ showPage GotProgramMsg Program.view model.modelProgram ]
-            Om ->
-                [ showPage GotOmMsg Om.view model.modelOm ]
-            NotFound  ->
+    showPage model
+
+showPage : Model -> Browser.Document Msg
+showPage model =
+    case model.route of
+        Hjem ->
+            { title = "echo bedriftstur"
+            , body = (header model) ++ [ translateHtmlMsg GotHjemMsg Hjem.view model.modelHjem ]
+            }
+        LoggInn ->
+            { title = "Logg inn"
+            , body = (header model) ++ [ translateHtmlMsg GotLoggInnMsg LoggInn.view model.modelLoggInn ]
+            }
+        Verified ->
+            { title = "Min side"
+            , body = (header model) ++ [ translateHtmlMsg GotVerifiedMsg Verified.view model.modelVerified ]
+            }
+        Program ->
+            { title = "Program"
+            , body = (header model) ++ [ translateHtmlMsg GotProgramMsg Program.view model.modelProgram ]
+            }
+        Bedrifter ->
+            { title = "Bedrifter"
+            , body = (header model) ++ [ translateHtmlMsg GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
+            }
+        Om ->
+            { title = "Om oss"
+            , body = (header model) ++ [ translateHtmlMsg GotOmMsg Om.view model.modelOm ]
+            }
+        NotFound ->
+            { title = "Fant ikke siden"
+            , body = (header model) ++
                 [ div [ class "not-found" ]
                     [ h1 [ id "not-found-header" ] [ text "404" ]
                     , h3 [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke" ]
                     ]
                 ]
-    }
+            }
 
-showPage : (a -> msg) -> (b -> Html.Html a) -> b -> Html.Html msg
-showPage msg viewFunc model =
+translateHtmlMsg : (a -> msg) -> (b -> Html.Html a) -> b -> Html.Html msg
+translateHtmlMsg msg viewFunc model =
     Html.map msg (viewFunc model)
 
 updateWithAndSendMsg : (b -> c -> (d, Cmd a)) -> b -> c -> (a -> msg) -> (d, Cmd msg)
@@ -238,13 +228,23 @@ getNavbar : Model -> Html Msg
 getNavbar model =
     if model.showNavbar then
         div [ id "navbar-content" ] 
-            [ if model.modelVerified.user.isSignedIn then
-                a [ Html.Events.onClick AttemptSignOut ] [ text "Logg ut" ]
+            [ if Session.isSignedIn model.modelVerified.session then
+                a [ href "/verified", Html.Events.onClick (ShowNavbar False) ] [ text "Min side" ]
               else
-                a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ]
+                a [ href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Påmelding" ]
             , a [ href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
             , a [ href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
             , a [ href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
             ]
     else
         span [] []
+
+main =
+    Browser.application 
+        { init = init
+        , subscriptions = subscriptions
+        , update = update
+        , view = view
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
+        }
