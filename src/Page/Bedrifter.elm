@@ -68,7 +68,7 @@ update msg model =
                         ({ model | knowitSlidIn = True }, Cmd.none)
                     else if scroll > 0.69 && not model.dnbSlidIn then
                         ({ model | dnbSlidIn = True }, Cmd.none)
-                    else if scroll > 0.82 && not model.bekkSlidIn then
+                    else if scroll > 0.79 && not model.bekkSlidIn then
                         ({ model | bekkSlidIn = True }, Cmd.none)
                     else
                         (newModel, Cmd.none)
