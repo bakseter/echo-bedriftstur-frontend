@@ -20,13 +20,14 @@ type Page
 
 urlToPage : Url.Url -> Page
 urlToPage url =
-    case Parser.parse parsePage url of
+    case Parser.parse pageParser url of
         Just page ->
             page
         Nothing ->
             NotFound
 
-parsePage : Parser.Parser (Page -> b) b
+pageParser : Parser.Parser (Page -> b) b
+pageParser =
     Parser.oneOf
         [ Parser.map Hjem Parser.top
         , Parser.map LoggInn (Parser.s LoggInn.route)
