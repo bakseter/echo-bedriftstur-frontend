@@ -413,6 +413,9 @@ input[type=text]:focus {
     border-style: hidden hidden solid hidden;
 }
 
+#email, #email-valid, #email-invalid {
+    width: 100%;
+}
 #email-valid {
     border-color: #33CC33;
 }

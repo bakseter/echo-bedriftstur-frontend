@@ -80,6 +80,11 @@ type SubPage
     = Verified
     | MinSide
 
+type CheckboxId
+    = FirstBox
+    | SecondBox
+    | ThirdBox
+
 type alias Model =
     { url : Url.Url
     , key : Browser.Navigation.Key
@@ -87,7 +92,7 @@ type alias Model =
     , currentTime : Time.Posix
     , inputContent : Content
     , submittedContent : Content
-    , checkedRules : List (Bool)
+    , checkedRules : (Bool, Bool, Bool)
     , currentSubPage : SubPage
     , session : Session
     , error : Error
@@ -105,7 +110,7 @@ init url key =
     , currentTime = Time.millisToPosix 0
     , inputContent = Content "" "" None
     , submittedContent = Content "" "" None
-    , checkedRules = [ False, False, False ]
+    , checkedRules = (False, False, False)
     , currentSubPage = MinSide
     , session = Session (Uid "") (Email "")
     , error = NoError
@@ -188,22 +193,16 @@ update msg model =
             in ({ model | inputContent = input }, Cmd.none)
         CheckedBoxOne ->
             case model.checkedRules of
-                [ one, two, three ] ->
-                    ({ model | checkedRules = [ (not one), two, three ] }, Cmd.none)
-                _ ->
-                    (model, Cmd.none)
+                (one, two, three) ->
+                    ({ model | checkedRules = ((not one), two, three) }, Cmd.none)
         CheckedBoxTwo ->
             case model.checkedRules of
-                [ one, two, three ] ->
-                    ({ model | checkedRules = [ one, (not two), three ] }, Cmd.none)
-                _ ->
-                    (model, Cmd.none)
+                (one, two, three) ->
+                    ({ model | checkedRules = (one, (not two), three) }, Cmd.none)
         CheckedBoxThree ->
             case model.checkedRules of
-                [ one, two, three ] ->
-                    ({ model | checkedRules = [ one, two, (not three) ] }, Cmd.none)
-                _ ->
-                    (model, Cmd.none)
+                (one, two, three)->
+                    ({ model | checkedRules = (one, two, (not three)) }, Cmd.none)
         GotError json ->
             ({ model | error = (Error.fromJson json) }, Cmd.none)
 
@@ -236,32 +235,32 @@ infoIsNotEmpty model =
 
 hasCheckedAllRules : Model -> Bool
 hasCheckedAllRules model =
-    List.all (\x -> x == True) model.checkedRules
+    case model.checkedRules of
+        (True, True, True) ->
+            True
+        _ ->
+            False
 
-getCheckboxClass : Int -> Model -> String
+getCheckboxClass : CheckboxId -> Model -> String
 getCheckboxClass id model =
     case model.checkedRules of
-        [ one, two, three ] ->
+        (one, two, three) ->
             case id of
-                1 ->
+                FirstBox ->
                     if one then
                         "checked-box"
                     else
                         "unchecked-box"
-                2 ->
+                SecondBox ->
                     if two then
                         "checked-box"
                     else
                         "unchecked-box"
-                3 ->
+                ThirdBox ->
                     if three then
                         "checked-box"
                     else
                         "unchecked-box"
-                _ ->
-                    ""
-        _ ->
-            ""
 
 view : Model -> Html Msg
 view model =
@@ -347,19 +346,19 @@ registrering model =
                 , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
                 ]
             , div [ class "min-side-item checkbox-grid" ]
-                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 1 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
+                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass FirstBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
                     [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
                 , div [ class "text" ]
                     [ text "Jeg bekrefter at ..." ]
                 ]
             , div [ class "min-side-item checkbox-grid" ]
-                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 2 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
+                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass SecondBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
                     [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
                 , div [ class "text" ]
                     [ text "Jeg bekrefter også at ..." ]
                 ]
             , div [ class "min-side-item checkbox-grid" ]
-                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass 3 model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
+                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass ThirdBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
                     [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
                 , div [ class "text" ]
                     [ text "Jeg bekrefter i tillegg at ..." ]
