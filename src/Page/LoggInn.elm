@@ -58,11 +58,7 @@ update msg model =
     case msg of
         Tick time ->
             let newModel = { model | currentTime = time }
-            in
-                if (Time.posixToMillis time) >= release then
-                    ({ newModel | currentSubPage = SignIn }, Cmd.none)
-                else
-                    (newModel, Cmd.none)
+            in (newModel, Cmd.none)
         TypedEmail str ->
             ({ model | email = str }, Cmd.none)
         SendSignInLink ->
