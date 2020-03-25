@@ -27,7 +27,7 @@ import Error exposing (Error(..))
 
 release : Int
 release =
-    1585908000000
+    1586944800000
 --  0
 --  1583842380000
 

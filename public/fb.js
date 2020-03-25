@@ -122,7 +122,13 @@ firebase.auth().onAuthStateChanged(user => {
 
 app.ports.sendSignInLink.subscribe(data => {
     const actionCodeSettings = {
-        // TODO: change this in production
+        // ------------------------------------ //
+        // ------------------------------------ //
+        // |||||||||||||||||||||||||||||||||||| //
+        // TODO change this in production TODO  //
+        // |||||||||||||||||||||||||||||||||||| //
+        // ------------------------------------ //
+        // ------------------------------------ //
         url : "https://echobedriftstur-userauth.firebaseapp.com/verified",
         handleCodeInApp : true
     };
@@ -153,7 +159,6 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
         app.ports.signInSucceeded.send(result.user);
     })
     .catch(error => {
-        // TODO: test that error is handled properly in Elm
         if (debug) {
             console.log(error.code);
             console.log(error);
@@ -185,23 +190,15 @@ app.ports.createTicket.subscribe(data => {
 });
 
 app.ports.attemptSignOut.subscribe(data => {
-    if (data.requestedSignOut) {
-        firebase.auth().signOut()
-            .then(() => {
-                app.ports.signOutSucceeded.send(true);
-            })
-            .catch(error => {
-                // TODO: test that error is handled properly in Elm
-                if (debug) {
-                    console.log(error.code);
-                    console.log(error);
-                }
-                app.ports.signOutError.send(error);
-            });
-    }
-    else {
-        if (debug) {
-            console.log("user didn't request sign out???");
-        }
-    }
+    firebase.auth().signOut()
+        .then(() => {
+            app.ports.signOutSucceeded.send(true);
+        })
+        .catch(error => {
+            if (debug) {
+                console.log(error.code);
+                console.log(error);
+            }
+            app.ports.signOutError.send(error);
+        });
 });
