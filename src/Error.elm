@@ -1,4 +1,4 @@
-module Error exposing (Error(..), fromJson, toString, encode)
+module Error exposing (Error(..), ErrorCode(..), fromJson, toString, encode)
 
 import Json.Encode as Encode
 import Json.Decode as Decode

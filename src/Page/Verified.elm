@@ -1,7 +1,7 @@
 port module Page.Verified exposing (init, subscriptions, view, update, Model, Msg, route)
 
 import Html exposing (Html, div, span, br, text, p, input, select, option, h1, h2, h3 )
-import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style)
+import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, autocomplete)
 import Html.Events
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -25,11 +25,9 @@ import Session exposing (Session)
 import Ticket exposing (Ticket(..), toBool)
 import Error exposing (Error(..))
 
-release : Int
-release =
+påmeldingUte : Int
+påmeldingUte =
     1586944800000
---  0
---  1583842380000
 
 redirectToHome : String
 redirectToHome =
@@ -266,14 +264,14 @@ view : Model -> Html Msg
 view model =
     div []
         [ showPage model
-        , text (Debug.toString model)
+--      , text (Debug.toString model)
         ]
 
 -- Shows a subpage
 showPage : Model -> Html Msg
 showPage model =
     let msgToUser = Error.toString model.error
-        isRelease = (Time.posixToMillis model.currentTime) >= release
+        isRelease = (Time.posixToMillis model.currentTime) >= påmeldingUte
     in
         case model.currentSubPage of
             Verified ->
@@ -313,9 +311,10 @@ registrering model =
                 div [ id "has-ticket-no" ]
                     [ text "Du har ikke fått plass enda." ]   
             , input [ class "min-side-item"
-                    , id "email", type_ "text"
+                    , id "email-input", type_ "text"
                     , disabled True
                     , value (Email.toString model.user.email) 
+                    , autocomplete False
                     ] []
             , input [ class "min-side-item"
                     , id "firstName"
@@ -323,6 +322,7 @@ registrering model =
                     , placeholder "Fornavn"
                     , value (model.inputContent.firstName) 
                     , Html.Events.onInput TypedFirstName
+                    , autocomplete False
                     ] []
             , br [] []
             , input [ class "min-side-item"
@@ -331,6 +331,7 @@ registrering model =
                     , placeholder "Etternavn"
                     , value (model.inputContent.lastName)
                     , Html.Events.onInput TypedLastName
+                    , autocomplete False
                     ] []
             , br [] []
             , select [ class "min-side-item", id "degree", value (Degree.toString True model.inputContent.degree), Html.Events.onInput TypedDegree ]

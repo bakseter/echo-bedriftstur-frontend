@@ -1,7 +1,7 @@
 port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, text, h1, h3, img, form, input, br, p, span)
-import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled)
+import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled, autocomplete)
 import Html.Events
 import Json.Encode
 import Json.Decode
@@ -12,11 +12,7 @@ import Error exposing (Error(..))
 
 launch : Int
 launch =
-    1583842380000
-
-route : String
-route =
-    "logg-inn"
+    1587549600000
 
 type Msg
     = Tick Time.Posix
@@ -37,6 +33,9 @@ type alias Model =
     , error : Error
     }
      
+route : String
+route =
+    "logg-inn"
 init : Model
 init =
     { currentSubPage = Countdown
@@ -115,7 +114,9 @@ showPage model =
                             id "email-invalid"
                           else
                             id "email"
-                        , type_ "text", Html.Events.onInput TypedEmail ] []
+                        , type_ "text", Html.Events.onInput TypedEmail
+                        , autocomplete False
+                        ] []
                     , br [] []
                     , br [] []
                     , input 

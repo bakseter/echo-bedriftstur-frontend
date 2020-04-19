@@ -13,7 +13,11 @@ import Email exposing (..)
 suite : Test
 suite =
     let session = { uid = Uid "123abc", email = Email "test@test.com" }
-        testObject = Session.decode (Session.encode session)
+        testObject = case Session.decode (Session.encode session) of
+                        Just s ->
+                            s
+                        Nothing ->
+                            Session (Uid "") (Email "")
         jsonStr = Encode.encode 0 (Session.encode session)
         decodeFunc field = Decode.decodeString (Decode.at [ field ] Decode.string)
     in

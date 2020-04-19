@@ -3,6 +3,7 @@ module Page exposing (Page(..), urlToPage)
 import Url
 import Url.Parser as Parser
 
+import Page.Info as Info
 import Page.LoggInn as LoggInn
 import Page.Verified as Verified
 import Page.Program as Program
@@ -11,6 +12,7 @@ import Page.Om as Om
 
 type Page
     = Hjem
+    | Info
     | LoggInn
     | Verified
     | Program
@@ -30,6 +32,7 @@ pageParser : Parser.Parser (Page -> b) b
 pageParser =
     Parser.oneOf
         [ Parser.map Hjem Parser.top
+        , Parser.map Info (Parser.s Info.route)
         , Parser.map LoggInn (Parser.s LoggInn.route)
         , Parser.map Verified (Parser.s Verified.route)
         , Parser.map Program (Parser.s Program.route)
