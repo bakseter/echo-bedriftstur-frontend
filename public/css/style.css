@@ -157,20 +157,22 @@ h1 {
 
 /* HJEM */
 .hjem {
-    display: grid;
-    grid-template-columns: 15% 70% 15%;
-    grid-template-rows: 33% 33% 34%;
-    justify-items: center;
-    height: 100%;
-
-    animation-name: fade-in;
-    animation-duration: 2.5s;
-    animation-iteration-count: 1;
 }
 
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+#hjem-content {
+    display: grid;
+    grid-template-columns: 15% 70% 15%;
+    grid-template-rows: 50% 50%;
+    justify-items: center;
+
+    animation-name: fade-in;
+    animation-duration: 2.5s;
+    animation-iteration-count: 1;
 }
 
 #hjem-header {
@@ -193,8 +195,13 @@ h1 {
 }
 
 #barcode-anim {
-    grid-column: 2 / span 1;
-    grid-row: 3 / span 1;
+    position: absolute;
+    bottom: 0%;
+    left: 0;
+    right: 0;
+    width: 800px;
+    margin: auto;
+    z-index: -1;
 }
 
 .barcode-item-1 {
@@ -661,6 +668,7 @@ select {
 
     #barcode-anim {
         transform: scale(0.4);
+        width: 320px;
     }
 
     .logg-inn {
