@@ -12,10 +12,10 @@ countdownFromTo timeNow timeThen =
                     (calcDate time)
     in
         (
-            [ span [ id "days" ] [ text "D" ]
-            , span [ id "hours" ] [ text "H" ]
-            , span [ id "minutes" ] [ text "M" ]
-            , span [ id "seconds" ] [ text "S" ]
+            [ div [ id "days" ] [ text "D" ]
+            , div [ id "hours" ] [ text "H" ]
+            , div [ id "minutes" ] [ text "M" ]
+            , div [ id "seconds" ] [ text "S" ]
             ] ++ clock
             , time <= 0
         )

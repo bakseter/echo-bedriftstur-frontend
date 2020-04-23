@@ -1,4 +1,4 @@
-module Main exposing (main, typeWriterAnim)
+module Main exposing (main)
 
 import Browser
 import Browser.Navigation

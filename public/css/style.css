@@ -664,16 +664,20 @@ select {
     }
 
     .logg-inn {
-        grid-template-columns: 5% 90% 5%;
+        grid-template-columns: auto;
     }
 
-    .clock {
-        padding: 10% 10% 10% 10%;
+    #logg-inn-content {
+        grid-column: 1 / span 1;
+        justify-self: center;
+    }
+
+    #countdown {
+        grid-gap: 5%;
     }
 
     .clock-item {
-        font-size: 2.8rem;
-        padding: 3%;
+        font-size: 1.7rem;
     }
 
     .info {

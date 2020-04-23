@@ -31,7 +31,7 @@ påmeldingUte =
 
 redirectToHome : String
 redirectToHome =
-    "https://echobedriftstur-userauth.firebaseapp.com"
+    "https://echobedriftstur.no"
 
 port userStatusChanged : (Encode.Value -> msg) -> Sub msg
 port signInSucceeded : (Encode.Value -> msg) -> Sub msg
@@ -109,7 +109,7 @@ init url key =
     , inputContent = Content "" "" None
     , submittedContent = Content "" "" None
     , checkedRules = (False, False, False)
-    , currentSubPage = MinSide
+    , currentSubPage = Verified
     , session = Session (Uid "") (Email "")
     , error = NoError
     }
