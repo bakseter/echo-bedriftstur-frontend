@@ -189,7 +189,7 @@ h1 {
     grid-column: 2 / span 1;
     grid-row: 2 / span 1;
 
-    padding: 0% 0% 8% 0%;
+    padding: 2% 0% 8% 0%;
     font-size: 2rem;
     text-align: center;
 }
@@ -197,8 +197,8 @@ h1 {
 #barcode-anim {
     position: absolute;
     bottom: 0%;
-    left: 0;
-    right: 0;
+    left: 0%;
+    right: 0%;
     width: 800px;
     margin: auto;
     z-index: -1;
@@ -666,11 +666,6 @@ select {
         font-size: 1.4rem;
     }
 
-    #barcode-anim {
-        transform: scale(0.4);
-        width: 320px;
-    }
-
     .logg-inn {
         grid-template-columns: auto;
     }
@@ -678,6 +673,10 @@ select {
     #logg-inn-content {
         grid-column: 1 / span 1;
         justify-self: center;
+    }
+
+    #barcode-anim {
+        width: 320px;
     }
 
     #countdown {

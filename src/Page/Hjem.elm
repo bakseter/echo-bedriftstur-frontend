@@ -34,7 +34,7 @@ view model =
                 ]
             ]
         , div [ id "barcode-anim" ]
-            [ Svg.svg [ Svg.Attributes.width "800", Svg.Attributes.height "350" ]
+            [ Svg.svg [ Svg.Attributes.width "100%", Svg.Attributes.viewBox "0 0 800 350" ]
                 [ Svg.rect [ Svg.Attributes.class "barcode-item-1", Svg.Attributes.x "0", Svg.Attributes.y "153", Svg.Attributes.width "66", Svg.Attributes.height "207" ]
                     [ Svg.animate [ Svg.Attributes.attributeName "y", Svg.Attributes.values "350; 153", Svg.Attributes.dur "1.5s" ] [] ]
                 , Svg.rect [ Svg.Attributes.class "barcode-item-2", Svg.Attributes.x "91", Svg.Attributes.y "84", Svg.Attributes.width "59", Svg.Attributes.height "276" ]
