@@ -2,13 +2,14 @@ module Main exposing (main, typeWriterAnim)
 
 import Browser
 import Browser.Navigation
-import Html exposing (Html, div, span, h1, h3, text, a, img)
+import Html exposing (Html, div, span, h1, h3, text, a, img, i)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
 import Html exposing (Html)
 import Html.Events
 import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2)
+import Svg.Events
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Animation
@@ -25,6 +26,7 @@ import Page.Om as Om
 import Page.Verified as Verified
 import User
 import Session
+import Email
 
 type Msg
     = UrlChanged Url.Url
@@ -43,7 +45,7 @@ type Msg
     | AddCharLogoText String
 
 type Name
-    = Initial
+    = Bedriftstur
     | Mnemonic
     | Computas
     | Cisco
@@ -76,7 +78,7 @@ init _ url key =
     , logoTextNameAnim = ""
     , logoTextStyle = Animation.interrupt
                         [ Animation.loop
-                            (typeWriterAnim Initial ++
+                            (typeWriterAnim Bedriftstur ++
                             typeWriterAnim Mnemonic ++
                             typeWriterAnim Computas ++
                             typeWriterAnim Cisco ++
@@ -181,41 +183,57 @@ header : Model -> List (Html Msg)
 header model =
     let navbtnId = if model.showNavbar then "-anim" else ""
         name = model.logoTextNameAnim
+        email = Email.toString model.modelVerified.session.email
     in
-        [ div [ class "site" ] 
-            [ div [ class "menu" ]
-                [ span [ id "hjem" ] 
-                    [ a [ id "logo-stack", href "/", Html.Events.onClick (ShowNavbar True) ] 
-                        [ img [ id "logo", alt "logo", src "/img/echo-small.png" ] []
-                        ]
+        [ div [ class "menu" ]
+            [ span [ id "hjem" ] 
+                [ a [ id "logo-stack", href "/", Html.Events.onClick (ShowNavbar True) ] 
+                    [ img [ id "logo", alt "logo", src "/img/echoicon.png" ] []
                     ]
-                , span [ id "logo-text" ]
-                  [ span [] [ text "echo " ]
-                  , span
-                      (Animation.render model.logoTextStyle) [ text name ]
-                  ]
-                , Svg.svg [ id "navbtn", Html.Events.onClick (ShowNavbar False), Svg.Attributes.width "50", Svg.Attributes.height "40" ]
-                    [ Svg.line 
-                        [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("first-line" ++ navbtnId), x1 "0", x2 "50", y1 "5", y2 "5" ] []
-                    , Svg.line
-                        [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("middle-line" ++ navbtnId), x1 "0", x2 "50", y1 "20", y2 "20" ] []
-                    , Svg.line
-                        [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("second-line" ++ navbtnId), x1 "0", x2 "50", y1 "35", y2 "35" ] []
-                    ]
-                , if Session.isSignedIn model.modelVerified.session then 
-                    span [ class "menu-item", id "user-status" ] [ a [ href "/verified" ] [ text "Min profil" ] ]
-                  else
-                    span [ class "menu-item", id "user-status" ] [ a [ href "/logg-inn" ] [ text "Logg inn" ] ]
-                , span [ class "menu-item", id "info" ] [ a [ href "/info" ] [ text "Informasjon" ] ]
-                , span [ class "menu-item", id "program" ] [ a [ href "/program" ] [ text "Program" ] ]
-                , span [ class "menu-item", id "bedrifter" ] [ a [ href "/bedrifter" ] [ text "Bedrifter" ] ]
-                , span [ class "menu-item", id "om" ] [ a [ href "/om" ] [ text "Om oss" ] ]
                 ]
-                , div [ class "navbar-blur" ]
-                    [ div [ if model.showNavbar then class "navbar" else class "navbar-hidden" ] (getNavbar model) ]
+            , span [ id "logo-text" ]
+              [ span [] [ text "echo " ]
+              , span
+                  (Animation.render model.logoTextStyle) [ text name ]
+              ]
+            , Svg.svg [ Svg.Attributes.id "navbtn", Svg.Events.onClick (ShowNavbar False), Svg.Attributes.width "50", Svg.Attributes.height "40" ]
+                [ Svg.line 
+                    [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("first-line" ++ navbtnId), x1 "0", x2 "50", y1 "5", y2 "5" ] []
+                , Svg.line
+                    [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("middle-line" ++ navbtnId), x1 "0", x2 "50", y1 "20", y2 "20" ] []
+                , Svg.line
+                    [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("second-line" ++ navbtnId), x1 "0", x2 "50", y1 "35", y2 "35" ] []
+                ]
             ]
+            , div [ class "navbar-wrapper" ]
+                [ div [ if model.showNavbar then class "navbar" else class "navbar-hidden" ] (getNavbar model) ]
         ]
 
+getUserInfo : Model -> List (Html Msg)
+getUserInfo model =
+    let isSignedIn = Session.isSignedIn model.modelVerified.session
+        email = if isSignedIn then Email.toString model.modelVerified.session.email else ""
+    in
+        [ a [ class "navbar-item", href "/", Html.Events.onClick (ShowNavbar False) ] [ i [ class "fa fa-home", id "hjem-icon" ] [] ] 
+        , if isSignedIn then
+            div [ id "user-info-email" ] 
+            [ a [ href ("/" ++ Verified.route), Html.Events.onClick (ShowNavbar False) ] [ text "Min profil" ] ]
+          else
+            div [ id "user-info-text" ] 
+                [ a [ href ("/" ++ LoggInn.route), Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ] ]
+        ]
+
+getNavbar : Model -> List (Html Msg)
+getNavbar model =
+        [ span [] []
+        , div [ class "navbar-item", id "user-info" ]
+            (getUserInfo model)
+        , span [] []
+        , a [ class "navbar-item", href ("/" ++ Info.route), Html.Events.onClick (ShowNavbar False) ] [ text "Informasjon" ]
+        , a [ class "navbar-item", href ("/" ++ Program.route), Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
+        , a [ class "navbar-item", href ("/" ++ Bedrifter.route), Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
+        , a [ class "navbar-item", href ("/" ++ Om.route), Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
+        ]
 view : Model -> Browser.Document Msg
 view model =
     showPage model
@@ -228,7 +246,7 @@ showPage model =
             , body = (header model) ++ [ translateHtmlMsg GotHjemMsg Hjem.view model.modelHjem ]
             }
         Info ->
-            { title = "Info"
+            { title = "Informasjon"
             , body = (header model) ++ [ translateHtmlMsg GotInfoMsg Info.view model.modelInfo ]
             }
         LoggInn ->
@@ -270,19 +288,6 @@ updateWithAndSendMsg updateFunc msg model msg2 =
     let (newModel, cmd) = updateFunc msg model
     in (newModel, Cmd.map msg2 cmd)
 
-getNavbar : Model -> List (Html Msg)
-getNavbar model =
-        [ span [] []
-        , if Session.isSignedIn model.modelVerified.session then
-            a [ class "navbar-item", href "/verified", Html.Events.onClick (ShowNavbar False) ] [ text "Min side" ]
-          else
-            a [ class "navbar-item", href "/logg-inn", Html.Events.onClick (ShowNavbar False) ] [ text "Påmelding" ]
-        , a [ class "navbar-item", href "/info", Html.Events.onClick (ShowNavbar False) ] [ text "Info" ]
-        , a [ class "navbar-item", href "/program", Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]
-        , a [ class "navbar-item", href "/bedrifter", Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
-        , a [ class "navbar-item", href "/om", Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
-        ]
-
 nameToString : Name -> String
 nameToString name =
     let result = List.filter (\(x,y) -> x == name) namesList
@@ -295,7 +300,7 @@ nameToString name =
 
 namesList : List (Name, String)
 namesList = 
-    [ (Initial, "bedriftstur")
+    [ (Bedriftstur, "bedriftstur")
     , (Mnemonic, "mnemonic")
     , (Computas, "Computas")
     , (Cisco, "Cisco")
@@ -307,8 +312,8 @@ namesList =
 prevName : Name -> Name
 prevName name =
     case name of
-        Initial -> Bekk
-        Mnemonic -> Initial
+        Bedriftstur -> Bekk
+        Mnemonic -> Bedriftstur
         Computas -> Mnemonic
         Cisco -> Computas
         Knowit -> Cisco
@@ -317,11 +322,11 @@ prevName name =
 
 typeWriterAnim : Name -> List (Animation.Messenger.Step Msg)
 typeWriterAnim transitionToName =
-        let stylizedName = if transitionToName /= Initial then
+        let stylizedName = if transitionToName /= Bedriftstur then
                             "+ " ++ (nameToString transitionToName)
                            else
                             nameToString transitionToName
-            stylizedPrevName = if (prevName transitionToName) /= Initial then
+            stylizedPrevName = if (prevName transitionToName) /= Bedriftstur then
                                 "+ " ++ (nameToString (prevName transitionToName))
                                else
                                 nameToString (prevName transitionToName)

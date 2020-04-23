@@ -12,15 +12,15 @@ const firebaseConfig =
     };
 firebase.initializeApp(firebaseConfig);
 
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 .then(() => {
     if (debug) {
-        console.log("persistence set to SESSION");
+        console.log("persistence set to LOCAL");
     }
 })
 .catch(error => {
     if (debug) {
-        console.log("error setting persistence to SESSION");
+        console.log("error setting persistence to LOCAL");
     }
 });
 

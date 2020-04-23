@@ -49,34 +49,51 @@ p {
 .menu {
     display: grid;
     align-items: center;
-    grid-template-columns: 10% 30% 10% 10% 10% 10% 10% 10%;
+    grid-template-columns: 10% 75% 15%;
     background-color: var(--foreground);
 }
 
-#navbtn {
-    display: none;
-    text-align: center;
+#user-info {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    border-bottom: 3px solid black;
+}
+
+#hjem-icon {
+    font-size: 5rem;
 }
 
 .navbar, .navbar-hidden {
-    display: none;
-}
-
-.menu-item {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: 20% 10% 3% 10% 10% 10% 10% 37%;
     text-align: center;
-    padding-top: 5%;
-    padding-bottom: 5%;
-    font-size: 1.6rem;
-    font-weight: bold;
+    background-color: #CCCCCC;
+    position: fixed;
+    height: 100%;
+    width: 20%;
+    transition: 0.5s ease;
+    top: 0%;
 }
 
-.logo-stack {
-    grid-column: 1 / span 1;
+.navbar {
+    left: 80%;
+}
+.navbar-hidden {
+    left: 100%;
+}
+
+.navbar-item {
+    justify-self: center;
+    align-self: center;
+    font-weight: bold;
+    font-size: 1.8rem;
 }
 
 #logo {
     max-width: 70%;
-    padding: 12%;
+    padding: 6%;
+    justify-self: center;
 }
 
 #logo-text {
@@ -84,6 +101,13 @@ p {
     font-weight: bold;
 
     color: #222222;
+}
+
+#navbtn {
+    cursor: pointer;
+    z-index: 1;
+    justify-self: center;
+    transform: scale(1.5);
 }
 
 .navbtn-line {
@@ -135,15 +159,59 @@ h1 {
 .hjem {
     display: grid;
     grid-template-columns: 15% 70% 15%;
+    grid-template-rows: 33% 33% 34%;
+    justify-items: center;
+    height: 100%;
 
-    padding: 2% 0% 2% 0%;
+    animation-name: fade-in;
+    animation-duration: 2.5s;
+    animation-iteration-count: 1;
 }
 
-.hjem-content {
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#hjem-header {
     grid-column: 2 / span 1;
+    grid-row: 1 / span 1;
+    
+    font-size: 4rem;
+    font-weight: bold;
+    text-align: center;
+    padding: 3% 0% 3% 0%;
+}
+
+#hjem-text {
+    grid-column: 2 / span 1;
+    grid-row: 2 / span 1;
+
+    padding: 0% 0% 8% 0%;
+    font-size: 2rem;
+    text-align: center;
+}
+
+#barcode-anim {
+    grid-column: 2 / span 1;
+    grid-row: 3 / span 1;
+}
+
+.barcode-item-1 {
+    fill: var(--color-mnemonic);
+}
+.barcode-item-2 {
+    fill: var(--color-cisco);
+}
+.barcode-item-3 {
+    fill: var(--color-computas);
+}
+.barcode-item-4 {
+    fill: var(--color-knowit);
 }
 
 .inline-link {
+    display: inline;
     font-weight: bold;
     text-decoration: underline;
 }
@@ -156,6 +224,7 @@ h1 {
 /* INFO */
 .info {
     padding-top: 2rem;
+    padding-bottom: 4rem;
     display: grid;
     grid-template-columns: 15% 70% 15%;
 }
@@ -179,8 +248,6 @@ h1 {
     border-radius: 0.7rem;
     display: grid;
     grid-template-columns: 12% 88%;
-}
-.program-item:hover {
     cursor: pointer;
 }
 
@@ -188,7 +255,7 @@ h1 {
     background-size: 200% 100%;
     background-position: right bottom;
     border-radius: 0rem 0.7rem 0.7rem 0rem;
-    padding-top: 5%;
+    padding: 6%;
     transition: background-position 0.7s ease;
 }
 .program-content:hover {
@@ -270,6 +337,7 @@ h1 {
 
 .logo-item {
     position: relative;
+    z-index: -1;
     left: 10%;
     opacity: 1.0;
     transition: 1s ease;
@@ -331,8 +399,6 @@ h1 {
     max-width: 50vw;
     max-height: 450px;
     border-radius: 0.7rem;
-}
-.portrett:hover {
     cursor: pointer;
 }
 
@@ -464,8 +530,9 @@ input[type=text]:focus {
 
 #err-msg {
     color: red;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-weight: bold;
+    padding-bottom: 2%;
 }
 
 #has-ticket-no {
@@ -488,6 +555,9 @@ input[type=text]:focus {
     grid-template-columns: 20% 80%;
     align-items: center;
     font-weight: bold;
+}
+
+.checkbox-container {
     overflow: hidden;
 }
 
@@ -543,68 +613,71 @@ select {
     }
 
     .menu {
-        grid-template-columns: 60% 10% 30%;
+        grid-template-columns: 30% 40% 30%;
         grid-template-rows: auto;
-    }
-
-    .menu-item {
-        display: none;
-    }
-
-    #navbtn {
-        display: inline;
-        justify-self: center;
-        grid-column: 3 / span 1;
-        z-index: 1;
-    }
-
-    #logo {
-        max-width: 40%;
-        padding: 5%;
     }
 
     #logo-text {
         display: none;
     }
 
-    .navbar, .navbar-hidden {
-        display: grid;
-        grid-template-columns: auto;
-        grid-template-rows: 20% 10% 10% 10% 10% 10% 30%;
-        text-align: center;
-        background-color: #CCCCCC;
-        position: fixed;
-        width: 60%;
-        transition: 0.5s ease;
-        height: 100%;
-        top: 0%;
+    #navbtn {
+        grid-column: 3 / span 1;
+        transform: scale(1.0);
     }
 
     .navbar {
-        left: 40%;
-    }
-    .navbar-hidden {
-        left: 100%;
-    }
-
-    .navbar-item {
-        justify-self: center;
-        align-self: center;
-        font-weight: bold;
-        font-size: 1.8rem;
+        width: 50%;
+        left: 50%;
     }
 
     .hjem {
         grid-template-columns: 5% 90% 5%;
+        padding-top: 5%;
+        animation-iteration-count: 0;
+    }
+
+    #hjem-header {
+        font-size: 1.7rem;
+        padding-bottom: 10%;
+    }
+
+    #hjem-text {
+        font-size: 1.1rem;
+    }
+
+    #user-info {
+        margin-left: 0%;
+        margin-right: 0%;
+    }
+
+    #hjem-icon {
+        font-size: 3rem;
+    }
+
+    .navbar-item {
+        font-size: 1.4rem;
+    }
+
+    #barcode-anim {
+        transform: scale(0.4);
+    }
+
+    .logg-inn {
+        grid-template-columns: 5% 90% 5%;
     }
 
     .clock {
-        padding: 20% 0% 0% 0%;
+        padding: 10% 10% 10% 10%;
     }
 
     .clock-item {
         font-size: 2.8rem;
         padding: 3%;
+    }
+
+    .info {
+        grid-template-columns: 5% 90% 5%;
     }
 
     .min-side-item {

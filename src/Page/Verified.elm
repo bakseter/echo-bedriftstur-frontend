@@ -1,7 +1,7 @@
 port module Page.Verified exposing (init, subscriptions, view, update, Model, Msg, route)
 
-import Html exposing (Html, div, span, br, text, p, input, select, option, h1, h2, h3 )
-import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, autocomplete)
+import Html exposing (Html, div, span, br, text, p, input, select, option, h1, h2, h3, a)
+import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, autocomplete, href)
 import Html.Events
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -27,7 +27,7 @@ import Error exposing (Error(..))
 
 påmeldingUte : Int
 påmeldingUte =
-    1586944800000
+    1599994800000
 
 redirectToHome : String
 redirectToHome =
@@ -299,14 +299,18 @@ registrering model =
             [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering" ]
             , div [ class "min-side-item text" ]
                 [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
-                , div [] [ text "Påmeldingen vil dukke opp her 3. april kl. 12:00, gitt at du er logget inn og har registrert deg." ]
+                , div [ class "inline-text" ] [ text "Påmeldingen vil dukke opp her " ]
+                , div [ class "inline-link" ] [ text " 29. april kl. 12:00" ]
+                , div [ class "inline-text" ] [ text ", gitt at du er logget inn og har registrert deg." ]
                 , br [] []
-                , div [ style "font-weight" "bold"] [ text "Det er IKKE nødvendig å refreshe siden for å få påmeldingen til å vises." ]
+                , div [ class "inline-text" ] [ text "Det er " ]
+                , div [ class "inline-link" ] [ text "IKKE" ]
+                , div [ class "inline-text" ] [ text " nødvendig å refreshe siden for å få påmeldingen til å vises." ]
                 ]
             , div [ id "err-msg" ] [ text msgToUser ]
             , if (Ticket.toBool model.user.hasTicket) then
                 div [ id "has-ticket-yes" ]
-                    [ text "Du har fått plass" ]
+                    [ text "Du har fått plass!" ]
               else
                 div [ id "has-ticket-no" ]
                     [ text "Du har ikke fått plass enda." ]   
@@ -347,22 +351,31 @@ registrering model =
                 , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
                 ]
             , div [ class "min-side-item checkbox-grid" ]
-                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass FirstBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
-                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                [ div [ class "checkbox-container" ]
+                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass FirstBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
+                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                    ]
                 , div [ class "text" ]
-                    [ text "Jeg bekrefter at ..." ]
+                    [ text "Jeg bekrefter at jeg er representert av echo - Fagutvalget for Informatikk, ifølge echo sine statutter per 22. april 2020." ]
                 ]
             , div [ class "min-side-item checkbox-grid" ]
-                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass SecondBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
-                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                [ div [ class "checkbox-container" ]
+                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass SecondBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
+                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                    ]
                 , div [ class "text" ]
-                    [ text "Jeg bekrefter også at ..." ]
+                    [ text "Jeg bekrefter at jeg enten er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020, eller er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020." ]
                 ]
             , div [ class "min-side-item checkbox-grid" ]
-                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass ThirdBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
-                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                [ div [ class "checkbox-container" ]
+                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass ThirdBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
+                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                    ]
                 , div [ class "text" ]
-                    [ text "Jeg bekrefter i tillegg at ..." ]
+                    [ div [ class "inline-text" ] [ text "Jeg godtar " ]
+                    , a [ class "inline-link", href "/info" ] [ text "reglene" ]
+                    , div [ class "inline-text" ] [ text " for bedriftsturen." ]
+                    ]
                 ]
             , div [ class "min-side-item min-side-buttons" ]
                 [ input
@@ -385,6 +398,5 @@ påmelding model =
     in
         div [ id "min-side-content" ]
             [ h1 [ id "min-side-header" ] [ text "Påmelding" ]
-            , input [ class "min-side-item", id "meld-paa-btn", type_ "button", value "Meld meg på!", Html.Events.onClick CreateTicket ] []
             , div [ id "err-msg" ] [ text msgToUser ]
             ]

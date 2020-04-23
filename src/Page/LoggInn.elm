@@ -1,7 +1,7 @@
 port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg, route)
 
-import Html exposing (Html, div, text, h1, h3, img, form, input, br, p, span)
-import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled, autocomplete)
+import Html exposing (Html, div, text, h1, h3, img, form, input, br, p, span, a)
+import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled, autocomplete, href, target, rel)
 import Html.Events
 import Json.Encode
 import Json.Decode
@@ -12,7 +12,8 @@ import Error exposing (Error(..))
 
 launch : Int
 launch =
-    1587549600000
+--  1587549600000
+    0
 
 type Msg
     = Tick Time.Posix
@@ -98,13 +99,29 @@ showPage model =
         SignIn ->
             div [ id "logg-inn-content" ]
                 [ h1 [] [ text "Registrer deg/logg inn" ] 
-                , div [ id "login-info" ]
-                    [ p [] 
+                , div [ class "text", id "login-info" ]
+                    [ br [] []
+                    , div [] 
                         [ text "For å registrere deg eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
-                    , p [ style "font-style" "italic" ]
+                    , div [ style "font-style" "italic" ]
                         [ text "Fornavn.Etternavn@student.uib.no" ]
-                    , p []
+                    , br [] []
+                    , div []
                         [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
+                    , br [] []
+                    , div [ style "font-weight" "bold" ]
+                        [ text "Vi anbefaler sterkt å sette opp videresending fra studentmailen din til din vanlig mailadresse." ]
+                    , div [ style "font-weight" "bold" ]
+                        [ text "Da får du mye lettere med deg eventuell informasjon vi sender deg på mail senere." ]
+                    , br [] []
+                    , div [ class "inline-text" ]
+                        [ text "Følg " ]
+                    , a [ class "inline-link", target "_blank", rel "noopener noreferrer", href "https://tjinfo.uib.no/reise" ]
+                        [ text "denne" ]
+                    , div [ class "inline-text" ]
+                        [ text " lenken for å sette opp videresending fra din studentmail." ]
+                    , br [] []
+                    , br [] []
                     ]
                 , div [ id "login-form" ]
                     [ input 

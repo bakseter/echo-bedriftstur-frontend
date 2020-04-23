@@ -30,7 +30,7 @@ view model =
         div [ class "info" ]
             [ div [ class "info-content" ]
                 [ div [ class "text" ]
-                    [ h1 [] [ text "Påmelding" ]
+                    [ h1 [] [ text "Registrering og påmelding" ]
                     , br [] []
                     , br [] []
                     , div [] [ text "Registrering åpner 22. april kl. 12:00. Da kan du registrere deg med din studentmail, og fylle inn din kontaktinformasjon. Dette gjør det lettere og raskere for deg å melde deg på når påmeldingen kommer ut, fordi all informasjonen din allerede er fylt inn." ]
@@ -53,7 +53,7 @@ view model =
                     , div [ class "inline-text" ] [ text ", så vil vi evaluere om du kan melde deg på turen." ]
                     , br [] []
                     , br [] []
-                    , h1 [] [ text "Transport & Hotell" ]
+                    , h1 [] [ text "Transport og hotell" ]
                     , br [] []
                     , br [] []
                     , div [] [ text "Vi flyr med Norwegian fra Bergen lufthavn 26. August kl. 07:30." ]
@@ -88,14 +88,14 @@ view model =
                     [ text
                         """
                         Hvis situasjonen endrer seg fremover, og det ikke lenger er forsvarlig å arrangere en slik tur, vil vi enten finne en alternativ løsning, eller i verste fall avlyse turen.
-                        Vi har vært i dialog med en rekke andre linjeforeninger i Norge som arrangerer samme type turer, og de ser heller ingen grunn til å avlyse per nå.
+                        Vi er i kontinuerlig dialog med andre linjeforeninger i Norge som også arrangerer samme type turer, og vi er sammen enige i at vi ikke trenger å avlyse.
                         """
                     ]
                     , br [] []
                     , h1 [] [ text "Regler" ]
                     , br [] []
                     , ul []
-                        [ li [] [ text "Hvis du ikke møter opp, eller møter opp i beruset tilstand til et bedriftsbesøk, vil du bli fakturert 1 500 NOK per besøk du bryter denne regelen på." ]
+                        [ li [] [ text "Hvis du ikke møter opp på et bedriftsbesøk, vil du bli fakturert 1 500 NOK per besøk du bryter denne regelen på." ]
                         , br [] []
                         , li [] [ text "Du er personlig ansvarlig for hærverk eller andre ekstra kostnader du påfører." ]
                         , br [] []
