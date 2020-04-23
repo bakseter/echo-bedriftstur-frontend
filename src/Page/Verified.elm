@@ -1,457 +1,402 @@
-port module Page.Verified exposing (init, subscriptions, update, view, Model, Msg, encode, verified, redirectToHome)
+port module Page.Verified exposing (init, subscriptions, view, update, Model, Msg, route)
 
-import Html exposing (Html, div, span, br, text, p, input, button, select, option, h3, h2)
-import Html.Attributes exposing (class, id, type_, value, placeholder, disabled)
+import Html exposing (Html, div, span, br, text, p, input, select, option, h1, h2, h3, a)
+import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, autocomplete, href)
 import Html.Events
+import Json.Encode as Encode
+import Json.Decode as Decode
 import Url
-import Url.Builder
-import Url.Parser exposing ((<?>))
+import Url.Parser as Parser exposing ((<?>))
 import Url.Parser.Query as Query
-import Json.Encode
-import Json.Decode
 import Browser.Navigation
+import Svg
+import Svg.Attributes exposing (x, y, rx, ry)
+import Svg.Events
+import Time
+import Debug
+
+import Countdown
+import User exposing (User)
+import Uid exposing (Uid(..))
+import Email exposing (Email(..))
+import Degree exposing (Degree(..), Degrees(..))
+import Content exposing (Content)
+import Session exposing (Session)
+import Ticket exposing (Ticket(..), toBool)
+import Error exposing (Error(..))
+
+påmeldingUte : Int
+påmeldingUte =
+    1599994800000
 
 redirectToHome : String
 redirectToHome =
-    "https://echobedriftstur.no"
+    "https://echobedriftstur-userauth.firebaseapp.com"
+
+port userStatusChanged : (Encode.Value -> msg) -> Sub msg
+port signInSucceeded : (Encode.Value -> msg) -> Sub msg
+-- Errors: ExpiredActionCode, InvalidEmail, UserDisabled
+port signInError : (Encode.Value -> msg) -> Sub msg
+
+port getUserInfo : Encode.Value -> Cmd msg
+port getUserInfoSucceeded : (Encode.Value -> msg) -> Sub msg
+-- Errors: PermissionDenied, Unauthenticated
+port getUserInfoError : (Encode.Value -> msg) -> Sub msg
+
+port updateUserInfo : Encode.Value -> Cmd msg
+port updateUserInfoError : (Encode.Value -> msg) -> Sub msg
+port updateUserInfoSucceeded : (Encode.Value -> msg) -> Sub msg
+
+port createTicket : Encode.Value -> Cmd msg
+port createTicketSucceeded : (Encode.Value -> msg) -> Sub msg
+port createTicketError : (Encode.Value -> msg) -> Sub msg
+
+port attemptSignOut : Encode.Value -> Cmd msg
+port signOutSucceeded : (Encode.Value -> msg) -> Sub msg
+port signOutError : (Encode.Value -> msg) -> Sub msg
 
 type Msg
-    = UserStatusChanged Json.Encode.Value
-    | SignInSucceeded Json.Encode.Value
-    | SignInFailed Json.Encode.Value
-    | RequestedUserInfo Json.Encode.Value
-    | GetUserInfoError Json.Encode.Value
-    | GetUserInfoSucceeded Json.Encode.Value
-    | UpdateUserInfoSucceeded Json.Encode.Value
-    | UpdateUserInfoError Json.Encode.Value
-    | UpdateUserInfo
+    = Tick Time.Posix
+    | UserStatusChanged Decode.Value
+    | SignInSucceeded Decode.Value
+    | GetUserInfoSucceeded Decode.Value
+    | UpdateUserInfo Session Content
+    | UpdateUserInfoSucceeded Decode.Value
+    | CreateTicket
+    | CreateTicketSucceeded Decode.Value
+    | AttemptSignOut
+    | SignOutSucceeded Encode.Value
     | TypedFirstName String
     | TypedLastName String
     | TypedDegree String
-
-type AuthCode
-    = AttemptedSignIn String
-    | InvalidQuery
-
-type Error
-    = NoError
-    | InvalidEmail
-    | ExpiredActionCode
-    | InvalidActionCode
-    | UserDisabled
-    | PermissionDenied
-    | Unauthenticated
+    | CheckedBoxOne
+    | CheckedBoxTwo
+    | CheckedBoxThree
+    | GotError Encode.Value
 
 type SubPage
     = Verified
     | MinSide
 
-type Degree
-    = None
-    | DTEK
-    | DVIT
-    | DSIK
-    | BINF
-    | IMØ
-    | IKT
-    | KOGNI
-    | INF
-    | PROG
-
-port userStatusChanged : (Json.Encode.Value -> msg) -> Sub msg
-port signInSucceeded : (Json.Encode.Value -> msg) -> Sub msg
--- Errors: ExpiredActionCode, InvalidEmail, UserDisabled
-port signInWithLinkError : (Json.Encode.Value -> msg) -> Sub msg
-
-port getUserInfo : Json.Encode.Value -> Cmd msg
-port userNotSignedIn : (Json.Encode.Value -> msg) -> Sub msg
--- Errors: PermissionDenied, Unauthenticated
-port getUserInfoError : (Json.Encode.Value -> msg) -> Sub msg
-port getUserInfoSucceeded : (Json.Encode.Value -> msg) -> Sub msg
-
-port updateUserInfo : Json.Encode.Value -> Cmd msg
-port updateUserInfoError : (Json.Encode.Value -> msg) -> Sub msg
-port updateUserInfoSucceeded : (Json.Encode.Value -> msg) -> Sub msg
+type CheckboxId
+    = FirstBox
+    | SecondBox
+    | ThirdBox
 
 type alias Model =
     { url : Url.Url
     , key : Browser.Navigation.Key
-    , authCode : AuthCode
-    , error : Error
-    , currentSubPage : SubPage
-    , email : String
-    , firstName : String
-    , lastName : String
-    , degree : Degree
-    , submittedUserInfo : SubmittedUserInfo
     , user : User
+    , currentTime : Time.Posix
+    , inputContent : Content
+    , submittedContent : Content
+    , checkedRules : (Bool, Bool, Bool)
+    , currentSubPage : SubPage
+    , session : Session
+    , error : Error
     }
 
-type alias SubmittedUserInfo =
-    { firstName : String
-    , lastName : String
-    , degree : Degree
-    }
-
-type alias User =
-    { uid : String
-    , isSignedIn : Bool
-    }
+route : String
+route =
+    "verified"
 
 init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
     { url = url
     , key = key
-    , authCode = getAuthCode url
+    , user = User (Email "") "" "" None (Ticket False)
+    , currentTime = Time.millisToPosix 0
+    , inputContent = Content "" "" None
+    , submittedContent = Content "" "" None
+    , checkedRules = (False, False, False)
+    , currentSubPage = MinSide
+    , session = Session (Uid "") (Email "")
     , error = NoError
-    , currentSubPage = Verified
-    , email = ""
-    , firstName = ""
-    , lastName = ""
-    , degree = None
-    , submittedUserInfo =
-        { firstName = ""
-        , lastName = ""
-        , degree = None
-        }
-    , user =
-        { uid = ""
-        , isSignedIn = False
-        }
     }
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ userStatusChanged UserStatusChanged
+        [ Time.every 100 Tick
+        , userStatusChanged UserStatusChanged
         , signInSucceeded SignInSucceeded
-        , signInWithLinkError SignInFailed
-        , getUserInfoError GetUserInfoError
+        , signInError GotError
+        , createTicketSucceeded CreateTicketSucceeded
+        , createTicketError GotError
         , getUserInfoSucceeded GetUserInfoSucceeded
+        , getUserInfoError GotError
         , updateUserInfoSucceeded UpdateUserInfoSucceeded
-        , updateUserInfoError UpdateUserInfoError
+        , updateUserInfoError GotError
+        , signOutSucceeded SignOutSucceeded
+        , signOutError GotError
         ]
 
 update : Msg  -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
+        Tick time ->
+            ({ model | currentTime = time }, Cmd.none)
         UserStatusChanged json ->
-            let user = decodeUser json
-                newModel = { model | user = user }
-            in
-                if not <| user.isSignedIn then
-                    ({ newModel | currentSubPage = Verified }, Browser.Navigation.pushUrl model.key redirectToHome)
-                else
-                    (newModel, Cmd.none)
-        SignInSucceeded _ ->
-            ({ model | currentSubPage = MinSide }, getUserInfo (encode "getUserInfo" True))
-        SignInFailed json ->
-            let error = getErrorCode (Json.Encode.encode 0 json)
-            in ({ model | error = error }, Cmd.none)
-        RequestedUserInfo _ ->
-            (model, getUserInfo (encode "requestedUserInfo" True))
-        GetUserInfoError json ->
-            let error = getErrorCode (Json.Encode.encode 0 json)
-            in ({ model | error = error }, Cmd.none)
+            case Session.decode json of
+                Just session ->
+                    if Session.isSignedIn session then
+                        ({ model | session = session, currentSubPage = MinSide, error = NoError }, getUserInfo (Session.encode session))
+                    else
+                        (model, Cmd.none)
+                Nothing ->
+                    let maybeNull = Decode.decodeString (Decode.null "not-signed-in") (Encode.encode 0 json)
+                    in
+                        case maybeNull of
+                            Ok err ->
+                                update (GotError (Error.encode err)) model
+                            Err _ ->
+                                update (GotError (Error.encode "json-parse-error")) model
+        SignInSucceeded userJson ->
+            ({ model | currentSubPage = MinSide }, Browser.Navigation.pushUrl model.key (redirectToHome ++ "/" ++ route))
         GetUserInfoSucceeded json ->
-            let email = decodeJsonField json "email"
-                firstName = decodeJsonField json "firstName"
-                lastName = decodeJsonField json "lastName"
-                degree = stringToDegree (decodeJsonField json "degree")
-            in
-                ({ model | email = email
-                           , firstName = firstName
-                           , lastName = lastName
-                           , degree = degree
-                           , submittedUserInfo =
-                                { firstName = firstName
-                                , lastName = lastName
-                                , degree = degree
-                                }
-                }, Cmd.none) 
-        UpdateUserInfo ->
-            if hasChangedInfo model then
-                ({ model | currentSubPage = Verified }
-                , Cmd.batch
-                    [ updateUserInfo (encodeUserInfo model)
-                    , Browser.Navigation.pushUrl model.key redirectToHome
-                    ]
-                )
-            else
-                (model, Cmd.none)
-        UpdateUserInfoError json ->
-            let error = getErrorCode (Json.Encode.encode 0 json)
-            in ({ model | error = error }, Cmd.none)
+            case User.decode json of
+                Just content ->
+                    let submittedContent = Content content.firstName content.lastName content.degree
+                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.hasTicket
+                        , submittedContent = submittedContent
+                        , inputContent = submittedContent }
+                        , Cmd.none)
+                Nothing ->
+                    update (GotError (Error.encode "json-parse-error")) model
+        UpdateUserInfo session content ->
+            let newContent = Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree
+                message = Content.encode session newContent
+            in (model, Cmd.batch [ updateUserInfo message, Browser.Navigation.pushUrl model.key redirectToHome ])
         UpdateUserInfoSucceeded _ ->
-            let oldUserInfo = model.submittedUserInfo
-            in ({ model | submittedUserInfo = { oldUserInfo | firstName = model.firstName, lastName = model.lastName, degree = model.degree } }, Cmd.none)
+            let subCont = model.submittedContent
+                newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree subCont
+            in ({ model | submittedContent = newSubCont }, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
+        CreateTicket ->
+            (model, createTicket (Ticket.encode model.session))
+        CreateTicketSucceeded json ->
+            (model, Cmd.none)
+        AttemptSignOut ->
+            (model, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
+        SignOutSucceeded _ ->
+            ((init model.url model.key)
+             , Browser.Navigation.load redirectToHome )
         TypedFirstName str ->
-            ({ model | firstName = str }, Cmd.none)
+            let input = Content.updateFirstName str model.inputContent
+            in ({ model | inputContent = input }, Cmd.none)
         TypedLastName str ->
-            ({ model | lastName = str }, Cmd.none)
+            let input = Content.updateLastName str model.inputContent
+            in ({ model | inputContent = input }, Cmd.none)
         TypedDegree str ->
-            let degree = stringShorthandToDegree str
-            in
-                ({ model | degree = degree }, Cmd.none)
+            let input = Content.updateDegree (Degree.fromString True str) model.inputContent
+            in ({ model | inputContent = input }, Cmd.none)
+        CheckedBoxOne ->
+            case model.checkedRules of
+                (one, two, three) ->
+                    ({ model | checkedRules = ((not one), two, three) }, Cmd.none)
+        CheckedBoxTwo ->
+            case model.checkedRules of
+                (one, two, three) ->
+                    ({ model | checkedRules = (one, (not two), three) }, Cmd.none)
+        CheckedBoxThree ->
+            case model.checkedRules of
+                (one, two, three)->
+                    ({ model | checkedRules = (one, two, (not three)) }, Cmd.none)
+        GotError json ->
+            ({ model | error = (Error.fromJson json) }, Cmd.none)
+
+-- Checks if the sign in link is valid
+isLinkValid : Url.Url -> Bool
+isLinkValid url =
+    let decoder = Parser.s "verified" <?> Query.string "apiKey"
+    in
+        case Parser.parse decoder url of
+            Just code ->
+                Maybe.withDefault False (Just True)
+            Nothing ->
+                False
+
+-- Checks if the user has changed their info in the form
+hasChangedInfo : Model -> Bool
+hasChangedInfo model =
+    let inp = model.inputContent
+        sub = model.submittedContent
+    in
+        inp.firstName /= sub.firstName ||
+        inp.lastName /= sub.lastName ||
+        inp.degree /= sub.degree
+
+infoIsNotEmpty : Model -> Bool
+infoIsNotEmpty model =
+    model.inputContent.firstName /= "" &&
+    model.inputContent.lastName /= "" &&
+    model.inputContent.degree /= None
+
+hasCheckedAllRules : Model -> Bool
+hasCheckedAllRules model =
+    case model.checkedRules of
+        (True, True, True) ->
+            True
+        _ ->
+            False
+
+getCheckboxClass : CheckboxId -> Model -> String
+getCheckboxClass id model =
+    case model.checkedRules of
+        (one, two, three) ->
+            case id of
+                FirstBox ->
+                    if one then
+                        "checked-box"
+                    else
+                        "unchecked-box"
+                SecondBox ->
+                    if two then
+                        "checked-box"
+                    else
+                        "unchecked-box"
+                ThirdBox ->
+                    if three then
+                        "checked-box"
+                    else
+                        "unchecked-box"
 
 view : Model -> Html Msg
 view model =
-    showPage model
+    div []
+        [ showPage model
+--      , text (Debug.toString model)
+        ]
 
+-- Shows a subpage
 showPage : Model -> Html Msg
 showPage model =
-    case model.currentSubPage of
-        Verified ->
-            div [ class "verified" ]
-                [ p [] 
-                    [ text (handleQuery model) ]
+    let msgToUser = Error.toString model.error
+        isRelease = (Time.posixToMillis model.currentTime) >= påmeldingUte
+    in
+        case model.currentSubPage of
+            Verified ->
+                div [ class "verified" ]
+                    [ div [ class "text" ] 
+                        [ if model.error == NoError then
+                            text "Du har nå blitt logget inn. Vennligst vent mens du blir videresendt..."
+                         else
+                             text msgToUser
+                        ]
+                    ]
+            MinSide ->
+                div [ class "min-side" ]
+                    [ if isRelease then
+                        påmelding model
+                      else
+                        registrering model
+                    ]
+
+registrering : Model -> Html Msg
+registrering model =
+    let msgToUser = Error.toString model.error
+    in
+        div [ id "min-side-content" ]
+            [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering" ]
+            , div [ class "min-side-item text" ]
+                [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
+                , div [ class "inline-text" ] [ text "Påmeldingen vil dukke opp her " ]
+                , div [ class "inline-link" ] [ text " 29. april kl. 12:00" ]
+                , div [ class "inline-text" ] [ text ", gitt at du er logget inn og har registrert deg." ]
+                , br [] []
+                , div [ class "inline-text" ] [ text "Det er " ]
+                , div [ class "inline-link" ] [ text "IKKE" ]
+                , div [ class "inline-text" ] [ text " nødvendig å refreshe siden for å få påmeldingen til å vises." ]
                 ]
-        MinSide ->
-            div [ class "min-side" ]
-                [ div [ id "min-side-content" ]
-                    [ input [ class "min-side-item", id "email", type_ "text", value (model.email), disabled True ] [ text "Mail" ]
-                    , input [ class "min-side-item", id "firstName", type_ "text", placeholder "Fornavn", Html.Events.onInput TypedFirstName, value (model.firstName) ] [ text "Fornavn" ]
-                    , br [] []
-                    , input [ class "min-side-item", id "lastName", type_ "text", placeholder "Etternavn", Html.Events.onInput TypedLastName, value (model.lastName) ] [ text "Etternavn" ]
-                    , br [] []
-                    , div [ class "min-side-item", id "degree" ]
-                        [ select [ value (degreeToStringShorthand model.degree), Html.Events.onInput TypedDegree ]
-                            [ option [ value "None" ] [ text "" ]
-                            , option [ value "DTEK" ] [ text (degreeToString DTEK) ]
-                            , option [ value "DVIT" ] [ text (degreeToString DVIT) ]
-                            , option [ value "DSIK" ] [ text (degreeToString DSIK) ]
-                            , option [ value "BINF" ] [ text (degreeToString BINF) ]
-                            , option [ value "IMØ" ] [ text (degreeToString IMØ) ]
-                            , option [ value "IKT" ] [ text (degreeToString IKT) ]
-                            , option [ value "KOGNI" ] [ text (degreeToString KOGNI) ]
-                            , option [ value "INF" ] [ text (degreeToString INF) ]
-                            , option [ value "PROG" ] [ text (degreeToString PROG) ]
-                            ]
-                        ]
-                    , div [ class "min-side-item", id "min-side-buttons" ]
-                        [ input [ id "save-btn", value "Lagre endringer og logg ut", disabled <| not <| hasChangedInfo model, type_ "button", Html.Events.onClick UpdateUserInfo ] []
-                        ]
-                    , p [ class "min-side-item", id "error-message" ] [ text (errorMessageToUser model.error) ]
-                    , p [ class "min-side-teim", id "model-debug" ]
-                        [ text (model.email ++ model.firstName ++ model.lastName) ]
+            , div [ id "err-msg" ] [ text msgToUser ]
+            , if (Ticket.toBool model.user.hasTicket) then
+                div [ id "has-ticket-yes" ]
+                    [ text "Du har fått plass!" ]
+              else
+                div [ id "has-ticket-no" ]
+                    [ text "Du har ikke fått plass enda." ]   
+            , input [ class "min-side-item"
+                    , id "email-input", type_ "text"
+                    , disabled True
+                    , value (Email.toString model.user.email) 
+                    , autocomplete False
+                    ] []
+            , input [ class "min-side-item"
+                    , id "firstName"
+                    , type_ "text"
+                    , placeholder "Fornavn"
+                    , value (model.inputContent.firstName) 
+                    , Html.Events.onInput TypedFirstName
+                    , autocomplete False
+                    ] []
+            , br [] []
+            , input [ class "min-side-item"
+                    , id "lastName"
+                    , type_ "text"
+                    , placeholder "Etternavn"
+                    , value (model.inputContent.lastName)
+                    , Html.Events.onInput TypedLastName
+                    , autocomplete False
+                    ] []
+            , br [] []
+            , select [ class "min-side-item", id "degree", value (Degree.toString True model.inputContent.degree), Html.Events.onInput TypedDegree ]
+                [ option [ value "" ] [ text (Degree.toString False None) ]
+                , option [ value "DTEK" ] [ text (Degree.toString False (Valid DTEK)) ]
+                , option [ value "DVIT" ] [ text (Degree.toString False (Valid DVIT)) ]
+                , option [ value "DSIK" ] [ text (Degree.toString False (Valid DSIK)) ]
+                , option [ value "BINF" ] [ text (Degree.toString False (Valid BINF)) ]
+                , option [ value "IMØ" ] [ text (Degree.toString False (Valid IMØ)) ]
+                , option [ value "IKT" ] [ text (Degree.toString False (Valid IKT)) ]
+                , option [ value "KOGNI" ] [ text (Degree.toString False (Valid KOGNI)) ]
+                , option [ value "INF" ] [ text (Degree.toString False (Valid INF)) ]
+                , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
+                ]
+            , div [ class "min-side-item checkbox-grid" ]
+                [ div [ class "checkbox-container" ]
+                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass FirstBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
+                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                    ]
+                , div [ class "text" ]
+                    [ text "Jeg bekrefter at jeg er representert av echo - Fagutvalget for Informatikk, ifølge echo sine statutter per 22. april 2020." ]
+                ]
+            , div [ class "min-side-item checkbox-grid" ]
+                [ div [ class "checkbox-container" ]
+                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass SecondBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
+                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                    ]
+                , div [ class "text" ]
+                    [ text "Jeg bekrefter at jeg enten er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020, eller er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020." ]
+                ]
+            , div [ class "min-side-item checkbox-grid" ]
+                [ div [ class "checkbox-container" ]
+                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass ThirdBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
+                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                    ]
+                , div [ class "text" ]
+                    [ div [ class "inline-text" ] [ text "Jeg godtar " ]
+                    , a [ class "inline-link", href "/info" ] [ text "reglene" ]
+                    , div [ class "inline-text" ] [ text " for bedriftsturen." ]
                     ]
                 ]
+            , div [ class "min-side-item min-side-buttons" ]
+                [ input
+                    [ id "save-btn"
+                    , type_ "button"
+                    , value "Lagre endringer og logg ut"
+                    , Html.Events.onClick
+                        (UpdateUserInfo model.session
+                            { firstName = model.inputContent.firstName, lastName = model.inputContent.lastName, degree = model.inputContent.degree }
+                        )
+                    , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && Session.isSignedIn model.session))
+                    ] []
+                , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
+                ]
+            ]
 
-handleQuery : Model -> String
-handleQuery model =
-    case model.error of
-        NoError ->
-            case (getAuthCode model.url) of
-                AttemptedSignIn str ->
-                    "Du vil bli videresendt straks..."
-                InvalidQuery ->
-                    "Innlogginslinken er ikke gyldig. Prøv igjen"
-        _ ->
-            errorMessageToUser model.error
-
-getAuthCode : Url.Url -> AuthCode
-getAuthCode url =
-    let code = Url.Parser.s "verified" <?> Query.string "apiKey"
+påmelding : Model -> Html Msg
+påmelding model =
+    let msgToUser = Error.toString model.error
     in
-        case (Url.Parser.parse code url) of
-            Just auth ->
-                case auth of
-                    Just query ->
-                        AttemptedSignIn query
-                    Nothing ->
-                        InvalidQuery
-            Nothing ->
-                InvalidQuery
-
-getErrorCode : String -> Error
-getErrorCode json =
-    case Json.Decode.decodeString Json.Decode.string json of
-        Ok code ->
-            errorFromString code
-        Err _ ->
-            NoError
-
-errorFromString : String -> Error
-errorFromString str =
-    case str of
-        "auth/invalid-email" ->
-            InvalidEmail
-        "auth/expired-action-code" ->
-            ExpiredActionCode
-        "auth/invalid-action-code" ->
-            InvalidActionCode
-        "auth/user-disabled" ->
-            UserDisabled
-        "permission-denied" ->
-            PermissionDenied
-        "unathenticated" ->
-            Unauthenticated
-        _ ->
-            NoError
-
-errorMessageToUser : Error -> String
-errorMessageToUser error =
-    case error of
-        InvalidEmail ->
-            "Mailen du har skrevet inn har ikke riktig format. Prøv igjen."
-        ExpiredActionCode ->
-            "Innlogginslinken har utløpt. Prøv å sende en ny link."
-        InvalidActionCode ->
-            "Innlogginslinken er ikke gyldig. Dette kan skje om den allerede har blitt brukt."
-        UserDisabled ->
-            "Brukeren din har blitt deaktivert."
-        PermissionDenied ->
-            """
-            Det skjedde en feil når vi prøvde å hente/oppdatere brukerinformasjonen din. 
-            Dette kan skje om du ikke har registrert deg med en gyldig studentmail.
-            Vennligst logg ut og logg inn med en gyldig studentmail.
-            """
-        Unauthenticated ->
-            "Du har ikke tilgang til denne siden. Prøv å logg inn på nytt."
-        NoError ->
-            ""
-
-encode : String -> Bool ->  Json.Encode.Value
-encode string var =
-    Json.Encode.object [ (string, Json.Encode.bool var) ]
-
-encodeUserInfo : Model -> Json.Encode.Value
-encodeUserInfo model =
-    Json.Encode.object 
-        [ ("firstName", Json.Encode.string model.firstName)
-        , ("lastName", Json.Encode.string model.lastName)
-        , ("degree", Json.Encode.string (degreeToString model.degree))
-        ]
-
-decodeJsonField : Json.Encode.Value -> String -> String
-decodeJsonField json field =
-    let jsonStr = Json.Encode.encode 0 json
-    in
-        case Json.Decode.decodeString (Json.Decode.at [ field ] Json.Decode.string) jsonStr of
-            Ok info ->
-                info 
-            Err _ ->
-                ""
-
-hasChangedInfo : Model -> Bool
-hasChangedInfo model =
-    List.foldl (==) True 
-        [ model.firstName /= model.submittedUserInfo.firstName
-        , model.lastName /= model.submittedUserInfo.lastName
-        , model.degree /= model.submittedUserInfo.degree
-        ]
-
-decodeUser : Json.Encode.Value -> User
-decodeUser json =
-    let jsonStr = Json.Encode.encode 0 json
-        uid = Json.Decode.decodeString (Json.Decode.at [ "uid" ] Json.Decode.string) jsonStr
-    in
-        case uid of
-            Ok value ->
-                { uid = value
-                , isSignedIn = True
-                }
-            Err _ ->
-                { uid = ""
-                , isSignedIn = False
-                }
-
-degreeToString : Degree -> String
-degreeToString degree =
-    case degree of
-        DTEK ->
-            "Datateknologi, 3. året"
-        DVIT ->
-            "Datavitenskap, 3. året"
-        DSIK ->
-            "Datasikkerhet, 3. året"
-        BINF ->
-            "Bioinformatikk, 3. året"
-        IMØ ->
-            "Informatikk-matematikk-økonomi, 3. året"
-        IKT ->
-            "Informasjons- og kommunikasjonsteknologi, 3. året"
-        KOGNI ->
-            "Kognitiv vitenskap med spesialisering i informatikk, 3. året"
-        INF ->
-            "Master i informatikk, 4. året"
-        PROG ->
-            "Master i programutvkling, 4. året"
-        None ->
-            ""
-
-stringToDegree : String -> Degree
-stringToDegree str =
-    case str of
-        "Datateknologi, 3. året" ->
-            DTEK
-        "Datavitenskap, 3. året" ->
-            DVIT
-        "Datasikkerhet, 3. året" ->
-            DSIK
-        "Bioinformatikk, 3. året" ->
-            BINF
-        "Informatikk-matematikk-økonomi, 3. året" ->
-            IMØ
-        "Informasjons- og kommunikasjonsteknologi, 3. året" ->
-            IKT
-        "Kognitiv vitenskap med spesialisering i informatikk, 3. året" ->
-            KOGNI
-        "Master i informatikk, 4. året" ->
-            INF
-        "Master i programutvkling, 4. året" ->
-            PROG
-        _ ->
-            None
-
-stringShorthandToDegree : String -> Degree
-stringShorthandToDegree str =
-    case str of
-        "DTEK" ->
-            DTEK
-        "DVIT" ->
-            DVIT
-        "DSIK" ->
-            DSIK
-        "BINF" ->
-            BINF
-        "IMØ" ->
-            IMØ
-        "IKT" ->
-            IKT
-        "KOGNI" ->
-            KOGNI
-        "INF" ->
-            INF
-        "PROG" ->
-            PROG
-        _ ->
-            None
-
-degreeToStringShorthand : Degree -> String
-degreeToStringShorthand degree =
-    case degree  of
-        DTEK ->
-            "DTEK"
-        DVIT ->
-            "DVIT"
-        DSIK ->
-            "DSIK"
-        BINF ->
-            "BINF"
-        IMØ ->
-            "IMØ"
-        IKT ->
-            "IKT"
-        KOGNI ->
-            "KOGNI"
-        INF ->
-            "INF"
-        PROG ->
-            "PROG"
-        None ->
-            ""
-
-verified : SubPage
-verified =
-    Verified
+        div [ id "min-side-content" ]
+            [ h1 [ id "min-side-header" ] [ text "Påmelding" ]
+            , div [ id "err-msg" ] [ text msgToUser ]
+            ]

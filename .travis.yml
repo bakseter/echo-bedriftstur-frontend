@@ -1,7 +1,7 @@
 if: branch = master
 language: node_js
 node_js:
-    - '13'
+    - '8'
 install:
     - npm install -g firebase-tools elm terser
 script:

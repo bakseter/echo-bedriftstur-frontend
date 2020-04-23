@@ -1,4 +1,4 @@
-module Page.Program exposing (init, subscriptions, update, view, Model, Msg)
+module Page.Program exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, h1, h3, text, a, br)
 import Html.Attributes exposing (class, id)
@@ -15,6 +15,10 @@ type Msg
 
 type alias Model = 
     Html Msg
+
+route : String
+route =
+    "program"
 
 init : Model
 init =
@@ -44,7 +48,7 @@ view : Model -> Html Msg
 view model =
     div [ class "program" ]
         [ div [ class "day-item", id "onsdag" ]
-            [ h1 [] [ text "Onsdag" ]
+            [ h1 [] [ text "Onsdag 26. august" ]
             , div [ class "program-item", Html.Events.onClick MnemonicMap ]
                 [ div [ class "program-tab", id "mnemonic-tab" ] [ br [] [] ]
                 , div [ class "program-content", id "mnemonic-content" ]
@@ -67,7 +71,7 @@ view model =
                 ]
             ]
         , div [ class "day-item", id "torsdag" ]
-            [ h1 [] [ text "Torsdag" ]
+            [ h1 [] [ text "Torsdag 27. august" ]
             , div [ class "program-item", Html.Events.onClick CiscoMap ]
                 [ div [ class "program-tab", id "cisco-tab" ] [ br [] [] ]
                 , div [ class "program-content", id "cisco-content" ]
@@ -90,7 +94,7 @@ view model =
                 ]
             ]
         , div [ class "day-item", id "fredag" ] 
-            [ h1 [] [ text "Fredag" ]
+            [ h1 [] [ text "Fredag 28. august" ]
             , div [ class "program-item", Html.Events.onClick DnbMap ]
                 [ div [ class "program-tab", id "dnb-tab" ] [ br [] [] ]
                 , div [ class "program-content", id "dnb-content" ]
