@@ -59,7 +59,7 @@ view model =
             , div [ id "elias" ] [ img [ class "portrett", src "/img/elias.png", alt "Elias", Html.Events.onClick EliasLinkedIn ] [] ]
             , div [ class "om-info", id "elias-info" ]
                 [ div [ class "navn" ] [ text "Elias Djupesland" ]
-                , div [ class "tittel" ] [ text "Leder og bedriftskontant" ]
+                , div [ class "tittel" ] [ text "Leder og bedriftskontakt" ]
                 , div [ class (Tuple.first (getMail model EliasMail)), Html.Events.onClick EliasMail ] [ text (Tuple.second (getMail model EliasMail)) ]
                 ]
             , div [ id "andreas" ] [ img [ class "portrett", src "/img/andreas.png", alt "Andreas", Html.Events.onClick AndreasLinkedIn ] [] ]

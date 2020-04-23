@@ -12,8 +12,7 @@ import Error exposing (Error(..))
 
 launch : Int
 launch =
---  1587549600000
-    0
+    1588068000000
 
 type Msg
     = Tick Time.Posix
@@ -62,13 +61,7 @@ update msg model =
     case msg of
         Tick time ->
             let newModel = { model | currentTime = time }
-            in
-                if (Time.posixToMillis time) < launch then
-                    ({ newModel | currentSubPage = Countdown }, Cmd.none)
-                else if model.currentSubPage /= LinkSent then
-                    ({ newModel | currentSubPage = SignIn }, Cmd.none)
-                else
-                    (newModel, Cmd.none)
+            in (newModel, Cmd.none)
         TypedEmail str ->
             ({ model | email = str }, Cmd.none)
         SendSignInLink ->
