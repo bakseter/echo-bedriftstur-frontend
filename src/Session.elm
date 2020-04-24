@@ -1,4 +1,4 @@
-module Session exposing (Session, isSignedIn, encode, decode)
+module Session exposing (Session, empty, isSignedIn, encode, decode)
 
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -10,6 +10,10 @@ type alias Session =
     { uid : Uid
     , email : Email
     }
+
+empty : Session
+empty =
+    Session (Uid "") (Email "")
 
 isSignedIn : Session -> Bool
 isSignedIn session =

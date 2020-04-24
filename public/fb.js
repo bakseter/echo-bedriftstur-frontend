@@ -45,6 +45,7 @@ const getUserInfo = (col, doc, data) => {
                 , firstName: null
                 , lastName: null
                 , degree: null
+                , terms: null
                 , hasTicket: null
                 };
             db.collection(col).doc(doc).set(emailOnly)
@@ -91,7 +92,7 @@ const createTicket = (col, doc, data) => {
 const updateUserInfo = (col, doc, data) => {
     db.collection(col).doc(doc).set(data)
     .then(docRef => {
-        if (data.firstName !== null && data.lastName !== null && data.degree !== null) {
+        if (data.firstName !== null && data.lastName !== null && data.degree !== null && data.terms !== null) {
             app.ports.updateUserInfoSucceeded.send(true);
         }
     })
@@ -176,6 +177,7 @@ app.ports.updateUserInfo.subscribe(data => {
                     , firstName: data.firstName
                     , lastName: data.lastName
                     , degree: data.degree
+                    , terms: data.terms
                     , hasTicket: null
                     };
     updateUserInfo(data.collection, data.uid, content);

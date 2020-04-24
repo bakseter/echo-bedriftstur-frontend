@@ -53,14 +53,15 @@ p {
     background-color: var(--foreground);
 }
 
-#user-info {
+.user-info {
     display: grid;
     grid-template-columns: 50% 50%;
+    align-items: center;
     border-bottom: 3px solid black;
 }
 
-#hjem-icon {
-    font-size: 5rem;
+#profile-icon, #sign-in-icon {
+    font-size: 4rem;
 }
 
 .navbar, .navbar-hidden {
@@ -197,16 +198,33 @@ h1 {
     grid-row: 3 / span 1;
 }
 
-.barcode-item-1 {
+.barcode-item {
+    animation-name: slide-up;
+    animation-duration: 1.5s;
+    animation-iteration-count: 1;
+    animation-timing-function: ease;
+    transition: 0.3s ease-out;
+}
+
+.barcode-item:hover {
+    transform: translateY(10%);
+}
+
+@keyframes slide-up {
+    from { transform: translateY(400px); }
+    to { transform: translateY(0px); }
+}
+
+#barcode-item-1 {
     fill: var(--color-mnemonic);
 }
-.barcode-item-2 {
+#barcode-item-2 {
     fill: var(--color-cisco);
 }
-.barcode-item-3 {
+#barcode-item-3 {
     fill: var(--color-computas);
 }
-.barcode-item-4 {
+#barcode-item-4 {
     fill: var(--color-knowit);
 }
 
@@ -519,6 +537,7 @@ input[type=text]:focus {
 #min-side-header {
     text-align: center;
     padding-top: 1%;
+    font-size: 3rem;
 }
 
 .min-side-item {
@@ -575,15 +594,21 @@ input[type=text]:focus {
     transition: transform ease 0.2s;
 }
 
-.submit-buttons {
+#update-info-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 1%;
+    color: green;
+}
+
+#min-side-buttons {
     display: grid;
     grid-template-columns: auto auto;
     justify-items: center;
     align-items: center;
 }
-
 #signout-btn, #save-btn {
-    margin: 3%;
+    padding: 4%;
 }
 
 input[type=button] {

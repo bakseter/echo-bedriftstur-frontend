@@ -187,9 +187,8 @@ header model =
     in
         [ div [ class "menu" ]
             [ span [ id "hjem" ] 
-                [ a [ id "logo-stack", href "/", Html.Events.onClick (ShowNavbar True) ] 
-                    [ img [ id "logo", alt "logo", src "/img/echoicon.png" ] []
-                    ]
+                [ a [ href "/", Html.Events.onClick (ShowNavbar True) ] 
+                    [ img [ id "logo", alt "logo", src "/img/echoicon.png" ] [] ]
                 ]
             , span [ id "logo-text" ]
               [ span [] [ text "echo " ]
@@ -214,19 +213,18 @@ getUserInfo model =
     let isSignedIn = Session.isSignedIn model.modelVerified.session
         email = if isSignedIn then Email.toString model.modelVerified.session.email else ""
     in
-        [ a [ class "navbar-item", href "/", Html.Events.onClick (ShowNavbar False) ] [ i [ class "fa fa-home", id "hjem-icon" ] [] ] 
-        , if isSignedIn then
-            div [ id "user-info-email" ] 
-            [ a [ href ("/" ++ Verified.route), Html.Events.onClick (ShowNavbar False) ] [ text "Min profil" ] ]
+        [ if isSignedIn then
+            a [ class "user-info", href ("/" ++ Verified.route), Html.Events.onClick (ShowNavbar False) ]
+                [ i [ id "profile-icon", class "fa fa-user-circle" ] [], text "Min profil" ]
           else
-            div [ id "user-info-text" ] 
-                [ a [ href ("/" ++ LoggInn.route), Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ] ]
+            a [ class "user-info", href ("/" ++ LoggInn.route), Html.Events.onClick (ShowNavbar False) ] 
+                [ i [ id "sign-in-icon", class "fa fa-sign-in" ] [], text "Logg inn" ]
         ]
 
 getNavbar : Model -> List (Html Msg)
 getNavbar model =
         [ span [] []
-        , div [ class "navbar-item", id "user-info" ]
+        , div [ class "navbar-item" ]
             (getUserInfo model)
         , span [] []
         , a [ class "navbar-item", href ("/" ++ Info.route), Html.Events.onClick (ShowNavbar False) ] [ text "Informasjon" ]
@@ -234,6 +232,7 @@ getNavbar model =
         , a [ class "navbar-item", href ("/" ++ Bedrifter.route), Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
         , a [ class "navbar-item", href ("/" ++ Om.route), Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
         ]
+
 view : Model -> Browser.Document Msg
 view model =
     showPage model

@@ -20,6 +20,7 @@ import User exposing (User)
 import Uid exposing (Uid(..))
 import Email exposing (Email(..))
 import Degree exposing (Degree(..), Degrees(..))
+import Terms exposing (..)
 import Content exposing (Content)
 import Session exposing (Session)
 import Ticket exposing (Ticket(..), toBool)
@@ -83,6 +84,11 @@ type CheckboxId
     | SecondBox
     | ThirdBox
 
+type UpdateUserInfoStage
+    = Idle
+    | Updating
+    | Succeeded
+
 type alias Model =
     { url : Url.Url
     , key : Browser.Navigation.Key
@@ -91,6 +97,7 @@ type alias Model =
     , inputContent : Content
     , submittedContent : Content
     , checkedRules : (Bool, Bool, Bool)
+    , updateStage : UpdateUserInfoStage
     , currentSubPage : SubPage
     , session : Session
     , error : Error
@@ -104,13 +111,14 @@ init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
     { url = url
     , key = key
-    , user = User (Email "") "" "" None (Ticket False)
+    , user = User.empty
     , currentTime = Time.millisToPosix 0
-    , inputContent = Content "" "" None
-    , submittedContent = Content "" "" None
+    , inputContent = Content.empty
+    , submittedContent = Content.empty
     , checkedRules = (False, False, False)
+    , updateStage = Idle
     , currentSubPage = MinSide
-    , session = Session (Uid "") (Email "")
+    , session = Session.empty
     , error = NoError
     }
 
@@ -156,21 +164,23 @@ update msg model =
         GetUserInfoSucceeded json ->
             case User.decode json of
                 Just content ->
-                    let submittedContent = Content content.firstName content.lastName content.degree
-                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.hasTicket
+                    let submittedContent = Content content.firstName content.lastName content.degree content.terms
+                        newCheckedRules = if Terms.toBool content.terms then (True, True, True) else model.checkedRules
+                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.terms content.hasTicket
                         , submittedContent = submittedContent
-                        , inputContent = submittedContent }
+                        , inputContent = submittedContent 
+                        , checkedRules = newCheckedRules }
                         , Cmd.none)
                 Nothing ->
                     update (GotError (Error.encode "json-parse-error")) model
         UpdateUserInfo session content ->
-            let newContent = Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree
+            let newContent = Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree (Terms (hasCheckedAllRules model))
                 message = Content.encode session newContent
-            in (model, Cmd.batch [ updateUserInfo message, Browser.Navigation.pushUrl model.key redirectToHome ])
+            in ({ model | updateStage = Updating }, updateUserInfo message)
         UpdateUserInfoSucceeded _ ->
             let subCont = model.submittedContent
-                newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree subCont
-            in ({ model | submittedContent = newSubCont }, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
+                newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree (Terms (hasCheckedAllRules model)) subCont
+            in ({ model | submittedContent = newSubCont, updateStage = Succeeded }, Cmd.none)
         CreateTicket ->
             (model, createTicket (Ticket.encode model.session))
         CreateTicketSucceeded json ->
@@ -285,118 +295,101 @@ showPage model =
                     ]
             MinSide ->
                 div [ class "min-side" ]
-                    [ if isRelease then
-                        påmelding model
-                      else
-                        registrering model
+                    [ div [ id "min-side-content" ]
+                        [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering" ]
+                        , div [ class "min-side-item text" ]
+                            [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
+                            , div [ class "inline-text" ] [ text "Påmeldingen vil dukke opp her " ]
+                            , div [ class "inline-link" ] [ text " 29. april kl. 12:00" ]
+                            , div [ class "inline-text" ] [ text ", gitt at du er logget inn og har registrert deg." ]
+                            , br [] []
+                            , div [ class "inline-text" ] [ text "Det er " ]
+                            , div [ class "inline-link" ] [ text "IKKE" ]
+                            , div [ class "inline-text" ] [ text " nødvendig å refreshe siden for å få påmeldingen til å vises." ]
+                            ]
+                        , div [ id "err-msg" ] [ text msgToUser ]
+                        , if (Ticket.toBool model.user.hasTicket) then
+                            div [ id "has-ticket-yes" ]
+                                [ text "Du har fått plass!" ]
+                          else
+                            div [ id "has-ticket-no" ]
+                                [ text "Du har ikke fått plass enda." ]
+                        , input [ class "min-side-item"
+                                , type_ "text"
+                                , disabled True
+                                , placeholder "Email"
+                                , value (Email.toString model.user.email) 
+                                , autocomplete False
+                                ] []
+                        , input [ class "min-side-item"
+                                , type_ "text"
+                                , placeholder "Fornavn"
+                                , value (model.inputContent.firstName) 
+                                , Html.Events.onInput TypedFirstName
+                                , autocomplete False
+                                ] []
+                        , br [] []
+                        , input [ class "min-side-item"
+                                , type_ "text"
+                                , placeholder "Etternavn"
+                                , value (model.inputContent.lastName)
+                                , Html.Events.onInput TypedLastName
+                                , autocomplete False
+                                ] []
+                        , br [] []
+                        , select [ class "min-side-item", value (Degree.toString True model.inputContent.degree), Html.Events.onInput TypedDegree ]
+                            [ option [ value "" ] [ text (Degree.toString False None) ]
+                            , option [ value "DTEK" ] [ text (Degree.toString False (Valid DTEK)) ]
+                            , option [ value "DVIT" ] [ text (Degree.toString False (Valid DVIT)) ]
+                            , option [ value "DSIK" ] [ text (Degree.toString False (Valid DSIK)) ]
+                            , option [ value "BINF" ] [ text (Degree.toString False (Valid BINF)) ]
+                            , option [ value "IMØ" ] [ text (Degree.toString False (Valid IMØ)) ]
+                            , option [ value "IKT" ] [ text (Degree.toString False (Valid IKT)) ]
+                            , option [ value "KOGNI" ] [ text (Degree.toString False (Valid KOGNI)) ]
+                            , option [ value "INF" ] [ text (Degree.toString False (Valid INF)) ]
+                            , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
+                            ]
+                        , div [ class "min-side-item checkbox-grid" ]
+                            [ div [ class "checkbox-container" ]
+                                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass FirstBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
+                                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                                ]
+                            , div [ class "text" ]
+                                [ text "Jeg bekrefter at jeg er representert av echo - Fagutvalget for Informatikk, ifølge echo sine statutter per 22. april 2020." ]
+                            ]
+                        , div [ class "min-side-item checkbox-grid" ]
+                            [ div [ class "checkbox-container" ]
+                                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass SecondBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
+                                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                                ]
+                            , div [ class "text" ]
+                                [ text "Jeg bekrefter at jeg enten er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020, eller er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020." ]
+                            ]
+                        , div [ class "min-side-item checkbox-grid" ]
+                            [ div [ class "checkbox-container" ]
+                                [ Svg.svg [ Svg.Attributes.class (getCheckboxClass ThirdBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
+                                    [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
+                                ]
+                            , div [ class "text" ]
+                                [ div [ class "inline-text" ] [ text "Jeg godtar " ]
+                                , a [ class "inline-link", href "/info" ] [ text "reglene" ]
+                                , div [ class "inline-text" ] [ text " for bedriftsturen." ]
+                                ]
+                            ]
+                        , div [ id "update-info-text" ]
+                            [ text (if model.updateStage == Succeeded then "Dine endringer har blitt lagret!" else "") ]
+                        , div [ class "min-side-item", id "min-side-buttons" ]
+                            [ input
+                                [ id "save-btn"
+                                , type_ "button"
+                                , value (if model.updateStage /= Updating then "Lagre endringer" else " . . . ")
+                                , Html.Events.onClick
+                                    (UpdateUserInfo model.session
+                                        { firstName = model.inputContent.firstName, lastName = model.inputContent.lastName, degree = model.inputContent.degree, terms = (Terms (hasCheckedAllRules model)) }
+                                    )
+                                , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && Session.isSignedIn model.session))
+                                ] []
+                            , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
+                            ]
+                        ]
                     ]
-
-registrering : Model -> Html Msg
-registrering model =
-    let msgToUser = Error.toString model.error
-    in
-        div [ id "min-side-content" ]
-            [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering" ]
-            , div [ class "min-side-item text" ]
-                [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
-                , div [ class "inline-text" ] [ text "Påmeldingen vil dukke opp her " ]
-                , div [ class "inline-link" ] [ text " 29. april kl. 12:00" ]
-                , div [ class "inline-text" ] [ text ", gitt at du er logget inn og har registrert deg." ]
-                , br [] []
-                , div [ class "inline-text" ] [ text "Det er " ]
-                , div [ class "inline-link" ] [ text "IKKE" ]
-                , div [ class "inline-text" ] [ text " nødvendig å refreshe siden for å få påmeldingen til å vises." ]
-                ]
-            , div [ id "err-msg" ] [ text msgToUser ]
-            , if (Ticket.toBool model.user.hasTicket) then
-                div [ id "has-ticket-yes" ]
-                    [ text "Du har fått plass!" ]
-              else
-                div [ id "has-ticket-no" ]
-                    [ text "Du har ikke fått plass enda." ]   
-            , input [ class "min-side-item"
-                    , id "email-input", type_ "text"
-                    , disabled True
-                    , value (Email.toString model.user.email) 
-                    , autocomplete False
-                    ] []
-            , input [ class "min-side-item"
-                    , id "firstName"
-                    , type_ "text"
-                    , placeholder "Fornavn"
-                    , value (model.inputContent.firstName) 
-                    , Html.Events.onInput TypedFirstName
-                    , autocomplete False
-                    ] []
-            , br [] []
-            , input [ class "min-side-item"
-                    , id "lastName"
-                    , type_ "text"
-                    , placeholder "Etternavn"
-                    , value (model.inputContent.lastName)
-                    , Html.Events.onInput TypedLastName
-                    , autocomplete False
-                    ] []
-            , br [] []
-            , select [ class "min-side-item", id "degree", value (Degree.toString True model.inputContent.degree), Html.Events.onInput TypedDegree ]
-                [ option [ value "" ] [ text (Degree.toString False None) ]
-                , option [ value "DTEK" ] [ text (Degree.toString False (Valid DTEK)) ]
-                , option [ value "DVIT" ] [ text (Degree.toString False (Valid DVIT)) ]
-                , option [ value "DSIK" ] [ text (Degree.toString False (Valid DSIK)) ]
-                , option [ value "BINF" ] [ text (Degree.toString False (Valid BINF)) ]
-                , option [ value "IMØ" ] [ text (Degree.toString False (Valid IMØ)) ]
-                , option [ value "IKT" ] [ text (Degree.toString False (Valid IKT)) ]
-                , option [ value "KOGNI" ] [ text (Degree.toString False (Valid KOGNI)) ]
-                , option [ value "INF" ] [ text (Degree.toString False (Valid INF)) ]
-                , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
-                ]
-            , div [ class "min-side-item checkbox-grid" ]
-                [ div [ class "checkbox-container" ]
-                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass FirstBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxOne ]
-                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
-                    ]
-                , div [ class "text" ]
-                    [ text "Jeg bekrefter at jeg er representert av echo - Fagutvalget for Informatikk, ifølge echo sine statutter per 22. april 2020." ]
-                ]
-            , div [ class "min-side-item checkbox-grid" ]
-                [ div [ class "checkbox-container" ]
-                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass SecondBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxTwo ]
-                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
-                    ]
-                , div [ class "text" ]
-                    [ text "Jeg bekrefter at jeg enten er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020, eller er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020." ]
-                ]
-            , div [ class "min-side-item checkbox-grid" ]
-                [ div [ class "checkbox-container" ]
-                    [ Svg.svg [ Svg.Attributes.class (getCheckboxClass ThirdBox model), Svg.Attributes.width "40", Svg.Attributes.height "40", Svg.Events.onClick CheckedBoxThree ]
-                        [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
-                    ]
-                , div [ class "text" ]
-                    [ div [ class "inline-text" ] [ text "Jeg godtar " ]
-                    , a [ class "inline-link", href "/info" ] [ text "reglene" ]
-                    , div [ class "inline-text" ] [ text " for bedriftsturen." ]
-                    ]
-                ]
-            , div [ class "min-side-item min-side-buttons" ]
-                [ input
-                    [ id "save-btn"
-                    , type_ "button"
-                    , value "Lagre endringer og logg ut"
-                    , Html.Events.onClick
-                        (UpdateUserInfo model.session
-                            { firstName = model.inputContent.firstName, lastName = model.inputContent.lastName, degree = model.inputContent.degree }
-                        )
-                    , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && Session.isSignedIn model.session))
-                    ] []
-                , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
-                ]
-            ]
-
-påmelding : Model -> Html Msg
-påmelding model =
-    let msgToUser = Error.toString model.error
-    in
-        div [ id "min-side-content" ]
-            [ h1 [ id "min-side-header" ] [ text "Påmelding" ]
-            , div [ id "err-msg" ] [ text msgToUser ]
-            ]

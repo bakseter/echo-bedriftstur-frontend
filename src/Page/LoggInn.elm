@@ -12,7 +12,8 @@ import Error exposing (Error(..))
 
 launch : Int
 launch =
-    1588068000000
+--  1588068000000
+    0
 
 type Msg
     = Tick Time.Posix
@@ -60,7 +61,9 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         Tick time ->
-            let newModel = { model | currentTime = time }
+            let changeSubPage = (Time.posixToMillis model.currentTime) >= launch && model.currentSubPage == Countdown
+                newSubPage = if changeSubPage then SignIn else model.currentSubPage
+                newModel = { model | currentTime = time, currentSubPage = newSubPage }
             in (newModel, Cmd.none)
         TypedEmail str ->
             ({ model | email = str }, Cmd.none)
@@ -143,11 +146,11 @@ showPage model =
                 , h3 [] [ text (Error.toString model.error) ]
                 ]
         LinkSent ->
-            div [ id "logg-inn-content" ]
+            div [ class "text", id "logg-inn-content" ]
                 [ h1 [] [ text "Registrer deg/logg inn" ]
-                , p []
+                , div []
                     [ text ("Vi har nå sendt deg en mail på " ++ model.email ++ ".") ]
-                , p []
+                , div []
                     [ text "Husk å sjekke søppelposten din!" ]
                 ]
 
