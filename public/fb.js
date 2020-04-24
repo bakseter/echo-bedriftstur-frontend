@@ -178,7 +178,6 @@ app.ports.updateUserInfo.subscribe(data => {
                     , lastName: data.lastName
                     , degree: data.degree
                     , terms: data.terms
-                    , hasTicket: null
                     };
     updateUserInfo(data.collection, data.uid, content);
 });

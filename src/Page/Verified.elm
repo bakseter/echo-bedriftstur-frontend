@@ -28,7 +28,8 @@ import Error exposing (Error(..))
 
 påmeldingUte : Int
 påmeldingUte =
-    1599994800000
+--  1599994800000
+    0
 
 redirectToHome : String
 redirectToHome =
@@ -85,9 +86,14 @@ type CheckboxId
     | ThirdBox
 
 type UpdateUserInfoStage
-    = Idle
+    = UpdateIdle
     | Updating
     | Succeeded
+
+type TicketStage
+    = TicketIdle
+    | Creating
+    | Created
 
 type alias Model =
     { url : Url.Url
@@ -98,6 +104,7 @@ type alias Model =
     , submittedContent : Content
     , checkedRules : (Bool, Bool, Bool)
     , updateStage : UpdateUserInfoStage
+    , ticketStage : TicketStage
     , currentSubPage : SubPage
     , session : Session
     , error : Error
@@ -116,7 +123,8 @@ init url key =
     , inputContent = Content.empty
     , submittedContent = Content.empty
     , checkedRules = (False, False, False)
-    , updateStage = Idle
+    , updateStage = UpdateIdle
+    , ticketStage = TicketIdle
     , currentSubPage = MinSide
     , session = Session.empty
     , error = NoError
@@ -166,10 +174,16 @@ update msg model =
                 Just content ->
                     let submittedContent = Content content.firstName content.lastName content.degree content.terms
                         newCheckedRules = if Terms.toBool content.terms then (True, True, True) else model.checkedRules
+                        newTicketStage = case Ticket.toBool content.hasTicket of
+                                            Just _ ->
+                                                Created
+                                            Nothing ->
+                                                TicketIdle
                     in ({ model | user = User content.email content.firstName content.lastName content.degree content.terms content.hasTicket
                         , submittedContent = submittedContent
                         , inputContent = submittedContent 
-                        , checkedRules = newCheckedRules }
+                        , checkedRules = newCheckedRules
+                        , ticketStage = newTicketStage }
                         , Cmd.none)
                 Nothing ->
                     update (GotError (Error.encode "json-parse-error")) model
@@ -182,9 +196,9 @@ update msg model =
                 newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree (Terms (hasCheckedAllRules model)) subCont
             in ({ model | submittedContent = newSubCont, updateStage = Succeeded }, Cmd.none)
         CreateTicket ->
-            (model, createTicket (Ticket.encode model.session))
+            ({ model | ticketStage = Creating }, createTicket (Ticket.encode model.session))
         CreateTicketSucceeded json ->
-            (model, Cmd.none)
+            ({ model | ticketStage = Created }, Cmd.none)
         AttemptSignOut ->
             (model, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         SignOutSucceeded _ ->
@@ -282,6 +296,22 @@ showPage : Model -> Html Msg
 showPage model =
     let msgToUser = Error.toString model.error
         isRelease = (Time.posixToMillis model.currentTime) >= påmeldingUte
+        hasTicket = case Ticket.toBool model.user.hasTicket of
+                        Just bool ->
+                            bool
+                        Nothing ->
+                            False
+        maybeHasTicket = Ticket.toBool model.user.hasTicket
+        ticketBtnText = case model.ticketStage of
+                            TicketIdle ->
+                                if isRelease then
+                                    "Meld meg på!"
+                                else
+                                    "Påmeldingen har ikke åpnet enda."
+                            Creating ->
+                                " . . . "
+                            Created ->
+                                "Du har blitt meldt på."
     in
         case model.currentSubPage of
             Verified ->
@@ -308,12 +338,25 @@ showPage model =
                             , div [ class "inline-text" ] [ text " nødvendig å refreshe siden for å få påmeldingen til å vises." ]
                             ]
                         , div [ id "err-msg" ] [ text msgToUser ]
-                        , if (Ticket.toBool model.user.hasTicket) then
-                            div [ id "has-ticket-yes" ]
-                                [ text "Du har fått plass!" ]
-                          else
-                            div [ id "has-ticket-no" ]
-                                [ text "Du har ikke fått plass enda." ]
+                        , div [ id "tickets" ]
+                            [ case maybeHasTicket of
+                                Just bool ->
+                                    if bool then
+                                        div [ id "has-ticket-yes" ]
+                                            [ text "Du har fått plass!" ]
+                                      else
+                                        div [ id "has-ticket-no" ]
+                                            [ text "Du fikk dessverre ikke plass." ]
+                                Nothing ->
+                                    div [ id "has-ticket-maybe" ]
+                                        [ text "Du har ikke fått plass enda." ]
+                                , input [ id "ticket-button"
+                                        , type_ "button"
+                                        , disabled ((not isRelease) || model.ticketStage == Created)
+                                        , value ticketBtnText
+                                        , Html.Events.onClick CreateTicket
+                                        ] []
+                            ]
                         , input [ class "min-side-item"
                                 , type_ "text"
                                 , disabled True

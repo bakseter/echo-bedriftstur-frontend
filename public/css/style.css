@@ -551,22 +551,32 @@ input[type=text]:focus {
     color: red;
     font-size: 1.5rem;
     font-weight: bold;
-    padding-bottom: 2%;
 }
 
-#has-ticket-no {
+#tickets {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-gap: 2%;
+    width: 45%;
+    padding: 2% 0% 2% 0%;
+}
+
+#has-ticket-yes, #has-ticket-no, #has-ticket-maybe {
     font-size: 1.2rem;
     font-weight: bold;
-    border: 3px solid red;
     border-radius: 0.5rem;
-    padding: 3%;
+    border: 3px solid;
+    padding: 7%;
+    text-align: center;
 }
 #has-ticket-yes {
-    font-size: 1.2rem;
-    font-weight: bold;
-    border: 3px solid green;
-    border-radius: 0.5rem;
-    padding: 3%;
+    border-color: green;
+}
+#has-ticket-no {
+    border-color: red;
+}
+#has-ticket-maybe {
+    border-color: yellow;
 }
 
 .checkbox-grid {

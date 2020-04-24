@@ -21,7 +21,7 @@ type alias User =
 
 empty : User
 empty =
-    User (Email "") "" "" None (Terms False) (Ticket False)
+    User (Email "") "" "" None (Terms False) (Ticket Nothing)
 
 -- Uses the contentDecoder function to turn
 -- a JSON object into a User record.
