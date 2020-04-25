@@ -1,7 +1,7 @@
 module Page.Hjem exposing (init, subscriptions, update, view, Model, Msg)
 
-import Html exposing (Html, div, span, h1, text, br, ul, li, i, a)
-import Html.Attributes exposing (class, id, href, target, rel, style)
+import Html exposing (Html, div, h1, text)
+import Html.Attributes exposing (class, id)
 import Svg
 import Svg.Attributes
 
@@ -29,7 +29,6 @@ view model =
         , div [ id "hjem-text" ]
             [ div [] [ text "Er du nysgjerrig på jobbmulighetene i Oslo etter endt utdanning?" ]
             , div [] [ text "Bedriftsturkomitéen arrangerer besøk hos seks forskjellige bedrifter til høsten!" ]
-            , div [] [ text "" ]
             ]
         , div [ id "barcode-anim" ]
             [ Svg.svg [ Svg.Attributes.width "800", Svg.Attributes.height "350" ]

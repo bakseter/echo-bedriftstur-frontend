@@ -76,7 +76,7 @@ errorMsgList =
             , ("aborted", stdMsg ++ "(feilkode 31).")
             , ("out-of-range", stdMsg ++ "(feilkode 32).")
             , ("unimplemented", stdMsg ++ "(feilkode 33).")
-            , ("internal", "Noe har gått veldig galt. Vennligst kontakt oss på kontakt@echobedriftstur.no (feilkode 34).")
+            , ("internal", "Det har skjedd en feil. Vennligst kontakt oss på kontakt@echobedriftstur.no (feilkode 34).")
             , ("unavailable", "Tjenesten er ikke tilgjengelig akkurat nå. Vennligst prøv igjen senere (feilkode 35).")
             , ("data-loss", stdMsg ++ "(feilkode 36).")
             , ("unauthenticated", "Du har ikke tilgang til å utføre denne handlingen (feilkode 37).")

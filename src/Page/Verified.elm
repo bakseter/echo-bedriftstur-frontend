@@ -1,6 +1,6 @@
 port module Page.Verified exposing (init, subscriptions, view, update, Model, Msg, route)
 
-import Html exposing (Html, div, span, br, text, p, input, select, option, h1, h2, h3, a)
+import Html exposing (Html, div, span, br, text, input, select, option, h1, a)
 import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, autocomplete, href)
 import Html.Events
 import Json.Encode as Encode
@@ -125,7 +125,7 @@ init url key =
     , checkedRules = (False, False, False)
     , updateStage = UpdateIdle
     , ticketStage = TicketIdle
-    , currentSubPage = Verified
+    , currentSubPage = MinSide
     , session = Session.empty
     , error = NoError
     }
@@ -319,27 +319,27 @@ showPage model =
             MinSide ->
                 div [ class "min-side" ]
                     [ div [ id "min-side-content" ]
-                        [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering og påmelding" ]
+                        [ h1 [ class "min-side-item" ] [ text "Registrering og påmelding" ]
                         , div [ class "min-side-item text" ]
                             [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
                             , div [ class "inline-text" ] [ text "Du melder deg på ved å trykke på knappen under når påmeldingen åpner " ]
                             , div [ class "inline-link" ] [ text " 29. april kl. 12:00" ]
                             , div [ class "inline-text" ] [ text ", gitt at du er logget inn og har fylt inn din informasjon." ]
                             ]
-                        , div [ id "err-msg" ] [ text msgToUser ]
-                        , div [ id "tickets" ]
+                        , div [ class "min-side-item", id "err-msg" ] [ text msgToUser ]
+                        , div [ class "min-side-item", id "tickets" ]
                             [ case maybeHasTicket of
                                 Just bool ->
                                     if bool then
-                                        div [ id "has-ticket-yes" ]
+                                        div [ class "ticket-item", id "has-ticket-yes" ]
                                             [ text "Du har fått plass!" ]
                                       else
-                                        div [ id "has-ticket-no" ]
+                                        div [ class "ticket-item", id "has-ticket-no" ]
                                             [ text "Du fikk dessverre ikke plass." ]
                                 Nothing ->
-                                    div [ id "has-ticket-maybe" ]
+                                    div [ class "ticket-item", id "has-ticket-maybe" ]
                                         [ text "Du har ikke fått plass enda." ]
-                                , input [ id "ticket-button"
+                                , input [ class "ticket-item", id "ticket-button"
                                         , type_ "button"
                                         , disabled ((not isRelease) || model.ticketStage == Created)
                                         , value ticketBtnText

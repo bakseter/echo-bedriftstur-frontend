@@ -2,7 +2,7 @@ module Main exposing (main, typeWriterAnim)
 
 import Browser
 import Browser.Navigation
-import Html exposing (Html, div, span, h1, h3, text, a, img, i)
+import Html exposing (Html, div, span, h1, text, a, img, i)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
 import Html exposing (Html)
@@ -186,11 +186,11 @@ header model =
         email = Email.toString model.modelVerified.session.email
     in
         [ div [ class "menu" ]
-            [ span [ id "hjem" ] 
+            [ div [ id "logo-wrapper" ] 
                 [ a [ href "/", Html.Events.onClick (ShowNavbar True) ] 
                     [ img [ id "logo", alt "logo", src "/img/echoicon.png" ] [] ]
                 ]
-            , span [ id "logo-text" ]
+            , div [ id "logo-text" ]
               [ span [] [ text "echo " ]
               , span
                   (Animation.render model.logoTextStyle) [ text name ]
@@ -203,9 +203,9 @@ header model =
                 , Svg.line
                     [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("second-line" ++ navbtnId), x1 "0", x2 "50", y1 "35", y2 "35" ] []
                 ]
+            , div [ if model.showNavbar then class "navbar" else class "navbar-hidden" ]
+                (getNavbar model)
             ]
-            , div [ class "navbar-wrapper" ]
-                [ div [ if model.showNavbar then class "navbar" else class "navbar-hidden" ] (getNavbar model) ]
         ]
 
 getUserInfo : Model -> List (Html Msg)
@@ -272,8 +272,8 @@ showPage model =
             { title = "Fant ikke siden"
             , body = (header model) ++
                 [ div [ class "not-found" ]
-                    [ h1 [ id "not-found-header" ] [ text "404" ]
-                    , h3 [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke" ]
+                    [ h1 [] [ text "404" ]
+                    , div [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke." ]
                     ]
                 ]
             }

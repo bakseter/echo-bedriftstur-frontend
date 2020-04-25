@@ -1,6 +1,6 @@
 module Page.Info exposing (init, subscriptions, update, view, Model, Msg, route)
 
-import Html exposing (Html, div, span, h1, br, li, ul, text, a)
+import Html exposing (Html, div, span, a, text, h1, br, ul, li)
 import Html.Attributes exposing (class, id, src, href, rel, target)
 
 type Msg =
@@ -30,13 +30,14 @@ view model =
         div [ class "info" ]
             [ div [ class "info-content" ]
                 [ div [ class "text" ]
-                    [ h1 [] [ text "Registrering og påmelding" ]
+                    [ h1 [] [ text "Hvordan bli med" ]
                     , br [] []
                     , br [] []
                     , div [] [ text "Registrering åpner 22. april kl. 12:00. Da kan du registrere deg med din studentmail, og fylle inn din kontaktinformasjon. Dette gjør det lettere og raskere for deg å melde deg på når påmeldingen kommer ut, fordi all informasjonen din allerede er fylt inn." ]
                     , br [] []
                     , div [] [ text "Påmelding åpner 29. april kl. 12:00. Her gjelder \"førstemann-til-mølla\"-prinsippet." ]
-                    , div [] [ text "Det vil være 20 plasser til 3. klassinger og 27 plasser til 4. klassinger (altså de som er 3. og 4. klassinger høsten 2020)." ]
+                    , span [] [ text "Det vil være 20 plasser til 3. klassinger og 27 plasser til 4. klassinger " ]
+                    , span [ class "text-bold" ] [ text "(altså de som er 3. og 4. klassinger høsten 2020)." ]
                     , div [] [ text "Både registrering og påmelding vil foregå på denne nettsiden." ]
                     , br [] []
                     , div [] [ text "For å melde deg på bedriftsturen må du:" ]
@@ -48,9 +49,9 @@ view model =
                                 ]
                         , li [] [ text "følge normert studieløp" ]
                         ]
-                    , div [ class "inline-text" ] [ text "Har du et spesielt studieløp som ikke faller under disse kriteriene, kan du kontakte oss på " ]
-                    , a [ class "inline-link", href "mailto:kontakt@echobedriftstur.no" ] [ text "kontakt@echobedriftstur.no" ]
-                    , div [ class "inline-text" ] [ text ", så vil vi evaluere om du kan melde deg på turen." ]
+                    , span [] [ text "Har du et spesielt studieløp som ikke faller under disse kriteriene, kan du kontakte oss på " ]
+                    , a [ class "text-underline", href "mailto:kontakt@echobedriftstur.no" ] [ text "kontakt@echobedriftstur.no" ]
+                    , span [] [ text ", så vil vi evaluere om du kan melde deg på turen." ]
                     , br [] []
                     , br [] []
                     , h1 [] [ text "Transport og hotell" ]
@@ -88,7 +89,7 @@ view model =
                     [ text
                         """
                         Hvis situasjonen endrer seg fremover, og det ikke lenger er forsvarlig å arrangere en slik tur, vil vi enten finne en alternativ løsning, eller i verste fall avlyse turen.
-                        Vi er i kontinuerlig dialog med andre linjeforeninger i Norge som også arrangerer samme type turer, og vi er sammen enige i at vi ikke trenger å avlyse.
+                        Vi er i kontinuerlig dialog med andre linjeforeninger i Norge som også arrangerer samme type turer, og vi er sammen enige i at vi ikke trenger å avlyse enda.
                         """
                     ]
                     , br [] []

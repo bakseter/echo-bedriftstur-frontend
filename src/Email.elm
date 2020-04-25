@@ -1,5 +1,6 @@
-module Email exposing (Email(..), toString, orNullDecoder)
+module Email exposing (Email(..), toString, encode, orNullDecoder)
 
+import Json.Encode as Encode
 import Json.Decode as Decode
 
 type Email
@@ -8,6 +9,11 @@ type Email
 toString : Email -> String
 toString (Email email) =
     email
+
+encode : Email -> Encode.Value
+encode email =
+    Encode.object
+        [ ("email", Encode.string (toString email)) ]
 
 orNullDecoder : String -> Decode.Decoder Email
 orNullDecoder field =

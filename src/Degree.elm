@@ -45,7 +45,7 @@ toString shorthand degree =
                 _ ->
                     ""
         None ->
-            ""
+            "Studieretning"
 
 -- Convert either shorthand or long string to degree
 fromString : Bool -> String -> Degree

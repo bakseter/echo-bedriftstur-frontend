@@ -1,6 +1,6 @@
 module Page.Om exposing (init, subscriptions, update, view, Model, Msg, route)
 
-import Html exposing (Html, div, text, img, i, a)
+import Html exposing (Html, div, text, img, i, a, span)
 import Html.Attributes exposing (class, id, src, alt, href, target, rel)
 import Html.Events
 import Browser.Navigation
@@ -55,24 +55,29 @@ view model =
     div [ class "om" ]
         [ div [ id "om-content" ]
             [ div [ id "om-tekst" ] 
-                [ div [ class "text" ] [ text "Bedriftsturkomitéen består av tre frivillige studenter." ] ]
+                [ div [ class "text-center" ] [ text "Bedriftsturkomitéen består av tre frivillige studenter." ]
+                , span [ class "text-center" ] [ text "Har du noen spørsmål om turen? Send oss gjerne en mail på " ]
+                , a [ class "text-underline", href "mailto:kontakt@echobedriftstur.no" ]
+                    [ text "kontakt@echobedriftstur.no" ]
+                , span [ class "text-center" ] [ text "." ]
+                ]
             , div [ id "elias" ] [ img [ class "portrett", src "/img/elias.png", alt "Elias", Html.Events.onClick EliasLinkedIn ] [] ]
             , div [ class "om-info", id "elias-info" ]
-                [ div [ class "navn" ] [ text "Elias Djupesland" ]
-                , div [ class "tittel" ] [ text "Leder og bedriftskontakt" ]
-                , div [ class (Tuple.first (getMail model EliasMail)), Html.Events.onClick EliasMail ] [ text (Tuple.second (getMail model EliasMail)) ]
+                [ div [ class "om-navn text-center" ] [ text "Elias Djupesland" ]
+                , div [ class "text-center" ] [ text "Leder og bedriftskontakt" ]
+                , div [ class ((Tuple.first (getMail model EliasMail)) ++ " text-center"), Html.Events.onClick EliasMail ] [ text (Tuple.second (getMail model EliasMail)) ]
                 ]
             , div [ id "andreas" ] [ img [ class "portrett", src "/img/andreas.png", alt "Andreas", Html.Events.onClick AndreasLinkedIn ] [] ]
             , div [ class "om-info", id "andreas-info" ] 
-                [ div [ class "navn" ] [ text "Andreas Salhus Bakseter" ]
-                , div [ class "tittel" ] [ text "Webansvarlig" ]
-                , div [ class (Tuple.first (getMail model AndreasMail)), Html.Events.onClick AndreasMail ] [ text (Tuple.second (getMail model AndreasMail)) ]
+                [ div [ class "om-navn text-center" ] [ text "Andreas Salhus Bakseter" ]
+                , div [ class "text-center" ] [ text "Webansvarlig" ]
+                , div [ class ((Tuple.first (getMail model AndreasMail)) ++ " text-center"), Html.Events.onClick AndreasMail ] [ text (Tuple.second (getMail model AndreasMail)) ]
                 ]
             , div [ id "tuva" ] [ img [ class "portrett", src "/img/tuva.png", alt "Tuva", Html.Events.onClick TuvaLinkedIn ] [] ]
             , div [ class "om-info", id "tuva-info" ] 
-                [ div [ class "navn" ] [ text "Tuva Kvalsøren" ]
-                , div [ class "tittel" ] [ text "PR-ansvarlig" ]
-                , div [ class (Tuple.first (getMail model TuvaMail)), Html.Events.onClick TuvaMail ] [ text (Tuple.second (getMail model TuvaMail)) ]
+                [ div [ class "om-navn text-center" ] [ text "Tuva Kvalsøren" ]
+                , div [ class "text-center" ] [ text "PR-ansvarlig" ]
+                , div [ class ((Tuple.first (getMail model TuvaMail)) ++ " text-center"), Html.Events.onClick TuvaMail ] [ text (Tuple.second (getMail model TuvaMail)) ]
                 ]
             ]
         , div [ id "om-links" ]

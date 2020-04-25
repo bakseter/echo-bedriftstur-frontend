@@ -6,13 +6,11 @@ import Test exposing (..)
 
 import Content exposing (..)
 import Degree exposing (..)
+import Terms exposing (..)
 
 suite : Test
 suite =
-    let content = { firstName = "Test"
-                  , lastName = "Testesen"
-                  , degree = Valid BINF
-                  }
+    let content = Content "Test" "Testesen" (Valid BINF) (Terms False)
     in
         describe "Tests for the Content module"
             [ describe "The Content record is updated with the"
@@ -23,7 +21,7 @@ suite =
                 , test "updateDegree function" <|
                     \_ -> Expect.equal ({ content | degree = Valid INF }) (Content.updateDegree (Valid INF) content)
                 , test "updateAll function" <|
-                    \_ -> Expect.equal ({ content | firstName = "Example", lastName = "McTest", degree = Valid PROG })
-                                        (updateAll "Example" "McTest" (Valid PROG) content)
+                    \_ -> Expect.equal ({ content | firstName = "Example", lastName = "McTest", degree = Valid PROG, terms = Terms True })
+                                        (updateAll "Example" "McTest" (Valid PROG) (Terms True) content)
                 ]
             ]
