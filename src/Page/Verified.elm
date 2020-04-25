@@ -28,8 +28,7 @@ import Error exposing (Error(..))
 
 påmeldingUte : Int
 påmeldingUte =
---  1599994800000
-    0
+    1588672800000
 
 redirectToHome : String
 redirectToHome =
@@ -75,6 +74,7 @@ type Msg
     | CheckedBoxTwo
     | CheckedBoxThree
     | GotError Encode.Value
+    | MakeItRelease
 
 type SubPage
     = Verified
@@ -125,7 +125,7 @@ init url key =
     , checkedRules = (False, False, False)
     , updateStage = UpdateIdle
     , ticketStage = TicketIdle
-    , currentSubPage = MinSide
+    , currentSubPage = Verified
     , session = Session.empty
     , error = NoError
     }
@@ -174,12 +174,11 @@ update msg model =
                 Just content ->
                     let submittedContent = Content content.firstName content.lastName content.degree content.terms
                         newCheckedRules = if Terms.toBool content.terms then (True, True, True) else model.checkedRules
-                        newTicketStage = case Ticket.toBool content.hasTicket of
-                                            Just _ ->
-                                                Created
-                                            Nothing ->
-                                                TicketIdle
-                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.terms content.hasTicket
+                        newTicketStage = if content.submittedTicket then
+                                            Created
+                                         else
+                                             TicketIdle
+                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.terms content.hasTicket content.submittedTicket
                         , submittedContent = submittedContent
                         , inputContent = submittedContent 
                         , checkedRules = newCheckedRules
@@ -193,7 +192,7 @@ update msg model =
             in ({ model | updateStage = Updating }, updateUserInfo message)
         UpdateUserInfoSucceeded _ ->
             let subCont = model.submittedContent
-                newSubCont = Content.updateAll model.user.firstName model.user.lastName model.user.degree (Terms (hasCheckedAllRules model)) subCont
+                newSubCont = Content.updateAll model.inputContent.firstName model.inputContent.lastName model.inputContent.degree (Terms (hasCheckedAllRules model)) subCont
             in ({ model | submittedContent = newSubCont, updateStage = Succeeded }, Cmd.none)
         CreateTicket ->
             ({ model | ticketStage = Creating }, createTicket (Ticket.encode model.session))
@@ -227,6 +226,8 @@ update msg model =
                     ({ model | checkedRules = (one, two, (not three)) }, Cmd.none)
         GotError json ->
             ({ model | error = (Error.fromJson json) }, Cmd.none)
+        MakeItRelease ->
+            ({ model | currentTime = (Time.millisToPosix 1591351200000) }, Cmd.none)
 
 -- Checks if the sign in link is valid
 isLinkValid : Url.Url -> Bool
@@ -286,21 +287,13 @@ getCheckboxClass id model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ showPage model
---      , text (Debug.toString model)
-        ]
+    showPage model
 
 -- Shows a subpage
 showPage : Model -> Html Msg
 showPage model =
     let msgToUser = Error.toString model.error
         isRelease = (Time.posixToMillis model.currentTime) >= påmeldingUte
-        hasTicket = case Ticket.toBool model.user.hasTicket of
-                        Just bool ->
-                            bool
-                        Nothing ->
-                            False
         maybeHasTicket = Ticket.toBool model.user.hasTicket
         ticketBtnText = case model.ticketStage of
                             TicketIdle ->
@@ -326,16 +319,12 @@ showPage model =
             MinSide ->
                 div [ class "min-side" ]
                     [ div [ id "min-side-content" ]
-                        [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering" ]
+                        [ h1 [ class "min-side-item", id "min-side-header"] [ text "Registrering og påmelding" ]
                         , div [ class "min-side-item text" ]
                             [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
-                            , div [ class "inline-text" ] [ text "Påmeldingen vil dukke opp her " ]
+                            , div [ class "inline-text" ] [ text "Du melder deg på ved å trykke på knappen under når påmeldingen åpner " ]
                             , div [ class "inline-link" ] [ text " 29. april kl. 12:00" ]
-                            , div [ class "inline-text" ] [ text ", gitt at du er logget inn og har registrert deg." ]
-                            , br [] []
-                            , div [ class "inline-text" ] [ text "Det er " ]
-                            , div [ class "inline-link" ] [ text "IKKE" ]
-                            , div [ class "inline-text" ] [ text " nødvendig å refreshe siden for å få påmeldingen til å vises." ]
+                            , div [ class "inline-text" ] [ text ", gitt at du er logget inn og har fylt inn din informasjon." ]
                             ]
                         , div [ id "err-msg" ] [ text msgToUser ]
                         , div [ id "tickets" ]
@@ -428,7 +417,7 @@ showPage model =
                                 , value (if model.updateStage /= Updating then "Lagre endringer" else " . . . ")
                                 , Html.Events.onClick
                                     (UpdateUserInfo model.session
-                                        { firstName = model.inputContent.firstName, lastName = model.inputContent.lastName, degree = model.inputContent.degree, terms = (Terms (hasCheckedAllRules model)) }
+                                        (Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree (Terms (hasCheckedAllRules model)))
                                     )
                                 , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && Session.isSignedIn model.session))
                                 ] []

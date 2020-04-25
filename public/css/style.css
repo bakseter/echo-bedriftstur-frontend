@@ -571,12 +571,15 @@ input[type=text]:focus {
 }
 #has-ticket-yes {
     border-color: green;
+    background-color: green;
 }
 #has-ticket-no {
     border-color: red;
+    background-color: red;
 }
 #has-ticket-maybe {
-    border-color: yellow;
+    border-color: var(--color-mnemonic);
+    background-color: var(--color-mnemonic);
 }
 
 .checkbox-grid {

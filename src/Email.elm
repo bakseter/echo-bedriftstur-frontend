@@ -14,4 +14,5 @@ orNullDecoder field =
     Decode.oneOf
         [ Decode.map Email (Decode.at [ field ] Decode.string)
         , Decode.at [ field ] (Decode.null (Email ""))
+        , Decode.succeed (Email "")
         ] 

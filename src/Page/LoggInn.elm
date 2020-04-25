@@ -1,7 +1,7 @@
 port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, text, h1, h3, img, form, input, br, p, span, a)
-import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled, autocomplete, href, target, rel)
+import Html.Attributes exposing (class, id, src, alt, type_, value, style, disabled, autocomplete, href, target, rel, placeholder)
 import Html.Events
 import Json.Encode
 import Json.Decode
@@ -12,7 +12,6 @@ import Error exposing (Error(..))
 
 launch : Int
 launch =
---  1588068000000
     0
 
 type Msg
@@ -100,7 +99,7 @@ showPage model =
                     , div [] 
                         [ text "For å registrere deg eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
                     , div [ style "font-style" "italic" ]
-                        [ text "Fornavn.Etternavn@student.uib.no" ]
+                        [ text "fornavn.etternavn@student.uib.no" ]
                     , br [] []
                     , div []
                         [ text "Du vil få tilsendt en link til mailen du oppgir. Denne bruker du for å logge inn." ]
@@ -129,6 +128,7 @@ showPage model =
                             id "email"
                         , type_ "text", Html.Events.onInput TypedEmail
                         , autocomplete False
+                        , placeholder "Email"
                         ] []
                     , br [] []
                     , br [] []

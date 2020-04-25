@@ -40,14 +40,8 @@ const getUserInfo = (col, doc, data) => {
             }
         }
         else {
-            const emailOnly =
-                { email: data
-                , firstName: null
-                , lastName: null
-                , degree: null
-                , terms: null
-                , hasTicket: null
-                };
+            const emailOnly = { email: data };
+
             db.collection(col).doc(doc).set(emailOnly)
             .then(newDoc => {
                 app.ports.getUserInfoSucceeded.send(emailOnly);
@@ -59,7 +53,7 @@ const getUserInfo = (col, doc, data) => {
                 }
                 getUserInfoError.send(error.code);
             });
-            app.ports.getUserInfoSucceeded.send(emailOnly);
+
             if (debug) {
                 console.log("Created user info: ", emailOnly);
             }
@@ -76,7 +70,7 @@ const getUserInfo = (col, doc, data) => {
 
 const createTicket = (col, doc, data) => {
     console.log(col, doc, data);
-    db.collection(col).doc(doc).set(data)
+    db.collection(col).doc(doc).update(data)
     .then(docRef => {
         app.ports.createTicketSucceeded.send(true);
     })
@@ -90,8 +84,9 @@ const createTicket = (col, doc, data) => {
 };
 
 const updateUserInfo = (col, doc, data) => {
-    db.collection(col).doc(doc).set(data)
+    db.collection(col).doc(doc).update(data)
     .then(docRef => {
+        // TODO: what actually happens here?
         if (data.firstName !== null && data.lastName !== null && data.degree !== null && data.terms !== null) {
             app.ports.updateUserInfoSucceeded.send(true);
         }
@@ -173,8 +168,7 @@ app.ports.getUserInfo.subscribe(data => {
 });
 
 app.ports.updateUserInfo.subscribe(data => {
-    const content = { email: data.email
-                    , firstName: data.firstName
+    const content = { firstName: data.firstName
                     , lastName: data.lastName
                     , degree: data.degree
                     , terms: data.terms
@@ -185,7 +179,7 @@ app.ports.updateUserInfo.subscribe(data => {
 app.ports.createTicket.subscribe(data => {
     const newData =
         { timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-        , email: data.email
+        , submittedTicket: data.submittedTicket
         };
     createTicket(data.collection, data.uid, newData);
 });

@@ -66,4 +66,5 @@ orNullDecoder field =
     Decode.oneOf
         [ Decode.map (fromString False) (Decode.at [ field ] Decode.string)
         , Decode.at [ field ] (Decode.null None)
+        , Decode.succeed None
         ]

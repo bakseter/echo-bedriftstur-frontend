@@ -15,4 +15,5 @@ orNullDecoder field =
     Decode.oneOf
         [ Decode.map Terms (Decode.at [ field ] Decode.bool)
         , Decode.at [ field ] (Decode.null (Terms False))
+        , Decode.succeed (Terms False)
         ]

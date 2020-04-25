@@ -47,10 +47,8 @@ encode session content =
     Encode.object
         [ ("collection", Encode.string "users")
         , ("uid", Encode.string (Uid.toString session.uid))
-        , ("email", Encode.string (Email.toString session.email))
         , ("firstName", Encode.string content.firstName)
         , ("lastName", Encode.string content.lastName)
         , ("degree", Encode.string (Degree.toString False content.degree))
         , ("terms", Encode.bool (Terms.toBool content.terms))
-        , ("hasTicket", Encode.null)
         ]
