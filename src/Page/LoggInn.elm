@@ -13,7 +13,6 @@ import Error exposing (Error(..))
 ready : Int
 ready =
 --  1588067700000
-    0
 
 route : String
 route =
@@ -156,7 +155,7 @@ showPage model =
             div [ class "text-center", id "logg-inn-content" ]
                 [ h1 [] [ text "Lag bruker/logg inn" ]
                 , div []
-                    [ text ("Vi har nå sendt deg en mail på " ++ (Email.toString model.email) ++ ".") ]
+                    [ text ("Vi har nå sendt deg en mail på " ++ (String.toLower (Email.toString model.email)) ++ ".") ]
                 , div []
                     [ text "Husk å sjekke søppelposten din!" ]
                 ]

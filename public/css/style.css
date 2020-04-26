@@ -453,11 +453,14 @@ input[type=button]:disabled:hover{
 
 #not-found-header {
     display: block;
-    font-size: 4rem;
+    font-size: 6rem;
+    font-weight: bold;
     text-align: center;
+    padding: 5%;
 }
 #not-found-text {
     text-align: center;
+    font-size: 2rem;
 }
 
 .logg-inn {
