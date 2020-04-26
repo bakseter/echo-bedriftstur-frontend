@@ -16,6 +16,7 @@ type Degrees
     | KOGNI
     | INF
     | PROG
+    | MISC
 
 -- List of valid degrees with their shorthand and long strings
 degreesList : List (Degrees, (String, String))
@@ -29,6 +30,7 @@ degreesList =
     , (KOGNI, ("KOGNI", "Kognitiv vitenskap med spesialisering i informatikk"))
     , (INF, ("INF", "Master i informatikk"))
     , (PROG, ("PROG", "Felles master i programutvkling"))
+    , (MISC, ("MISC", "Annet godkjent studieløp"))
     ]
 
 -- Convert degree to either shorthand or long string
@@ -45,7 +47,7 @@ toString shorthand degree =
                 _ ->
                     ""
         None ->
-            "Studieretning"
+            ""
 
 -- Convert either shorthand or long string to degree
 fromString : Bool -> String -> Degree

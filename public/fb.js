@@ -134,7 +134,6 @@ app.ports.sendSignInLink.subscribe(data => {
         app.ports.sendSignInLinkSucceeded.send(true);
     })
     .catch(error => {
-        // Error is handled in Elm
         app.ports.sendSignInLinkError.send(error.code);
     });
 });
@@ -143,7 +142,7 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
     var email = window.localStorage.getItem("emailForSignIn");
 
     if (!email) {
-        email = window.prompt("Vennligst skriv inn din studentmail for verifikasjon");
+        email = window.prompt("Vennligst skriv inn mailen du logget inn med for verifikasjon.");
     }
 
     firebase.auth().signInWithEmailLink(email, window.location.href)

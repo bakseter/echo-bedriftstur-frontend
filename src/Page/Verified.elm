@@ -1,7 +1,7 @@
 port module Page.Verified exposing (init, subscriptions, view, update, Model, Msg, route)
 
-import Html exposing (Html, div, span, br, text, input, select, option, h1, a)
-import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, autocomplete, href)
+import Html exposing (Html, div, span, br, text, input, select, option, h1, a, label)
+import Html.Attributes exposing (class, id, type_, value, placeholder, disabled, style, autocomplete, href, target, rel, for, download)
 import Html.Events
 import Json.Encode as Encode
 import Json.Decode as Decode
@@ -15,7 +15,6 @@ import Svg.Events
 import Time
 import Debug
 
-import Countdown
 import User exposing (User)
 import Uid exposing (Uid(..))
 import Email exposing (Email(..))
@@ -36,12 +35,10 @@ redirectToHome =
 
 port userStatusChanged : (Encode.Value -> msg) -> Sub msg
 port signInSucceeded : (Encode.Value -> msg) -> Sub msg
--- Errors: ExpiredActionCode, InvalidEmail, UserDisabled
 port signInError : (Encode.Value -> msg) -> Sub msg
 
 port getUserInfo : Encode.Value -> Cmd msg
 port getUserInfoSucceeded : (Encode.Value -> msg) -> Sub msg
--- Errors: PermissionDenied, Unauthenticated
 port getUserInfoError : (Encode.Value -> msg) -> Sub msg
 
 port updateUserInfo : Encode.Value -> Cmd msg
@@ -74,7 +71,6 @@ type Msg
     | CheckedBoxTwo
     | CheckedBoxThree
     | GotError Encode.Value
-    | MakeItRelease
 
 type SubPage
     = Verified
@@ -226,8 +222,6 @@ update msg model =
                     ({ model | checkedRules = (one, two, (not three)) }, Cmd.none)
         GotError json ->
             ({ model | error = (Error.fromJson json) }, Cmd.none)
-        MakeItRelease ->
-            ({ model | currentTime = (Time.millisToPosix 1591351200000) }, Cmd.none)
 
 -- Checks if the sign in link is valid
 isLinkValid : Url.Url -> Bool
@@ -285,36 +279,72 @@ getCheckboxClass id model =
                     else
                         "unchecked-box"
 
+ticketElem : Ticket -> Html Msg
+ticketElem (Ticket maybeBool) =
+    case maybeBool of
+        Just bool ->
+            if bool then
+                div [ class "ticket-item", id "has-ticket-yes" ]
+                    [ text "Du har fått plass!" ]
+              else
+                div [ class "ticket-item", id "has-ticket-no" ]
+                    [ text "Du fikk dessverre ikke plass." ]
+        Nothing ->
+            div [ class "ticket-item", id "has-ticket-maybe" ]
+                [ text "Du har ikke fått plass enda." ]
+
+getTicketBtn : Model -> Bool -> Html Msg
+getTicketBtn model isRelease =
+    case model.ticketStage of
+        TicketIdle ->
+            if isRelease then
+                input
+                    [ class "ticket-item"
+                    , id "ticket-button"
+                    , value "Meld meg på!"
+                    , disabled False
+                    , Html.Events.onClick CreateTicket
+                    ] []
+            else
+                input
+                    [ class "ticket-item"
+                    , id "ticket-button"
+                    , value "Påmeldingen har ikke åpnet enda."
+                    , disabled True
+                    ] []
+        Creating ->
+            input
+                [ class "ticket-item"
+                , id "ticket-button"
+                , value " . . . "
+                , disabled True
+                ] []
+        Created ->
+            input
+                [ class "ticket-item"
+                , id "ticket-button"
+                , value "Du har blitt meldt på."
+                , disabled True
+                ] []
+
 view : Model -> Html Msg
 view model =
-    showPage model
+    showSubPage model
 
 -- Shows a subpage
-showPage : Model -> Html Msg
-showPage model =
+showSubPage : Model -> Html Msg
+showSubPage model =
     let msgToUser = Error.toString model.error
+        miscDegree = model.user.degree == Valid MISC
         isRelease = (Time.posixToMillis model.currentTime) >= påmeldingUte
-        maybeHasTicket = Ticket.toBool model.user.hasTicket
-        ticketBtnText = case model.ticketStage of
-                            TicketIdle ->
-                                if isRelease then
-                                    "Meld meg på!"
-                                else
-                                    "Påmeldingen har ikke åpnet enda."
-                            Creating ->
-                                " . . . "
-                            Created ->
-                                "Du har blitt meldt på."
     in
         case model.currentSubPage of
             Verified ->
                 div [ class "verified" ]
-                    [ div [ class "text" ] 
-                        [ if model.error == NoError then
-                            text "Du har nå blitt logget inn. Vennligst vent mens du blir videresendt..."
-                         else
-                             text msgToUser
-                        ]
+                    [ if model.error == NoError then
+                        div [ class "text-bold text-center" ] [ text "Du har nå blitt logget inn. Vennligst vent mens du blir videresendt..." ]
+                      else
+                        div [ class "text-bold text-center", style "color" "red" ] [ text msgToUser ]
                     ]
             MinSide ->
                 div [ class "min-side" ]
@@ -322,29 +352,14 @@ showPage model =
                         [ h1 [ class "min-side-item" ] [ text "Registrering og påmelding" ]
                         , div [ class "min-side-item text" ]
                             [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
-                            , div [ class "inline-text" ] [ text "Du melder deg på ved å trykke på knappen under når påmeldingen åpner " ]
-                            , div [ class "inline-link" ] [ text " 29. april kl. 12:00" ]
-                            , div [ class "inline-text" ] [ text ", gitt at du er logget inn og har fylt inn din informasjon." ]
+                            , span [] [ text "Du melder deg på ved å trykke på knappen under når påmeldingen åpner " ]
+                            , span [ class "text-underline" ] [ text " 5. mai kl. 12:00" ]
+                            , span [] [ text ", gitt at du er logget inn og har fylt inn din informasjon." ]
                             ]
                         , div [ class "min-side-item", id "err-msg" ] [ text msgToUser ]
                         , div [ class "min-side-item", id "tickets" ]
-                            [ case maybeHasTicket of
-                                Just bool ->
-                                    if bool then
-                                        div [ class "ticket-item", id "has-ticket-yes" ]
-                                            [ text "Du har fått plass!" ]
-                                      else
-                                        div [ class "ticket-item", id "has-ticket-no" ]
-                                            [ text "Du fikk dessverre ikke plass." ]
-                                Nothing ->
-                                    div [ class "ticket-item", id "has-ticket-maybe" ]
-                                        [ text "Du har ikke fått plass enda." ]
-                                , input [ class "ticket-item", id "ticket-button"
-                                        , type_ "button"
-                                        , disabled ((not isRelease) || model.ticketStage == Created)
-                                        , value ticketBtnText
-                                        , Html.Events.onClick CreateTicket
-                                        ] []
+                            [ ticketElem model.user.hasTicket
+                            , getTicketBtn model isRelease
                             ]
                         , input [ class "min-side-item"
                                 , type_ "text"
@@ -369,7 +384,13 @@ showPage model =
                                 , autocomplete False
                                 ] []
                         , br [] []
-                        , select [ class "min-side-item", value (Degree.toString True model.inputContent.degree), Html.Events.onInput TypedDegree ]
+                        , label [ id "degree-label", for "degree" ] [ text "Studieretning" ]
+                        , select [ class "min-side-item"
+                                 , id "degree"
+                                 , value (Degree.toString True model.inputContent.degree)
+                                 , disabled miscDegree
+                                 , Html.Events.onInput TypedDegree
+                                 ]
                             [ option [ value "" ] [ text (Degree.toString False None) ]
                             , option [ value "DTEK" ] [ text (Degree.toString False (Valid DTEK)) ]
                             , option [ value "DVIT" ] [ text (Degree.toString False (Valid DVIT)) ]
@@ -380,6 +401,10 @@ showPage model =
                             , option [ value "KOGNI" ] [ text (Degree.toString False (Valid KOGNI)) ]
                             , option [ value "INF" ] [ text (Degree.toString False (Valid INF)) ]
                             , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
+                            , if miscDegree then
+                                option [ value "MISC" ] [ text (Degree.toString False (Valid MISC)) ]
+                             else
+                                span [] []
                             ]
                         , div [ class "min-side-item checkbox-grid" ]
                             [ div [ class "checkbox-container" ]
@@ -387,7 +412,10 @@ showPage model =
                                     [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
                                 ]
                             , div [ class "text" ]
-                                [ text "Jeg bekrefter at jeg er representert av echo - Fagutvalget for Informatikk, ifølge echo sine statutter per 22. april 2020." ]
+                                [ span [] [ text "Jeg bekrefter at jeg er representert av echo - Fagutvalget for Informatikk, ifølge echo sine " ] 
+                                , a [ class "text-underline", href "https://echo.uib.no/om/statutter", target "_blank", rel "noopener noreferrer" ] [ text "statutter" ]
+                                , span [] [ text " per 22. april 2020." ]
+                                ]
                             ]
                         , div [ class "min-side-item checkbox-grid" ]
                             [ div [ class "checkbox-container" ]
@@ -403,9 +431,11 @@ showPage model =
                                     [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
                                 ]
                             , div [ class "text" ]
-                                [ div [ class "inline-text" ] [ text "Jeg godtar " ]
-                                , a [ class "inline-link", href "/info" ] [ text "reglene" ]
-                                , div [ class "inline-text" ] [ text " for bedriftsturen." ]
+                                [ span [] [ text "Jeg bekrefter at informasjonen over stemmer, jeg godtar " ]
+                                , a [ class "text-underline", href "/info" ] [ text "reglene" ]
+                                , span [] [ text " for bedriftsturen, og jeg godtar " ]
+                                , a [ class "text-underline", href "/docs/personvernerklæring.pdf", download "personvernerklæring.pdf" ] [ text "personvernerklæringen" ]
+                                , span [] [ text "." ]
                                 ]
                             ]
                         , div [ id "update-info-text" ]

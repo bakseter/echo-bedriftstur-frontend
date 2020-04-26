@@ -5,37 +5,42 @@ import Html.Attributes exposing (class, id, src, alt, type_, value, disabled, au
 import Html.Events
 import Json.Encode
 import Json.Decode
+import Time
 
 import Email exposing (..)
 import Error exposing (Error(..))
 
-launch : Int
-launch =
-    0
+ready : Int
+ready =
+    1588067700000
+
+route : String
+route =
+    "logg-inn"
 
 type Msg
-    = TypedEmail String
+    = Tick Time.Posix
+    | TypedEmail String
     | SendSignInLink
     | SendSignInLinkSucceeded Json.Encode.Value
     | SendSignInLinkError Json.Encode.Value
 
 type SubPage
-    = SignIn
+    = NotReady
+    | SignIn
     | LinkSent
 
 type alias Model = 
     { currentSubPage : SubPage
+    , currentTime : Time.Posix
     , email : Email
     , error : Error
     }
      
-route : String
-route =
-    "logg-inn"
-
 init : Model
 init =
-    { currentSubPage = SignIn
+    { currentSubPage = NotReady
+    , currentTime = Time.millisToPosix 0
     , email = Email ""
     , error = NoError
     }
@@ -43,7 +48,8 @@ init =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ sendSignInLinkSucceeded SendSignInLinkSucceeded
+        [ Time.every 1000 Tick
+        , sendSignInLinkSucceeded SendSignInLinkSucceeded
         , sendSignInLinkError SendSignInLinkError
         ] 
 
@@ -54,10 +60,18 @@ port sendSignInLinkSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
+        Tick time ->
+            let isReady = (Time.posixToMillis time) >= ready
+                newSubPage = if isReady && model.currentSubPage == NotReady then
+                                SignIn
+                            else
+                                model.currentSubPage
+            in ({ model | currentTime = time, currentSubPage = newSubPage }, Cmd.none)
         TypedEmail str ->
             ({ model | email = Email str }, Cmd.none)
         SendSignInLink ->
-            (model, sendSignInLink (Email.encode model.email))
+            let lowercaseEmail = Email (String.toLower (Email.toString model.email))
+            in (model, sendSignInLink (Email.encode lowercaseEmail))
         SendSignInLinkSucceeded _ ->
             ({ model | currentSubPage = LinkSent }, Cmd.none)
         SendSignInLinkError json ->
@@ -71,6 +85,20 @@ view model =
 showPage : Model -> Html Msg
 showPage model =
     case model.currentSubPage of
+        NotReady ->
+            div [ id "logg-inn-content" ]
+                [ h1 [] [ text "Lag bruker/logg inn" ]
+                , br [] []
+                , br [] []
+                , div [ class "text-center text-bold" ]
+                    [ text "Det er ikke mulig å lage en bruker eller logge inn enda." ]
+                , span [ class "text-center text-bold" ]
+                    [ text "Registrering åpner " ]
+                , span [ class "text-underline" ]
+                    [ text "28. april kl. 12:00" ]
+                , span [ class "text-center text-bold" ]
+                    [ text "." ]
+                ]
         SignIn ->
             div [ id "logg-inn-content" ]
                 [ h1 [] [ text "Lag bruker/logg inn" ] 

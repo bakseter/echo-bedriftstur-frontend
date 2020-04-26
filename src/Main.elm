@@ -235,10 +235,6 @@ getNavbar model =
 
 view : Model -> Browser.Document Msg
 view model =
-    showPage model
-
-showPage : Model -> Browser.Document Msg
-showPage model =
     case model.route of
         Hjem ->
             { title = "echo bedriftstur"
