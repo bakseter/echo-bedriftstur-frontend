@@ -68,7 +68,7 @@ firebase.auth().onAuthStateChanged(user => {
 
 app.ports.sendSignInLink.subscribe(data => {
     const actionCodeSettings = {
-        url : "https://echo-bedriftstur-81a2e.firebaseapp.com/verified",
+        url : "https://echobedriftstur.no/verified",
         handleCodeInApp : true
     };
     firebase.auth().sendSignInLinkToEmail(data.email, actionCodeSettings)
