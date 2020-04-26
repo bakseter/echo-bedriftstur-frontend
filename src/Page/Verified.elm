@@ -27,7 +27,7 @@ import Error exposing (Error(..))
 paameldingUte : Int
 paameldingUte =
 --  1588672800000
-    1587936120000
+    1587936300000
 
 redirectToHome : String
 redirectToHome =
