@@ -12,8 +12,7 @@ import Error exposing (Error(..))
 
 ready : Int
 ready =
---  1588067700000
-    0
+    1588067700000
 
 route : String
 route =
@@ -155,6 +154,8 @@ showPage model =
         LinkSent ->
             div [ class "text-center", id "logg-inn-content" ]
                 [ h1 [] [ text "Lag bruker/logg inn" ]
+                , br [] []
+                , br [] []
                 , div []
                     [ text ("Vi har nå sendt deg en mail på " ++ (String.toLower (Email.toString model.email)) ++ ".") ]
                 , div []

@@ -26,8 +26,7 @@ import Error exposing (Error(..))
 
 paameldingUte : Int
 paameldingUte =
---  1588672800000
-    1587936300000
+    1588672800000
 
 redirectToHome : String
 redirectToHome =
@@ -121,7 +120,7 @@ init url key =
     , checkedRules = (False, False, False)
     , updateStage = UpdateIdle
     , ticketStage = TicketIdle
-    , currentSubPage = MinSide
+    , currentSubPage = Verified
     , session = Session.empty
     , error = NoError
     }
