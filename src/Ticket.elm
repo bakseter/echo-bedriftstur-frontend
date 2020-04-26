@@ -7,18 +7,18 @@ import Email exposing (toString)
 import Json.Encode as Encode
 import Json.Decode as Decode
 
-type Ticket =
-    Ticket Bool
+type Ticket
+    = Ticket (Maybe Bool)
 
-toBool : Ticket -> Bool
+toBool : Ticket -> (Maybe Bool)
 toBool (Ticket bool) = bool
 
 encode : Session -> Encode.Value
 encode session =
     Encode.object
-        [ ("collection", Encode.string "tickets")
+        [ ("collection", Encode.string "users")
         , ("uid", Encode.string (Uid.toString session.uid))
-        , ("email", Encode.string (Email.toString session.email))
+        , ("submittedTicket", Encode.bool True)
         ]
 
 decode : Encode.Value -> Maybe Ticket
@@ -34,6 +34,7 @@ decode json =
 orNullDecoder : String -> Decode.Decoder Ticket
 orNullDecoder field =
     Decode.oneOf
-        [ Decode.map Ticket (Decode.at [ field ] Decode.bool)
-        , Decode.at [ field ] (Decode.null (Ticket False))
+        [ Decode.map Ticket (Decode.at [ field ] (Decode.nullable Decode.bool))
+        , Decode.at [ field ] (Decode.null (Ticket Nothing))
+        , Decode.succeed (Ticket Nothing)
         ]

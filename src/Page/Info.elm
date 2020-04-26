@@ -1,6 +1,6 @@
 module Page.Info exposing (init, subscriptions, update, view, Model, Msg, route)
 
-import Html exposing (Html, div, span, h1, br, li, ul, text, a)
+import Html exposing (Html, div, span, a, text, h1, br, ul, li)
 import Html.Attributes exposing (class, id, src, href, rel, target)
 
 type Msg =
@@ -30,27 +30,50 @@ view model =
         div [ class "info" ]
             [ div [ class "info-content" ]
                 [ div [ class "text" ]
-                    [ h1 [] [ text "Registrering og påmelding" ]
+                    [ h1 [] [ text "Hvordan bli med" ]
                     , br [] []
                     , br [] []
-                    , div [] [ text "Registrering åpner 27. april kl. 12:00. Da kan du registrere deg med din studentmail, og fylle inn din kontaktinformasjon. Dette gjør det lettere og raskere for deg å melde deg på når påmeldingen kommer ut, fordi all informasjonen din allerede er fylt inn." ]
+                    , span [] [ text "Registrering åpner " ]
+                    , span [ class "text-underline" ] [ text "28. april kl. 12:00" ]
+                    , span [] [ text 
+                                """
+                                . Da kan du registrere deg med din studentmail, og fylle inn din kontaktinformasjon. Dette gjør det lettere og raskere for deg å melde deg på når påmeldingen kommer ut, fordi all informasjonen din allerede er fylt inn.
+                                """
+                              ]
                     , br [] []
-                    , div [] [ text "Påmelding åpner 4. mai kl. 12:00. Her gjelder \"førstemann-til-mølla\"-prinsippet." ]
-                    , div [] [ text "Det vil være 20 plasser til 3. klassinger og 27 plasser til 4. klassinger (altså de som er 3. og 4. klassinger høsten 2020)." ]
+                    , span [] [ text "Påmelding åpner " ]
+                    , span [ class "text-underline" ] [ text "5. mai kl. 12:00" ]
+                    , span [] [ text ". Her gjelder \"førstemann-til-mølla\"-prinsippet." ]
+                    , br [] []
+                    , span [] [ text "Det vil være 20 plasser til 3. klassinger og 27 plasser til 4. klassinger " ]
+                    , span [ class "text-bold" ] [ text "(altså de som er 3. og 4. klassinger høsten 2020)." ]
                     , div [] [ text "Både registrering og påmelding vil foregå på denne nettsiden." ]
                     , br [] []
                     , div [] [ text "For å melde deg på bedriftsturen må du:" ]
                     , ul []
-                        [ li [] [ text "være påmeldt et bachelorprogram og begynne ditt 5. semester august 2020 eller være påmeldt et masterprogram og begynne ditt 1. eller 2. semester august 2020" ]
+                        [ li [] [ text
+                                    """
+                                    være påmeldt et bachelorprogram og begynne ditt femte semester august 2020, eller være påmeldt et masterprogram
+                                    og begynne ditt første eller andre semester august 2020
+                                    """ 
+                                ]
                         , li [] [ text "være representert av echo, ifølge echo sine ", 
-                                    a [ class "inline-link", target "_blank", rel "noopener noreferrer", href "https://echo.uib.no/om/statutter" ] [ text "statutter" ]
-                                    , text " per 22. april 2020" 
+                                    a [ class "text-underline", target "_blank", rel "noopener noreferrer", href "https://echo.uib.no/om/statutter" ] [ text "statutter" ]
+                                    , text " per 28. april 2020" 
                                 ]
                         , li [] [ text "følge normert studieløp" ]
                         ]
-                    , div [ class "inline-text" ] [ text "Har du et spesielt studieløp som ikke faller under disse kriteriene, kan du kontakte oss på " ]
-                    , a [ class "inline-link", href "mailto:kontakt@echobedriftstur.no" ] [ text "kontakt@echobedriftstur.no" ]
-                    , div [ class "inline-text" ] [ text ", så vil vi evaluere om du kan melde deg på turen." ]
+                    , div [] [ text 
+                                """
+                                Dersom du har søkt master til høsten, trenger vi en bekreftelse på at du har fått plass.
+                                Når du registrerer deg, fyller du bare inn det masterprogrammet du har søkt på.
+                                Nærmere informasjon om dette vil komme på mail til de det gjelder.
+                                """
+                            ]
+                    , br [] []
+                    , span [] [ text "Har du et spesielt studieløp som ikke faller under disse kriteriene, kan du kontakte oss på " ]
+                    , a [ class "text-underline", href "mailto:kontakt@echobedriftstur.no" ] [ text "kontakt@echobedriftstur.no" ]
+                    , span [] [ text ", så vil vi evaluere om du kan melde deg på turen." ]
                     , br [] []
                     , br [] []
                     , h1 [] [ text "Transport og hotell" ]
@@ -62,12 +85,15 @@ view model =
                     , br [] []
                     , div [] [ text "Inkludert i billetten er opptil to kolli innsjekket bagasje per person (maks 20 kg per kolli), i tillegg til én håndbagasje (10 kg)." ]
                     , br [] []
-                    , div [] [ text "Flyet lander 26. August kl 08:25." ]
+                    , div [] [ text "Flyet lander 26. august kl 08:25." ]
                     , br [] []
                     , div [] [ text "Vi har leid felles buss fra Gardermoen til hotellet som går kl 09:00 fra flyplassen." ]
                     , div [] [ text "Du er selv ansvarlig for å møte opp på riktig sted og tid." ]
                     , br [] []
-                    , div [] [ text "Det er IKKE felles hjemreise, og kostnadene for dette må du dekke selv." ]
+                    , span [] [ text "Det er " ]
+                    , span [ class "text-underline" ] [ text "IKKE" ]
+                    , span [] [ text " felles hjemreise, og kostnadene for dette må du dekke selv." ]
+                    , br [] []
                     , br [] []
                     , div [] [ text "Under hele oppholdet bor alle på Hotell Bondeheimen, Rosenkrantz' gate 8, 0159 Oslo." ]
                     , div [] [ text "Det vil bo 2-5 personer på rom sammen. Romfordeling vil bli bestemt på et senere tidspunkt." ]
@@ -88,7 +114,7 @@ view model =
                     [ text
                         """
                         Hvis situasjonen endrer seg fremover, og det ikke lenger er forsvarlig å arrangere en slik tur, vil vi enten finne en alternativ løsning, eller i verste fall avlyse turen.
-                        Vi er i kontinuerlig dialog med andre linjeforeninger i Norge som også arrangerer samme type turer, og vi er sammen enige i at vi ikke trenger å avlyse.
+                        Vi er i kontinuerlig dialog med andre linjeforeninger i Norge som også arrangerer samme type turer, og vi er sammen enige i at vi ikke trenger å avlyse enda.
                         """
                     ]
                     , br [] []

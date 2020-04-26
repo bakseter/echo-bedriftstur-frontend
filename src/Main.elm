@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Browser.Navigation
-import Html exposing (Html, div, span, h1, h3, text, a, img, i)
+import Html exposing (Html, div, span, h1, text, a, img, i)
 import Html.Attributes exposing (href, class, id, alt, src)
 import Url
 import Html exposing (Html)
@@ -186,12 +186,11 @@ header model =
         email = Email.toString model.modelVerified.session.email
     in
         [ div [ class "menu" ]
-            [ span [ id "hjem" ] 
-                [ a [ id "logo-stack", href "/", Html.Events.onClick (ShowNavbar True) ] 
-                    [ img [ id "logo", alt "logo", src "/img/echoicon.png" ] []
-                    ]
+            [ div [ id "logo-wrapper" ] 
+                [ a [ href "/", Html.Events.onClick (ShowNavbar True) ] 
+                    [ img [ id "logo", alt "logo", src "/img/echoicon.png" ] [] ]
                 ]
-            , span [ id "logo-text" ]
+            , div [ id "logo-text" ]
               [ span [] [ text "echo " ]
               , span
                   (Animation.render model.logoTextStyle) [ text name ]
@@ -204,9 +203,9 @@ header model =
                 , Svg.line
                     [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("second-line" ++ navbtnId), x1 "0", x2 "50", y1 "35", y2 "35" ] []
                 ]
+            , div [ if model.showNavbar then class "navbar" else class "navbar-hidden" ]
+                (getNavbar model)
             ]
-            , div [ class "navbar-wrapper" ]
-                [ div [ if model.showNavbar then class "navbar" else class "navbar-hidden" ] (getNavbar model) ]
         ]
 
 getUserInfo : Model -> List (Html Msg)
@@ -214,19 +213,18 @@ getUserInfo model =
     let isSignedIn = Session.isSignedIn model.modelVerified.session
         email = if isSignedIn then Email.toString model.modelVerified.session.email else ""
     in
-        [ a [ class "navbar-item", href "/", Html.Events.onClick (ShowNavbar False) ] [ i [ class "fa fa-home", id "hjem-icon" ] [] ] 
-        , if isSignedIn then
-            div [ id "user-info-email" ] 
-            [ a [ href ("/" ++ Verified.route), Html.Events.onClick (ShowNavbar False) ] [ text "Min profil" ] ]
+        [ if isSignedIn then
+            a [ class "user-info", href ("/" ++ Verified.route), Html.Events.onClick (ShowNavbar False) ]
+                [ i [ id "profile-icon", class "fa fa-user-circle" ] [], text "Min profil" ]
           else
-            div [ id "user-info-text" ] 
-                [ a [ href ("/" ++ LoggInn.route), Html.Events.onClick (ShowNavbar False) ] [ text "Logg inn" ] ]
+            a [ class "user-info", href ("/" ++ LoggInn.route), Html.Events.onClick (ShowNavbar False) ] 
+                [ i [ id "sign-in-icon", class "fa fa-sign-in" ] [], text "Logg inn" ]
         ]
 
 getNavbar : Model -> List (Html Msg)
 getNavbar model =
         [ span [] []
-        , div [ class "navbar-item", id "user-info" ]
+        , div [ class "navbar-item" ]
             (getUserInfo model)
         , span [] []
         , a [ class "navbar-item", href ("/" ++ Info.route), Html.Events.onClick (ShowNavbar False) ] [ text "Informasjon" ]
@@ -234,12 +232,9 @@ getNavbar model =
         , a [ class "navbar-item", href ("/" ++ Bedrifter.route), Html.Events.onClick (ShowNavbar False) ] [ text "Bedrifter" ]
         , a [ class "navbar-item", href ("/" ++ Om.route), Html.Events.onClick (ShowNavbar False) ] [ text "Om oss" ]
         ]
+
 view : Model -> Browser.Document Msg
 view model =
-    showPage model
-
-showPage : Model -> Browser.Document Msg
-showPage model =
     case model.route of
         Hjem ->
             { title = "echo bedriftstur"
@@ -273,8 +268,8 @@ showPage model =
             { title = "Fant ikke siden"
             , body = (header model) ++
                 [ div [ class "not-found" ]
-                    [ h1 [ id "not-found-header" ] [ text "404" ]
-                    , h3 [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke" ]
+                    [ h1 [] [ text "404" ]
+                    , div [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke." ]
                     ]
                 ]
             }
