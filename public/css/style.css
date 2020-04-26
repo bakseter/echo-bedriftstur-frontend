@@ -170,20 +170,22 @@ input[type=button]:disabled:hover{
 }
 
 .hjem {
-    display: grid;
-    grid-template-columns: 15% 70% 15%;
-    grid-template-rows: 50% 50%;
-    justify-items: center;
-    height: 100%;
-
-    animation-name: fade-in;
-    animation-duration: 2.5s;
-    animation-iteration-count: 1;
 }
 
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+#hjem-content {
+    display: grid;
+    grid-template-columns: 15% 70% 15%;
+    grid-template-rows: 50% 50%;
+    justify-items: center;
+
+    animation-name: fade-in;
+    animation-duration: 2.5s;
+    animation-iteration-count: 1;
 }
 
 #hjem-header {
@@ -654,8 +656,13 @@ input[type=button]:disabled:hover{
         width: 320px;
     }
 
-    .logg-inn {
-        grid-template-columns: 5% 90% 5%;
+    #logg-inn-content {
+        grid-column: 1 / span 1;
+        justify-self: center;
+    }
+
+    #barcode-anim {
+        width: 320px;
     }
 
     #err-msg {
