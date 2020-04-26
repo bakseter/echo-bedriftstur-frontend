@@ -658,10 +658,14 @@ input[type=button]:disabled:hover{
     #barcode-anim {
         width: 320px;
     }
+    
+    .logg-inn {
+        grid-template-columns: auto;
+    }
 
     #logg-inn-content {
-        grid-column: 1 / span 1;
         justify-self: center;
+        padding: 0% 3% 0% 3%;
     }
 
     #barcode-anim {
@@ -722,6 +726,7 @@ input[type=button]:disabled:hover{
 
     .logo-item {
         position: static;
+        justify-self: center;
         width: 65%;
         padding-top: 10%;
         padding-bottom: 10%;
