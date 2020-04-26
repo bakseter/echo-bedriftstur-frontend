@@ -1,5 +1,3 @@
-const debug = true;
-
 const firebaseConfig = 
     { apiKey: "AIzaSyD-mFQI_DHw8mjhomuAcPUHAwOneYhxEK8"
     , authDomain: "echo-bedriftstur-81a2e.firebaseapp.com"
@@ -12,18 +10,6 @@ const firebaseConfig =
     };
 firebase.initializeApp(firebaseConfig);
 
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-.then(() => {
-    if (debug) {
-        console.log("persistence set to LOCAL");
-    }
-})
-.catch(error => {
-    if (debug) {
-        console.log("error setting persistence to LOCAL");
-    }
-});
-
 const db = firebase.firestore();
 
 const app = Elm.Main.init ({
@@ -35,9 +21,6 @@ const getUserInfo = (col, doc, data) => {
     .then(docRef => {
         if (docRef.exists) {
             app.ports.getUserInfoSucceeded.send(docRef.data());
-            if (debug) {
-                console.log("Got user info: ", docRef.data());
-            }
         }
         else {
             const emailOnly = { email: data };
@@ -47,23 +30,11 @@ const getUserInfo = (col, doc, data) => {
                 app.ports.getUserInfoSucceeded.send(emailOnly);
             })
             .catch(error => {
-                if (debug) {
-                    console.log(error.code);
-                    console.log(error);
-                }
                 getUserInfoError.send(error.code);
             });
-
-            if (debug) {
-                console.log("Created user info: ", emailOnly);
-            }
         }
     })
     .catch(error => {
-        if (debug) {
-            console.log(error.code);
-            console.log(error);
-        }
         app.ports.getUserInfoError.send(error.code);
     });
 };
@@ -75,10 +46,6 @@ const createTicket = (col, doc, data) => {
         app.ports.createTicketSucceeded.send(true);
     })
     .catch(error => {
-        if (debug) {
-            console.log(error.code);
-            console.log(error);
-        }
         app.ports.createTicketError.send(error.code);
     });
 };
@@ -86,46 +53,22 @@ const createTicket = (col, doc, data) => {
 const updateUserInfo = (col, doc, data) => {
     db.collection(col).doc(doc).update(data)
     .then(docRef => {
-        // TODO: what actually happens here?
         if (data.firstName !== null && data.lastName !== null && data.degree !== null && data.terms !== null) {
             app.ports.updateUserInfoSucceeded.send(true);
         }
     })
     .catch(error => {
-        if (debug) {
-            console.log(error.code);
-            console.log(error);
-        }
         app.ports.updateUserInfoError.send(error.code);
     });
 };
 
 firebase.auth().onAuthStateChanged(user => {
-    var signedIn = "";
-    if (user) {
-        signedIn = "signed in";
-    }
-    else {
-        signedIn = "signed out";
-    }
-    if (debug) {
-        console.log("user status changed to", signedIn);
-        console.log(user);
-    }
-
     app.ports.userStatusChanged.send(user);
 });
 
 app.ports.sendSignInLink.subscribe(data => {
     const actionCodeSettings = {
-        // ------------------------------------ //
-        // ------------------------------------ //
-        // |||||||||||||||||||||||||||||||||||| //
-        // TODO change this in production TODO  //
-        // |||||||||||||||||||||||||||||||||||| //
-        // ------------------------------------ //
-        // ------------------------------------ //
-        url : "https://echobedriftstur-userauth.firebaseapp.com/verified",
+        url : "https://echobedriftstur.no/verified",
         handleCodeInApp : true
     };
     firebase.auth().sendSignInLinkToEmail(data.email, actionCodeSettings)
@@ -148,16 +91,9 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
     firebase.auth().signInWithEmailLink(email, window.location.href)
     .then(result => {
         window.localStorage.removeItem("emailForSignIn");
-        if (debug) {
-            console.log(result);
-        }
         app.ports.signInSucceeded.send(result.user);
     })
     .catch(error => {
-        if (debug) {
-            console.log(error.code);
-            console.log(error);
-        }
         app.ports.signInError.send(error.code);
     });
 }
@@ -189,10 +125,6 @@ app.ports.attemptSignOut.subscribe(data => {
             app.ports.signOutSucceeded.send(true);
         })
         .catch(error => {
-            if (debug) {
-                console.log(error.code);
-                console.log(error);
-            }
             app.ports.signOutError.send(error);
         });
 });

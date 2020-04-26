@@ -12,7 +12,8 @@ import Error exposing (Error(..))
 
 ready : Int
 ready =
-    1588067700000
+--  1588067700000
+    0
 
 route : String
 route =

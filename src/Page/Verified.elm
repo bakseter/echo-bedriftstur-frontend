@@ -13,7 +13,6 @@ import Svg
 import Svg.Attributes exposing (x, y, rx, ry)
 import Svg.Events
 import Time
-import Debug
 
 import User exposing (User)
 import Uid exposing (Uid(..))
@@ -25,13 +24,14 @@ import Session exposing (Session)
 import Ticket exposing (Ticket(..), toBool)
 import Error exposing (Error(..))
 
-påmeldingUte : Int
-påmeldingUte =
-    1588672800000
+paameldingUte : Int
+paameldingUte =
+--  1588672800000
+    1587933000000
 
 redirectToHome : String
 redirectToHome =
-    "https://echobedriftstur-userauth.firebaseapp.com"
+    "https://echobedriftstur.no"
 
 port userStatusChanged : (Encode.Value -> msg) -> Sub msg
 port signInSucceeded : (Encode.Value -> msg) -> Sub msg
@@ -121,7 +121,7 @@ init url key =
     , checkedRules = (False, False, False)
     , updateStage = UpdateIdle
     , ticketStage = TicketIdle
-    , currentSubPage = MinSide
+    , currentSubPage = Verified
     , session = Session.empty
     , error = NoError
     }
@@ -336,7 +336,7 @@ showSubPage : Model -> Html Msg
 showSubPage model =
     let msgToUser = Error.toString model.error
         miscDegree = model.user.degree == Valid MISC
-        isRelease = (Time.posixToMillis model.currentTime) >= påmeldingUte
+        isRelease = (Time.posixToMillis model.currentTime) >= paameldingUte
     in
         case model.currentSubPage of
             Verified ->
