@@ -5,6 +5,10 @@ import Html.Attributes exposing (class, id, src, alt, href, target, rel)
 import Html.Events
 import Browser.Navigation
 
+route : String
+route =
+    "om"
+
 type Msg
     = EliasMail
     | AndreasMail
@@ -18,10 +22,6 @@ type alias Model =
     , showMailAndreas : Bool
     , showMailTuva : Bool
     }
-
-route : String
-route =
-    "om"
 
 init : Model
 init =

@@ -1,7 +1,7 @@
 module Page.Info exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, span, a, text, h1, br, ul, li)
-import Html.Attributes exposing (class, id, src, href, rel, target)
+import Html.Attributes exposing (class, id, src, href, rel, target, download)
 
 type Msg =
     None
@@ -41,6 +41,7 @@ view model =
                                 """
                               ]
                     , br [] []
+                    , br [] []
                     , span [] [ text "Påmelding åpner " ]
                     , span [ class "text-underline" ] [ text "5. mai kl. 12:00" ]
                     , span [] [ text ". Her gjelder \"førstemann-til-mølla\"-prinsippet." ]
@@ -49,27 +50,40 @@ view model =
                     , span [ class "text-bold" ] [ text "(altså de som er 3. og 4. klassinger høsten 2020)." ]
                     , div [] [ text "Både registrering og påmelding vil foregå på denne nettsiden." ]
                     , br [] []
+                    , div [] [ text "Du vil ikke få svar på om du har fått plass med en gang. Vi vil sende deg en mail når alle har fått plass." ]
+                    , span [] [ text "Dersom du ønsker å melde deg av turen, må du sende oss en mail på " ]
+                    , a [ class "text-underline", href "mailto:kontakt@echobedriftstur.no" ] [ text "kontakt@echobedriftstur.no" ]
+                    , span [] [ text " innen " ]
+                    , span [ class "text-underline" ] [ text "1. august 2020" ]
+                    , span [] [ text "." ]
+                    , br [] []
+                    , br [] []
                     , div [] [ text "For å melde deg på bedriftsturen må du:" ]
                     , ul []
-                        [ li [] [ text
-                                    """
-                                    være påmeldt et bachelorprogram og begynne ditt femte semester august 2020, eller være påmeldt et masterprogram
-                                    og begynne ditt første eller andre semester august 2020
-                                    """ 
-                                ]
-                        , li [] [ text "være representert av echo, ifølge echo sine ", 
-                                    a [ class "text-underline", target "_blank", rel "noopener noreferrer", href "https://echo.uib.no/om/statutter" ] [ text "statutter" ]
-                                    , text " per 28. april 2020" 
-                                ]
-                        , li [] [ text "følge normert studieløp" ]
-                        ]
-                    , div [] [ text 
+                        [ li []
+                            [ text
                                 """
-                                Dersom du har søkt master til høsten, trenger vi en bekreftelse på at du har fått plass.
-                                Når du registrerer deg, fyller du bare inn det masterprogrammet du har søkt på.
-                                Nærmere informasjon om dette vil komme på mail til de det gjelder.
-                                """
+                                være påmeldt et bachelorprogram og begynne ditt femte semester august 2020, eller være påmeldt et masterprogram
+                                og begynne ditt første eller andre semester august 2020
+                                """ 
                             ]
+                        , li []
+                            [ text "være representert av echo, ifølge echo sine "
+                            , a [ class "text-underline", href "/docs/statutter_28_04_2020.pdf", download "statutter_28_04_2020.pdf" ]
+                                [ text "statutter" ]
+                            , text " per 28. april 2020" 
+                            ]
+                        , li []
+                            [ text "følge normert studieløp" ]
+                        ]
+                    , div []
+                        [ text 
+                            """
+                            Dersom du har søkt master til høsten, trenger vi en bekreftelse på at du har fått plass.
+                            Når du registrerer deg, fyller du bare inn det masterprogrammet du har søkt på.
+                            Nærmere informasjon om dette vil komme på mail til de det gjelder.
+                            """
+                        ]
                     , br [] []
                     , span [] [ text "Har du et spesielt studieløp som ikke faller under disse kriteriene, kan du kontakte oss på " ]
                     , a [ class "text-underline", href "mailto:kontakt@echobedriftstur.no" ] [ text "kontakt@echobedriftstur.no" ]
@@ -79,7 +93,7 @@ view model =
                     , h1 [] [ text "Transport og hotell" ]
                     , br [] []
                     , br [] []
-                    , div [] [ text "Vi flyr med Norwegian fra Bergen lufthavn 26. August kl. 07:30." ]
+                    , div [] [ text "Vi flyr med Norwegian fra Bergen lufthavn 26. august kl. 07:30." ]
                     , div [] [ text "Det anmodes å møte opp i god tid, senest kl. 06:30." ]
                     , div [] [ text "Du er selv ansvarlig for å rekke flyet." ]
                     , br [] []
@@ -121,11 +135,13 @@ view model =
                     , h1 [] [ text "Regler" ]
                     , br [] []
                     , ul []
-                        [ li [] [ text "Hvis du ikke møter opp på et bedriftsbesøk, vil du bli fakturert 1 500 NOK per besøk du bryter denne regelen på." ]
+                        [ li [] [ text "Dersom du ikke møter opp på et bedriftsbesøk, vil du bli fakturert 1 500 NOK per besøk du bryter denne regelen på." ]
+                        , br [] []
+                        , li [] [ text "Dersom du ikke melder deg av turen i tide, vil du bli utestengt fra neste års tur." ]
                         , br [] []
                         , li [] [ text "Du er personlig ansvarlig for hærverk eller andre ekstra kostnader du påfører." ]
                         , br [] []
-                        , li [] [ text "Du er personlig ansvarlig for dine eiendeler." ]
+                        , li [] [ text "Du er personlig ansvarlig for dine egne eiendeler." ]
                         ]
                     ]
                 ]

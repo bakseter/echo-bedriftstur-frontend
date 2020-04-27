@@ -7,6 +7,10 @@ import Browser.Dom
 import Task
 import Animation exposing (percent)
 
+route : String
+route =
+    "bedrifter"
+
 type Msg
     = GotViewport Browser.Dom.Viewport
     | Tick Time.Posix
@@ -20,10 +24,6 @@ type alias Model =
     , dnbSlidIn : Bool
     , bekkSlidIn : Bool
     }
-
-route : String
-route =
-    "bedrifter"
 
 init : Model
 init =

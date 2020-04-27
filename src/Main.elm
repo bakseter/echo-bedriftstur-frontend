@@ -24,7 +24,6 @@ import Page.Bedrifter as Bedrifter
 import Page.Program as Program
 import Page.Om as Om
 import Page.Verified as Verified
-import User
 import Session
 import Email
 
@@ -204,12 +203,12 @@ header model =
                     [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("second-line" ++ navbtnId), x1 "0", x2 "50", y1 "35", y2 "35" ] []
                 ]
             , div [ if model.showNavbar then class "navbar" else class "navbar-hidden" ]
-                (getNavbar model)
+                (navbar model)
             ]
         ]
 
-getUserInfo : Model -> List (Html Msg)
-getUserInfo model =
+userInfo : Model -> List (Html Msg)
+userInfo model =
     let isSignedIn = Session.isSignedIn model.modelVerified.session
         email = if isSignedIn then Email.toString model.modelVerified.session.email else ""
     in
@@ -221,11 +220,11 @@ getUserInfo model =
                 [ i [ id "sign-in-icon", class "fa fa-sign-in" ] [], text "Logg inn" ]
         ]
 
-getNavbar : Model -> List (Html Msg)
-getNavbar model =
+navbar : Model -> List (Html Msg)
+navbar model =
         [ span [] []
         , div [ class "navbar-item" ]
-            (getUserInfo model)
+            (userInfo model)
         , span [] []
         , a [ class "navbar-item", href ("/" ++ Info.route), Html.Events.onClick (ShowNavbar False) ] [ text "Informasjon" ]
         , a [ class "navbar-item", href ("/" ++ Program.route), Html.Events.onClick (ShowNavbar False) ] [ text "Program" ]

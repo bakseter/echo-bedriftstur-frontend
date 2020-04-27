@@ -5,6 +5,10 @@ import Html.Attributes exposing (class, id)
 import Html.Events
 import Browser.Navigation as Nav
 
+route : String
+route =
+    "program"
+
 type Msg
     = MnemonicMap
     | ComputasMap
@@ -15,10 +19,6 @@ type Msg
 
 type alias Model = 
     Html Msg
-
-route : String
-route =
-    "program"
 
 init : Model
 init =
