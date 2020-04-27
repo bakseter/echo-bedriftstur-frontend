@@ -28,6 +28,10 @@ paameldingUte : Int
 paameldingUte =
     1588672800000
 
+route : String
+route =
+    "verified"
+
 redirectToHome : String
 redirectToHome =
     "https://echobedriftstur.no"
@@ -104,10 +108,6 @@ type alias Model =
     , session : Session
     , error : Error
     }
-
-route : String
-route =
-    "verified"
 
 init : Url.Url -> Browser.Navigation.Key -> Model
 init url key =
@@ -412,7 +412,8 @@ showSubPage model =
                                 ]
                             , div [ class "text" ]
                                 [ span [] [ text "Jeg bekrefter at jeg er representert av echo - Fagutvalget for Informatikk, ifølge echo sine " ] 
-                                , a [ class "text-underline", href "https://echo.uib.no/om/statutter", target "_blank", rel "noopener noreferrer" ] [ text "statutter" ]
+                                , a [ class "text-underline", href "/docs/statutter_28_04_2020.pdf", download "statutter_28_04_2020.pdf" ]
+                                    [ text "statutter" ]
                                 , span [] [ text " per 22. april 2020." ]
                                 ]
                             ]
@@ -422,7 +423,12 @@ showSubPage model =
                                     [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
                                 ]
                             , div [ class "text" ]
-                                [ text "Jeg bekrefter at jeg enten er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020, eller er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020." ]
+                                [ text 
+                                    """
+                                    Jeg bekrefter at jeg enten er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020,
+                                    eller er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020.
+                                    """
+                                ]
                             ]
                         , div [ class "min-side-item checkbox-grid" ]
                             [ div [ class "checkbox-container" ]
