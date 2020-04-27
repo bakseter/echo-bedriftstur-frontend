@@ -26,8 +26,7 @@ import Error exposing (Error(..))
 
 paameldingUte : Int
 paameldingUte =
---  1588672800000
-    1587933000000
+    1588672800000
 
 redirectToHome : String
 redirectToHome =
@@ -299,30 +298,30 @@ getTicketBtn model isRelease =
         TicketIdle ->
             if isRelease then
                 input
-                    [ class "ticket-item"
-                    , id "ticket-button"
+                    [ id "ticket-button"
+                    , type_ "button"
                     , value "Meld meg på!"
                     , disabled False
                     , Html.Events.onClick CreateTicket
                     ] []
             else
                 input
-                    [ class "ticket-item"
-                    , id "ticket-button"
+                    [ id "ticket-button"
+                    , type_ "button"
                     , value "Påmeldingen har ikke åpnet enda."
                     , disabled True
                     ] []
         Creating ->
             input
-                [ class "ticket-item"
-                , id "ticket-button"
+                [ id "ticket-button"
+                , type_ "button"
                 , value " . . . "
                 , disabled True
                 ] []
         Created ->
             input
-                [ class "ticket-item"
-                , id "ticket-button"
+                [ id "ticket-button"
+                , type_ "button"
                 , value "Du har blitt meldt på."
                 , disabled True
                 ] []

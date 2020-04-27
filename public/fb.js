@@ -30,7 +30,7 @@ const getUserInfo = (col, doc, data) => {
                 app.ports.getUserInfoSucceeded.send(emailOnly);
             })
             .catch(error => {
-                getUserInfoError.send(error.code);
+                app.ports.getUserInfoError.send(error.code);
             });
         }
     })

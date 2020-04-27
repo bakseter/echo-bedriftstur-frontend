@@ -12,8 +12,7 @@ import Error exposing (Error(..))
 
 ready : Int
 ready =
---  1588067700000
-    0
+    1588067700000
 
 route : String
 route =
@@ -91,13 +90,13 @@ showPage model =
                 [ h1 [] [ text "Lag bruker/logg inn" ]
                 , br [] []
                 , br [] []
-                , div [ class "text-center text-bold" ]
-                    [ text "Det er ikke mulig å lage en bruker eller logge inn enda." ]
-                , span [ class "text-center text-bold" ]
+                , span [ class "text-bold" ]
+                    [ text "Det er ikke mulig å lage en bruker eller logge inn enda. " ]
+                , span [ class "text-bold" ]
                     [ text "Registrering åpner " ]
                 , span [ class "text-underline" ]
                     [ text "28. april kl. 12:00" ]
-                , span [ class "text-center text-bold" ]
+                , span [ class "text-bold" ]
                     [ text "." ]
                 ]
         SignIn ->
@@ -155,8 +154,10 @@ showPage model =
         LinkSent ->
             div [ class "text-center", id "logg-inn-content" ]
                 [ h1 [] [ text "Lag bruker/logg inn" ]
+                , br [] []
+                , br [] []
                 , div []
-                    [ text ("Vi har nå sendt deg en mail på " ++ (Email.toString model.email) ++ ".") ]
+                    [ text ("Vi har nå sendt deg en mail på " ++ (String.toLower (Email.toString model.email)) ++ ".") ]
                 , div []
                     [ text "Husk å sjekke søppelposten din!" ]
                 ]

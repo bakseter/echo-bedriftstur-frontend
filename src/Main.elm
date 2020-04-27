@@ -268,7 +268,7 @@ view model =
             { title = "Fant ikke siden"
             , body = (header model) ++
                 [ div [ class "not-found" ]
-                    [ h1 [] [ text "404" ]
+                    [ div [ id "not-found-header" ] [ text "404" ]
                     , div [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke." ]
                     ]
                 ]
