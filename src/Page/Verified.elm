@@ -426,7 +426,7 @@ showSubPage model =
                                 [ text 
                                     """
                                     Jeg bekrefter at jeg enten er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020,
-                                    eller er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020.
+                                    eller har søkt/er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020.
                                     """
                                 ]
                             ]
