@@ -101,7 +101,7 @@ type alias Model =
     , currentTime : Time.Posix
     , inputContent : Content
     , submittedContent : Content
-    , checkedRules : (Bool, Bool, Bool)
+    , checkedTerms : (Bool, Bool, Bool)
     , updateStage : UpdateUserInfoStage
     , ticketStage : TicketStage
     , currentSubPage : SubPage
@@ -117,7 +117,7 @@ init url key =
     , currentTime = Time.millisToPosix 0
     , inputContent = Content.empty
     , submittedContent = Content.empty
-    , checkedRules = (False, False, False)
+    , checkedTerms = (False, False, False)
     , updateStage = UpdateIdle
     , ticketStage = TicketIdle
     , currentSubPage = Verified
@@ -168,7 +168,7 @@ update msg model =
             case User.decode json of
                 Just content ->
                     let submittedContent = Content content.firstName content.lastName content.degree content.terms
-                        newCheckedRules = if Terms.toBool content.terms then (True, True, True) else model.checkedRules
+                        newCheckedRules = if Terms.toBool content.terms then (True, True, True) else model.checkedTerms
                         newTicketStage = if content.submittedTicket then
                                             Created
                                          else
@@ -176,18 +176,18 @@ update msg model =
                     in ({ model | user = User content.email content.firstName content.lastName content.degree content.terms content.hasTicket content.submittedTicket
                         , submittedContent = submittedContent
                         , inputContent = submittedContent 
-                        , checkedRules = newCheckedRules
+                        , checkedTerms = newCheckedRules
                         , ticketStage = newTicketStage }
                         , Cmd.none)
                 Nothing ->
                     update (GotError (Error.encode "json-parse-error")) model
         UpdateUserInfo session content ->
-            let newContent = Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree (Terms (hasCheckedAllRules model))
+            let newContent = Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree model.inputContent.terms
                 message = Content.encode session newContent
             in ({ model | updateStage = Updating }, updateUserInfo message)
         UpdateUserInfoSucceeded _ ->
             let subCont = model.submittedContent
-                newSubCont = Content.updateAll model.inputContent.firstName model.inputContent.lastName model.inputContent.degree (Terms (hasCheckedAllRules model)) subCont
+                newSubCont = Content.updateAll model.inputContent.firstName model.inputContent.lastName model.inputContent.degree model.inputContent.terms subCont
             in ({ model | submittedContent = newSubCont, updateStage = Succeeded }, Cmd.none)
         CreateTicket ->
             ({ model | ticketStage = Creating }, createTicket (Ticket.encode model.session))
@@ -196,8 +196,7 @@ update msg model =
         AttemptSignOut ->
             (model, attemptSignOut (Encode.object [ ("requestedSignOut", Encode.bool True) ]))
         SignOutSucceeded _ ->
-            ((init model.url model.key)
-             , Browser.Navigation.load redirectToHome )
+            ((init model.url model.key), Browser.Navigation.load redirectToHome)
         TypedFirstName str ->
             let input = Content.updateFirstName str model.inputContent
             in ({ model | inputContent = input }, Cmd.none)
@@ -208,17 +207,20 @@ update msg model =
             let input = Content.updateDegree (Degree.fromString True str) model.inputContent
             in ({ model | inputContent = input }, Cmd.none)
         CheckedBoxOne ->
-            case model.checkedRules of
-                (one, two, three) ->
-                    ({ model | checkedRules = ((not one), two, three) }, Cmd.none)
+            let (one, two, three) = model.checkedTerms
+                input = Content.updateTerms (Terms ((not one) && two && three)) model.inputContent
+                newCheckedTerms = ((not one), two, three)
+            in ({ model | inputContent = input, checkedTerms = newCheckedTerms }, Cmd.none)
         CheckedBoxTwo ->
-            case model.checkedRules of
-                (one, two, three) ->
-                    ({ model | checkedRules = (one, (not two), three) }, Cmd.none)
+            let (one, two, three) = model.checkedTerms
+                input = Content.updateTerms (Terms (one && (not two) && three)) model.inputContent
+                newCheckedTerms = (one, (not two), three)
+            in ({ model | inputContent = input, checkedTerms = newCheckedTerms }, Cmd.none)
         CheckedBoxThree ->
-            case model.checkedRules of
-                (one, two, three)->
-                    ({ model | checkedRules = (one, two, (not three)) }, Cmd.none)
+            let (one, two, three) = model.checkedTerms
+                input = Content.updateTerms (Terms (one && two && (not three))) model.inputContent
+                newCheckedTerms = (one, two, (not three))
+            in ({ model | inputContent = input, checkedTerms = newCheckedTerms }, Cmd.none)
         GotError json ->
             ({ model | error = (Error.fromJson json) }, Cmd.none)
 
@@ -241,7 +243,8 @@ hasChangedInfo model =
     in
         inp.firstName /= sub.firstName ||
         inp.lastName /= sub.lastName ||
-        inp.degree /= sub.degree
+        inp.degree /= sub.degree ||
+        inp.terms /= sub.terms
 
 infoIsNotEmpty : Model -> Bool
 infoIsNotEmpty model =
@@ -249,17 +252,9 @@ infoIsNotEmpty model =
     model.inputContent.lastName /= "" &&
     model.inputContent.degree /= None
 
-hasCheckedAllRules : Model -> Bool
-hasCheckedAllRules model =
-    case model.checkedRules of
-        (True, True, True) ->
-            True
-        _ ->
-            False
-
 getCheckboxClass : CheckboxId -> Model -> String
 getCheckboxClass id model =
-    case model.checkedRules of
+    case model.checkedTerms of
         (one, two, three) ->
             case id of
                 FirstBox ->
@@ -452,9 +447,9 @@ showSubPage model =
                                 , value (if model.updateStage /= Updating then "Lagre endringer" else " . . . ")
                                 , Html.Events.onClick
                                     (UpdateUserInfo model.session
-                                        (Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree (Terms (hasCheckedAllRules model)))
+                                        (Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree model.inputContent.terms)
                                     )
-                                , disabled (not (hasChangedInfo model && hasCheckedAllRules model && infoIsNotEmpty model && Session.isSignedIn model.session))
+                                , disabled (not (hasChangedInfo model && (Terms.toBool model.inputContent.terms) && infoIsNotEmpty model && Session.isSignedIn model.session))
                                 ] []
                             , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []
                             ]

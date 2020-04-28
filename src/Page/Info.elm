@@ -1,7 +1,7 @@
 module Page.Info exposing (init, subscriptions, update, view, Model, Msg, route)
 
 import Html exposing (Html, div, span, a, text, h1, br, ul, li)
-import Html.Attributes exposing (class, id, src, href, rel, target, download)
+import Html.Attributes exposing (class, id, src, href, rel, target, download, style)
 
 type Msg =
     None
@@ -74,8 +74,22 @@ view model =
                             , text " per 28. april 2020" 
                             ]
                         , li []
-                            [ text "følge normert studieløp" ]
+                            [ span [ class "text" ] [ text "følge " ]
+                            , span [ class "text-underline" ] [ text "normert studieløp" ]
+                            , span [ class "text-bold" ] [ text " *" ]
+                            ]
                         ]
+                    , br [] []
+                    , span [ class "text-bold" ] [ text "*" ]
+                    , span [ class "text-bold" ]
+                        [ text
+                            """
+                            Det vi mener med å følge normert studieløp, er at du tar fagene som ditt studieprogram krever det gjeldende semestret.
+                            Du kan ta opp/konte så mange fag du vil ved siden av, så lenge du fortsatt følger studieprogrammet ditt det semesteret.
+                            """
+                        ]
+                    , br [] []
+                    , br [] []
                     , div []
                         [ text 
                             """
