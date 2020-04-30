@@ -120,7 +120,7 @@ init url key =
     , checkedTerms = (False, False, False)
     , updateStage = UpdateIdle
     , ticketStage = TicketIdle
-    , currentSubPage = MinSide
+    , currentSubPage = Verified
     , session = Session.empty
     , error = NoError
     }
