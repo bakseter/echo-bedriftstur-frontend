@@ -120,7 +120,7 @@ init url key =
     , checkedTerms = (False, False, False)
     , updateStage = UpdateIdle
     , ticketStage = TicketIdle
-    , currentSubPage = Verified
+    , currentSubPage = MinSide
     , session = Session.empty
     , error = NoError
     }
@@ -406,10 +406,10 @@ showSubPage model =
                                     [ Svg.rect [ x "0", y "0", Svg.Attributes.width "40", Svg.Attributes.height "40" ] [] ]
                                 ]
                             , div [ class "text" ]
-                                [ span [] [ text "Jeg bekrefter at jeg er representert av echo - Fagutvalget for Informatikk, ifølge echo sine " ] 
-                                , a [ class "text-underline", href "/docs/statutter_28_04_2020.pdf", download "statutter_28_04_2020.pdf" ]
+                                [ span [] [ text "Jeg bekrefter at jeg er representert av echo – Fagutvalget for informatikk, ifølge echo sine " ] 
+                                , a [ class "text-underline", href "/docs/statutter_30_04_2020.pdf", download "statutter_30_04_2020.pdf" ]
                                     [ text "statutter" ]
-                                , span [] [ text " per 22. april 2020." ]
+                                , span [] [ text " per 30. april 2020." ]
                                 ]
                             ]
                         , div [ class "min-side-item checkbox-grid" ]
@@ -420,8 +420,9 @@ showSubPage model =
                             , div [ class "text" ]
                                 [ text 
                                     """
-                                    Jeg bekrefter at jeg enten er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020,
-                                    eller har søkt/er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020.
+                                    Jeg bekrefter at jeg er påmeldt et bachelorprogram og starter mitt femte semester høsten 2020,
+                                    har søkt/er påmeldt et masterprogram og starter mitt første eller andre semester høsten 2020,
+                                    eller er en postbachelorstudent og tar emner ved institutt for informatikk eller institutt for matematikk høsten 2020.
                                     """
                                 ]
                             ]
