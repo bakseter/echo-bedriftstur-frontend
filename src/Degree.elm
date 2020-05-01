@@ -16,6 +16,7 @@ type Degrees
     | KOGNI
     | INF
     | PROG
+    | POST
     | MISC
 
 -- List of valid degrees with their shorthand and long strings
@@ -30,7 +31,8 @@ degreesList =
     , (KOGNI, ("KOGNI", "Kognitiv vitenskap med spesialisering i informatikk"))
     , (INF, ("INF", "Master i informatikk"))
     , (PROG, ("PROG", "Felles master i programutvkling"))
-    , (MISC, ("MISC", "Annet godkjent studieløp"))
+    , (POST, ("POST", "Postbachelor"))
+    , (MISC, ("MISC", "Annet studieløp"))
     ]
 
 -- Convert degree to either shorthand or long string

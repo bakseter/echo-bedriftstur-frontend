@@ -30,8 +30,10 @@ suite =
                 \_ -> Expect.equal (Degree.toString False (Valid INF)) "Master i informatikk"
             , test "PROG" <|
                 \_ -> Expect.equal (Degree.toString False (Valid PROG)) "Felles master i programutvkling"
+            , test "POST" <|
+                \_ -> Expect.equal (Degree.toString False (Valid POST)) "Postbachelor"
             , test "MISC" <|
-                \_ -> Expect.equal (Degree.toString False (Valid MISC)) "Annet godkjent studieløp"
+                \_ -> Expect.equal (Degree.toString False (Valid MISC)) "Annet studieløp"
             , test "None" <|
                 \_ -> Expect.equal (Degree.toString False None) ""
             ]
@@ -54,8 +56,10 @@ suite =
                 \_ -> Expect.equal (Degree.fromString False "Master i informatikk") (Valid INF)
             , test "\"Felles master i programutvkling\"" <|
                 \_ -> Expect.equal (Degree.fromString False "Felles master i programutvkling") (Valid PROG)
-            , test "\"Annet godkjent studieløp\"" <|
-                \_ -> Expect.equal (Degree.fromString False "Annet godkjent studieløp") (Valid MISC)
+            , test "\"Postbachelor\"" <|
+                \_ -> Expect.equal (Degree.fromString False "Postbachelor") (Valid POST)
+            , test "\"Annet studieløp\"" <|
+                \_ -> Expect.equal (Degree.fromString False "Annet studieløp") (Valid MISC)
             , test "\"Not a degree\"" <|
                 \_ -> Expect.equal (Degree.fromString False "Not a degree") None
             ]

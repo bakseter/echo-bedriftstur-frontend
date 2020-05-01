@@ -395,6 +395,7 @@ showSubPage model =
                             , option [ value "KOGNI" ] [ text (Degree.toString False (Valid KOGNI)) ]
                             , option [ value "INF" ] [ text (Degree.toString False (Valid INF)) ]
                             , option [ value "PROG" ] [ text (Degree.toString False (Valid PROG)) ]
+                            , option [ value "POST" ] [ text (Degree.toString False (Valid POST)) ]
                             , if miscDegree then
                                 option [ value "MISC" ] [ text (Degree.toString False (Valid MISC)) ]
                              else
