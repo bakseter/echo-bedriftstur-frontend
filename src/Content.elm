@@ -6,7 +6,6 @@ import Degree exposing (..)
 import Terms exposing (..)
 import Session exposing (..)
 import Uid exposing (..)
-import Email exposing (..)
 
 type alias Content =
     { firstName : String

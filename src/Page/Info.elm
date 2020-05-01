@@ -68,10 +68,10 @@ view model =
                                 """ 
                             ]
                         , li []
-                            [ text "være representert av echo, ifølge echo sine "
-                            , a [ class "text-underline", href "/docs/statutter_28_04_2020.pdf", download "statutter_28_04_2020.pdf" ]
+                            [ text "være representert av echo – Fagutvalget for informatikk, ifølge echo sine "
+                            , a [ class "text-underline", href "/docs/statutter_30_04_2020.pdf", download "statutter_30_04_2020.pdf" ]
                                 [ text "statutter" ]
-                            , text " per 28. april 2020" 
+                            , text " per 30. april 2020" 
                             ]
                         , li []
                             [ span [ class "text" ] [ text "følge " ]
