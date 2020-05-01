@@ -63,8 +63,9 @@ view model =
                         [ li []
                             [ text
                                 """
-                                være påmeldt et bachelorprogram og begynne ditt femte semester august 2020, eller være påmeldt et masterprogram
-                                og begynne ditt første eller andre semester august 2020
+                                være påmeldt et bachelorprogram og begynne ditt femte semester august 2020, 
+                                være påmeldt et masterprogram og begynne ditt første eller andre semester august 2020,
+                                eller være en postbachelorstudent og ta emner ved institutt for informatikk eller institutt for matematikk høsten 2020.
                                 """ 
                             ]
                         , li []
