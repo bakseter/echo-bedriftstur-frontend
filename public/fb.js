@@ -40,7 +40,6 @@ const getUserInfo = (col, doc, data) => {
 };
 
 const createTicket = (col, doc, data) => {
-    console.log(col, doc, data);
     db.collection(col).doc(doc).update(data)
     .then(docRef => {
         app.ports.createTicketSucceeded.send(true);
