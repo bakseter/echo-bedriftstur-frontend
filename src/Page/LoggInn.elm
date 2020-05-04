@@ -4,7 +4,6 @@ import Html exposing (Html, div, text, h1, input, br, span, a)
 import Html.Attributes exposing (class, id, src, alt, type_, value, disabled, autocomplete, href, target, rel, placeholder)
 import Html.Events
 import Json.Encode
-import Json.Decode
 import Time
 
 import Email exposing (..)
@@ -48,7 +47,7 @@ init =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every 1000 Tick
+        [ Time.every 100 Tick
         , sendSignInLinkSucceeded SendSignInLinkSucceeded
         , sendSignInLinkError SendSignInLinkError
         ] 

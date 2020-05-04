@@ -305,6 +305,7 @@ getTicketBtn model isRelease =
                     , type_ "button"
                     , value "Påmeldingen har ikke åpnet enda."
                     , disabled True
+                    , Html.Events.onClick CreateTicket
                     ] []
         Creating ->
             input
