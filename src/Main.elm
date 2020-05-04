@@ -10,8 +10,6 @@ import Html.Events
 import Svg
 import Svg.Attributes exposing (x1, x2, y1, y2)
 import Svg.Events
-import Json.Encode as Encode
-import Json.Decode as Decode
 import Animation
 import Animation.Messenger
 import Time
@@ -25,7 +23,6 @@ import Page.Program as Program
 import Page.Om as Om
 import Page.Verified as Verified
 import Session
-import Email
 
 type Msg
     = UrlChanged Url.Url
@@ -182,7 +179,6 @@ header : Model -> List (Html Msg)
 header model =
     let navbtnId = if model.showNavbar then "-anim" else ""
         name = model.logoTextNameAnim
-        email = Email.toString model.modelVerified.session.email
     in
         [ div [ class "menu" ]
             [ div [ id "logo-wrapper" ] 
@@ -210,7 +206,6 @@ header model =
 userInfo : Model -> List (Html Msg)
 userInfo model =
     let isSignedIn = Session.isSignedIn model.modelVerified.session
-        email = if isSignedIn then Email.toString model.modelVerified.session.email else ""
     in
         [ if isSignedIn then
             a [ class "user-info", href ("/" ++ Verified.route), Html.Events.onClick (ShowNavbar False) ]
