@@ -67,6 +67,21 @@ input[type=button]:disabled:hover{
     background-color: #CCCCCC;
 }
 
+#debug1 {
+    display: none;
+    position: absolute;
+    left: 10%;
+    top: 20%;
+    font-size: 1.5rem;
+}
+#debug2 {
+    display: none;
+    position: absolute;
+    left: 10%;
+    top: 25%;
+    font-size: 1.5rem;
+}
+
 .text, .text-italic, .text-bold, .text-underline, .text-center {
     font-size: 1.2rem;
     line-height: 1.5;
