@@ -57,6 +57,13 @@ view model =
                     , span [ class "text-underline" ] [ text "1. august 2020" ]
                     , span [] [ text "." ]
                     , br [] []
+                    , div [] [ text
+                                """
+                                Det er ikke mulig å melde seg av etter denne fristen. Dersom du likevel ikke møter opp etter
+                                å ha prøvd å melde deg av etter fristen, gjelder regelen for å ikke møte opp på et bedriftsbesøk
+                                (beskrevet under).
+                                """
+                             ]
                     , br [] []
                     , div [] [ text "For å melde deg på bedriftsturen må du:" ]
                     , ul []
@@ -64,7 +71,7 @@ view model =
                             [ text
                                 """
                                 være påmeldt et bachelorprogram og begynne ditt femte semester august 2020, 
-                                være påmeldt et masterprogram og begynne ditt første eller andre semester august 2020,
+                                ha søkt/være påmeldt et masterprogram og begynne ditt første eller andre semester august 2020,
                                 eller være en postbachelorstudent og ta emner ved institutt for informatikk eller institutt for matematikk høsten 2020.
                                 """ 
                             ]

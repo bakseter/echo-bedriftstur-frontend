@@ -305,7 +305,6 @@ getTicketBtn model isRelease =
                     , type_ "button"
                     , value "Påmeldingen har ikke åpnet enda."
                     , disabled True
-                    , Html.Events.onClick CreateTicket
                     ] []
         Creating ->
             input
@@ -332,6 +331,7 @@ showSubPage model =
     let msgToUser = Error.toString model.error
         miscDegree = model.user.degree == Valid MISC
         isRelease = (Time.posixToMillis model.currentTime) >= paameldingUte
+        debugTime = String.fromInt (Time.posixToMillis model.currentTime)
     in
         case model.currentSubPage of
             Verified ->
@@ -343,13 +343,21 @@ showSubPage model =
                     ]
             MinSide ->
                 div [ class "min-side" ]
-                    [ div [ id "min-side-content" ]
+                    [ div [ id "debug1" ]
+                        [ text (String.dropRight 2 debugTime) ]
+                    , div [ id "debug2" ]
+                        [ text (String.dropRight 2 (String.fromInt paameldingUte)) ]
+                    , div [ id "min-side-content" ]
                         [ h1 [ class "min-side-item" ] [ text "Registrering og påmelding" ]
                         , div [ class "min-side-item text" ]
                             [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
                             , span [] [ text "Du melder deg på ved å trykke på knappen under når påmeldingen åpner " ]
                             , span [ class "text-underline" ] [ text " 5. mai kl. 12:00" ]
                             , span [] [ text ", gitt at du er logget inn og har fylt inn din informasjon." ]
+                            , div [] []
+                            , span [] [ text "Du trenger " ]
+                            , span [ class "text-underline" ] [ text "IKKE" ]
+                            , span [] [ text " å refreshe siden for å få påmeldingen til å fungere." ]
                             ]
                         , div [ class "min-side-item", id "err-msg" ] [ text msgToUser ]
                         , div [ class "min-side-item", id "tickets" ]
