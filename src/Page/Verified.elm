@@ -282,7 +282,7 @@ ticketElem (Ticket maybeBool) =
                     [ text "Du har fått plass!" ]
               else
                 div [ class "ticket-item", id "has-ticket-no" ]
-                    [ text "Du fikk dessverre ikke plass." ]
+                    [ text "Du fikk dessverre ikke plass, men du er på venteliste." ]
         Nothing ->
             div [ class "ticket-item", id "has-ticket-maybe" ]
                 [ text "Du har ikke fått plass enda." ]

@@ -550,8 +550,8 @@ input[type=button]:disabled:hover{
     background-color: green;
 }
 #has-ticket-no {
-    border-color: red;
-    background-color: red;
+    border-color: #D20000;
+    background-color: #D20000;
 }
 #has-ticket-maybe {
     border-color: var(--color-mnemonic);
