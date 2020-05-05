@@ -23,14 +23,14 @@ type Degrees
 degreesList : List (Degrees, (String, String))
 degreesList =
     [ (DTEK, ("DTEK", "Datateknologi"))
-    , (DVIT, ("DVIT", "Datatvitenskap"))
+    , (DVIT, ("DVIT", "Datavitenskap"))
     , (DSIK, ("DSIK", "Datasikkerhet"))
     , (BINF, ("BINF", "Bioinformatikk"))
     , (IMØ, ("IMØ", "Informatikk-matematikk-økonomi"))
     , (IKT, ("IKT", "Informasjons- og kommunikasjonsteknologi"))
     , (KOGNI, ("KOGNI", "Kognitiv vitenskap med spesialisering i informatikk"))
     , (INF, ("INF", "Master i informatikk"))
-    , (PROG, ("PROG", "Felles master i programutvkling"))
+    , (PROG, ("PROG", "Felles master i programutvikling"))
     , (POST, ("POST", "Postbachelor"))
     , (MISC, ("MISC", "Annet studieløp"))
     ]
