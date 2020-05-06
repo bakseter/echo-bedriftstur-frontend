@@ -18,11 +18,12 @@ type alias User =
     , terms : Terms
     , hasTicket : Ticket
     , submittedTicket : Bool
+    , ticketNumber : Int
     }
 
 empty : User
 empty =
-    User (Email "") "" "" None (Terms False) (Ticket Nothing) False
+    User (Email "") "" "" None (Terms False) (Ticket Nothing) False -1
 
 -- Uses the contentDecoder function to turn
 -- a JSON object into a User record.
@@ -38,7 +39,7 @@ decode json =
 
 userDecoder : Decode.Decoder User
 userDecoder =
-    Decode.map7 User
+    Decode.map8 User
         (Email.orNullDecoder "email")
         (stringOrNullDecoder "firstName")
         (stringOrNullDecoder "lastName")
@@ -46,6 +47,7 @@ userDecoder =
         (Terms.orNullDecoder "terms")
         (Ticket.orNullDecoder "hasTicket")
         (boolOrNullDecoder "submittedTicket")
+        (intOrNulllDecoder "ticketNumber")
 
 stringOrNullDecoder : String -> Decode.Decoder String
 stringOrNullDecoder field =
@@ -61,4 +63,12 @@ boolOrNullDecoder field =
         [ Decode.at [ field ] Decode.bool
         , Decode.at [ field ] (Decode.null False)
         , Decode.succeed False
+        ]
+
+intOrNulllDecoder : String -> Decode.Decoder Int
+intOrNulllDecoder field =
+    Decode.oneOf
+        [ Decode.at [ field ] Decode.int
+        , Decode.at [ field ] (Decode.null -1)
+        , Decode.succeed -1
         ]
