@@ -287,7 +287,7 @@ ticketElem user =
                   else
                     div [ class "ticket-item", id "has-ticket-no" ]
                         [ if showTicketNumber then
-                            text ("Du fikk dessverre ikke plass, men du nr. " ++ (String.fromInt ticketNumber) ++ " på ventelisten.")
+                            text ("Du fikk dessverre ikke plass, men du er nr. " ++ (String.fromInt ticketNumber) ++ " på ventelisten.")
                         else
                             text "Du fikk dessverre ikke plass."
                         ]
