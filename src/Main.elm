@@ -40,6 +40,7 @@ type Msg
     | RemoveCharLogoText
     | AddCharLogoText String
 
+-- The names displayed in the typewriter animation
 type Name
     = Bedriftstur
     | Mnemonic
@@ -268,15 +269,20 @@ view model =
                 ]
             }
 
+-- Voodo and black magic to transform the Html Msg types from all the different Page modules
+-- into the same type
 translateHtmlMsg : (a -> msg) -> (b -> Html.Html a) -> b -> Html.Html msg
 translateHtmlMsg msg viewFunc model =
     Html.map msg (viewFunc model)
 
+-- More voodoo and black magic to call the update functions of the Page modules, and send
+-- messages with the Page modules respective Msg type
 updateWithAndSendMsg : (b -> c -> (d, Cmd a)) -> b -> c -> (a -> msg) -> (d, Cmd msg)
 updateWithAndSendMsg updateFunc msg model msg2 =
     let (newModel, cmd) = updateFunc msg model
     in (newModel, Cmd.map msg2 cmd)
 
+-- Return the corresponding string of a Name type
 nameToString : Name -> String
 nameToString name =
     let result = List.filter (\(x,y) -> x == name) namesList
@@ -287,6 +293,7 @@ nameToString name =
             _ ->
                 ""
 
+-- List of all the strings for every Name type
 namesList : List (Name, String)
 namesList = 
     [ (Bedriftstur, "bedriftstur")
@@ -298,6 +305,7 @@ namesList =
     , (Bekk, "Bekk")
     ]
 
+-- Gets the previous name (used in the typewriterAnim function)
 prevName : Name -> Name
 prevName name =
     case name of
@@ -309,6 +317,7 @@ prevName name =
         Dnb -> Knowit
         Bekk -> Dnb
 
+-- Animates the top left part of the logo text
 typeWriterAnim : Name -> List (Animation.Messenger.Step Msg)
 typeWriterAnim transitionToName =
         let stylizedName = if transitionToName /= Bedriftstur then

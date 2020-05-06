@@ -2,10 +2,12 @@ module Degree exposing (Degree(..), Degrees(..), toString, fromString, orNullDec
 
 import Json.Decode as Decode
 
+-- Type wrapper for the Degrees type
 type Degree
     = Valid Degrees
     | None
 
+-- Type representing all the possible degrees a student can have
 type Degrees
     = DTEK
     | DSIK
@@ -65,6 +67,11 @@ fromString shorthand str =
             _ ->
                 None
 
+{-
+    Decodes a degree from a JSON value.
+    Returns (Valid Degrees) if successful.
+    Return None if not successful
+-}
 orNullDecoder : String -> Decode.Decoder Degree
 orNullDecoder field =
     Decode.oneOf

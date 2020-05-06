@@ -6,20 +6,29 @@ import Json.Decode as Decode
 import Uid exposing (Uid(..))
 import Email exposing (Email(..))
 
+{-
+    Type representing a user session.
+    Basically tells us if the user is logged in or not.
+    We get the two field (uid and email) from Firebase when
+    it detects that the user has or is logged in.
+-}
 type alias Session =
     { uid : Uid
     , email : Email
     }
 
+-- Returns an empty Session record
 empty : Session
 empty =
     Session (Uid "") (Email "")
 
+-- Checks if the user is signed in, aka the Session fields are not empty
 isSignedIn : Session -> Bool
 isSignedIn session =
     (Uid.toString session.uid) /= "" &&
     (Email.toString session.email) /= ""
 
+-- Encodes a Session type as a JSON object
 encode : Session -> Encode.Value
 encode user =
     Encode.object
@@ -40,6 +49,8 @@ decode json =
             Err _ ->
                 Nothing
 
+-- Decodes a JSON object into a Session type.
+-- Uses the decoders in the Uid and Email modules.
 sessionDecoder : Decode.Decoder Session
 sessionDecoder =
     Decode.map2 Session
