@@ -173,7 +173,7 @@ update msg model =
                                             Created
                                          else
                                              TicketIdle
-                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.terms content.hasTicket content.submittedTicket
+                    in ({ model | user = User content.email content.firstName content.lastName content.degree content.terms content.hasTicket content.submittedTicket content.ticketNumber
                         , submittedContent = submittedContent
                         , inputContent = submittedContent 
                         , checkedTerms = newCheckedRules
@@ -273,19 +273,27 @@ getCheckboxClass id model =
                     else
                         "unchecked-box"
 
-ticketElem : Ticket -> Html Msg
-ticketElem (Ticket maybeBool) =
-    case maybeBool of
-        Just bool ->
-            if bool then
-                div [ class "ticket-item", id "has-ticket-yes" ]
-                    [ text "Du har fått plass!" ]
-              else
-                div [ class "ticket-item", id "has-ticket-no" ]
-                    [ text "Du fikk dessverre ikke plass, men du er på venteliste." ]
-        Nothing ->
-            div [ class "ticket-item", id "has-ticket-maybe" ]
-                [ text "Du har ikke fått plass enda." ]
+ticketElem : User -> Html Msg
+ticketElem user =
+    let ticketNumber = user.ticketNumber
+        showTicketNumber = ticketNumber /= -1
+        (Ticket maybeBool) = user.hasTicket
+    in
+        case maybeBool of
+            Just bool ->
+                if bool then
+                    div [ class "ticket-item", id "has-ticket-yes" ]
+                        [ text "Du har fått plass!" ]
+                  else
+                    div [ class "ticket-item", id "has-ticket-no" ]
+                        [ if showTicketNumber then
+                            text ("Du fikk dessverre ikke plass, men du nr. " ++ (String.fromInt ticketNumber) ++ " på ventelisten.")
+                        else
+                            text "Du fikk dessverre ikke plass."
+                        ]
+            Nothing ->
+                div [ class "ticket-item", id "has-ticket-maybe" ]
+                    [ text "Du har ikke fått plass enda." ]
 
 getTicketBtn : Model -> Bool -> Html Msg
 getTicketBtn model isRelease =
@@ -343,11 +351,7 @@ showSubPage model =
                     ]
             MinSide ->
                 div [ class "min-side" ]
-                    [ div [ id "debug1" ]
-                        [ text (String.dropRight 2 debugTime) ]
-                    , div [ id "debug2" ]
-                        [ text (String.dropRight 2 (String.fromInt paameldingUte)) ]
-                    , div [ id "min-side-content" ]
+                    [ div [ id "min-side-content" ]
                         [ h1 [ class "min-side-item" ] [ text "Registrering og påmelding" ]
                         , div [ class "min-side-item text" ]
                             [ div [] [ text "Her kan du registrere deg i forkant av påmeldingen." ]
@@ -361,7 +365,7 @@ showSubPage model =
                             ]
                         , div [ class "min-side-item", id "err-msg" ] [ text msgToUser ]
                         , div [ class "min-side-item", id "tickets" ]
-                            [ ticketElem model.user.hasTicket
+                            [ ticketElem model.user
                             , getTicketBtn model isRelease
                             ]
                         , input [ class "min-side-item"
