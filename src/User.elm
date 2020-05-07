@@ -10,6 +10,20 @@ import Email exposing (Email(..))
 import Uid exposing (Uid(..))
 import Ticket exposing (Ticket(..))
 
+{-
+    Type representing a user.
+    Contains all the important information such as
+        email : the email of the user
+        firstName : the first name of the user
+        lastName : the lastName of the user
+        degree : the current academic course the user is enrolled in
+        hasTicket : if the user has a ticket to the trip or not
+        submittedTicket : if the user has "submitted a ticket", aka if the user has signed up for the trip
+        ticketNumber : if the user is on the waiting list for a ticket, this is the place the user has in that list
+
+    This type is encoded as a JSON object and sent to Firestore when the users updates their information,
+    and decoded from a JSON object when the user is logged in (when the users info is retrieved from Firestore).
+-}
 type alias User =
     { email : Email
     , firstName : String
@@ -21,6 +35,7 @@ type alias User =
     , ticketNumber : Int
     }
 
+-- Returns an empty User record
 empty : User
 empty =
     User (Email "") "" "" None (Terms False) (Ticket Nothing) False -1
@@ -37,6 +52,7 @@ decode json =
             Err _ ->
                 Nothing
 
+-- Decoder for converting a JSON object to a User record
 userDecoder : Decode.Decoder User
 userDecoder =
     Decode.map8 User

@@ -10,6 +10,7 @@ import Page.Program as Program
 import Page.Bedrifter as Bedrifter
 import Page.Om as Om
 
+-- Type representing all the pages on the website.
 type Page
     = Hjem
     | Info
@@ -20,6 +21,7 @@ type Page
     | Om
     | NotFound
 
+-- Runs the pageParser function on a url, converting it to a Page type.
 urlToPage : Url.Url -> Page
 urlToPage url =
     case Parser.parse pageParser url of
@@ -28,6 +30,7 @@ urlToPage url =
         Nothing ->
             NotFound
 
+-- Returns the correct Page type (according to the route of the Page type) for an url.
 pageParser : Parser.Parser (Page -> b) b
 pageParser =
     Parser.oneOf

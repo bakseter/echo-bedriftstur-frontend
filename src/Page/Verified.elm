@@ -36,22 +36,38 @@ redirectToHome : String
 redirectToHome =
     "https://echobedriftstur.no"
 
+{-
+    The ports below are used to communicate with the Javascript part of the application.
+    Elm can either send or receive data to Javascript, using JSON objects.
+    This means we need to either encode (when sending) or decode (when receiving) all the
+    data.
+-}
+
+-- Port for then a users status has changed (they sign in or out)
+-- Firebase Authentication is currently set up to remember if a user is signed in,
+-- so this happens every basically every time a user visits the site.
 port userStatusChanged : (Encode.Value -> msg) -> Sub msg
+
+-- Ports for when the user signs in
 port signInSucceeded : (Encode.Value -> msg) -> Sub msg
 port signInError : (Encode.Value -> msg) -> Sub msg
 
+-- Ports for when the user logs in, and the application gets their user info from Firestore
 port getUserInfo : Encode.Value -> Cmd msg
 port getUserInfoSucceeded : (Encode.Value -> msg) -> Sub msg
 port getUserInfoError : (Encode.Value -> msg) -> Sub msg
 
+-- Ports for when the user updates their info.
 port updateUserInfo : Encode.Value -> Cmd msg
 port updateUserInfoError : (Encode.Value -> msg) -> Sub msg
 port updateUserInfoSucceeded : (Encode.Value -> msg) -> Sub msg
 
+-- Ports for when the user signs up for the trip.
 port createTicket : Encode.Value -> Cmd msg
 port createTicketSucceeded : (Encode.Value -> msg) -> Sub msg
 port createTicketError : (Encode.Value -> msg) -> Sub msg
 
+-- Ports for when the users signs out.
 port attemptSignOut : Encode.Value -> Cmd msg
 port signOutSucceeded : (Encode.Value -> msg) -> Sub msg
 port signOutError : (Encode.Value -> msg) -> Sub msg

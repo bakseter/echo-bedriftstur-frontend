@@ -4,13 +4,16 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Dict exposing (Dict)
 
+-- Type representing an Error from Firebase or Firestore
 type Error
     = Error ErrorCode
     | NoError
 
+-- Type wrapper for the error codes
 type ErrorCode
     = ErrorCode String
 
+-- Converts an Error type to a error string
 toString : Error -> String
 toString error =
     case error of
@@ -19,10 +22,13 @@ toString error =
         NoError ->
             ""
 
+-- Encodes the error string as a JSON value
 encode : String -> Encode.Value
 encode str =
     Encode.string str
 
+-- Decodes an error string in JSON format into an Error type.
+-- Used when receiving error codes from Firebase or Firestore.
 fromJson : Encode.Value -> Error
 fromJson json =
     let jsonStr = Encode.encode 0 json
@@ -38,6 +44,8 @@ fromJson json =
             Err err ->
                 NoError
 
+-- Massive list of (almost) all the error codes that Firebase or Firestore returns.
+-- All the error codes are paired with what is displayed to the user when the error occurs.
 errorMsgList : Dict String String
 errorMsgList =
     let stdMsg = "Det har skjedd en feil. Vennligst prøv igjen "
