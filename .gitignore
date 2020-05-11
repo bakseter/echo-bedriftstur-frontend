@@ -70,3 +70,4 @@ elm-stuff/
 
 # JS linter
 .eslintrc.json
+.eslintrc.js

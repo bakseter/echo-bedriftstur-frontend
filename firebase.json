@@ -4,11 +4,7 @@
       "target": "app",
       "public": "public",
       "ignore": [
-        "firebase.json",
         "**/.*",
-        "**/node_modules/**",
-        "**elm.json",
-        "**/elm-stuff/**"
       ],
       "rewrites": [
         {
@@ -21,11 +17,7 @@
       "target": "auth",
       "public": "public",
       "ignore": [
-        "firebase.json",
         "**/.*",
-        "**/node_modules/**",
-        "**elm.json",
-        "**/elm-stuff/**"
       ],
       "rewrites": [
         {

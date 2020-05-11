@@ -17,10 +17,10 @@ The website is written in Elm and hosted using Firebase.
 
     sudo npm install -g firebase-tools elm
 
-**4. Build the project**
+**3. Build the project**
     
     elm make src/Main.elm --output public/main.js
 
-**3. Host the website locally**
+**4. Host the website locally**
 
     firebase serve
