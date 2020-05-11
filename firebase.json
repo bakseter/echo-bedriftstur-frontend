@@ -4,7 +4,7 @@
       "target": "app",
       "public": "public",
       "ignore": [
-        "**/.*",
+        "**/.*"
       ],
       "rewrites": [
         {
@@ -17,7 +17,7 @@
       "target": "auth",
       "public": "public",
       "ignore": [
-        "**/.*",
+        "**/.*"
       ],
       "rewrites": [
         {
