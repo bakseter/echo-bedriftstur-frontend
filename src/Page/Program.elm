@@ -1,13 +1,15 @@
-module Page.Program exposing (init, subscriptions, update, view, Model, Msg, route)
+module Page.Program exposing (Model, Msg, init, route, subscriptions, update, view)
 
-import Html exposing (Html, div, h1, h3, text, a, br)
+import Browser.Navigation as Nav
+import Html exposing (Html, a, br, div, h1, h3, text)
 import Html.Attributes exposing (class, id)
 import Html.Events
-import Browser.Navigation as Nav
+
 
 route : String
 route =
     "program"
+
 
 type Msg
     = MnemonicMap
@@ -17,32 +19,42 @@ type Msg
     | DnbMap
     | BekkMap
 
-type alias Model = 
+
+type alias Model =
     Html Msg
+
 
 init : Model
 init =
     div [] []
 
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
 
-update : Msg -> Model -> (Model, Cmd Msg)
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MnemonicMap ->
-            (model, Nav.load "https://goo.gl/maps/qx9MA3UUGHFNRjzz7")
+            ( model, Nav.load "https://goo.gl/maps/qx9MA3UUGHFNRjzz7" )
+
         ComputasMap ->
-            (model, Nav.load "https://goo.gl/maps/v8yhucbxmmBGT79h8")
+            ( model, Nav.load "https://goo.gl/maps/v8yhucbxmmBGT79h8" )
+
         CiscoMap ->
-            (model, Nav.load "https://goo.gl/maps/jMfn2oLGCDRA25rLA")
+            ( model, Nav.load "https://goo.gl/maps/jMfn2oLGCDRA25rLA" )
+
         KnowitMap ->
-            (model, Nav.load "https://goo.gl/maps/WtChazwnMMmPCFBv7")
+            ( model, Nav.load "https://goo.gl/maps/WtChazwnMMmPCFBv7" )
+
         DnbMap ->
-            (model, Nav.load "https://goo.gl/maps/4v6ZngBfBdVCiYDKA")
+            ( model, Nav.load "https://goo.gl/maps/4v6ZngBfBdVCiYDKA" )
+
         BekkMap ->
-            (model, Nav.load "https://goo.gl/maps/LYnPouRhiv56hFWf7")
+            ( model, Nav.load "https://goo.gl/maps/LYnPouRhiv56hFWf7" )
+
 
 view : Model -> Html Msg
 view model =
@@ -78,7 +90,7 @@ view model =
                     [ div [ class "program-text" ]
                         [ h1 [] [ text "Cisco" ]
                         , h3 [] [ text "11:00 - 15:00" ]
-                        , h3 [] [ text "Philip Pedersens vei 1" ] 
+                        , h3 [] [ text "Philip Pedersens vei 1" ]
                         ]
                     ]
                 ]
@@ -88,20 +100,20 @@ view model =
                     [ div [ class "program-text" ]
                         [ h1 [] [ text "Knowit" ]
                         , h3 [] [ text "17:00 - 21:00" ]
-                        , h3 [] [ text "Lakkegata 53" ] 
+                        , h3 [] [ text "Lakkegata 53" ]
                         ]
                     ]
                 ]
             ]
-        , div [ class "day-item", id "fredag" ] 
+        , div [ class "day-item", id "fredag" ]
             [ h1 [] [ text "Fredag 28. august" ]
             , div [ class "program-item", Html.Events.onClick DnbMap ]
                 [ div [ class "program-tab", id "dnb-tab" ] [ br [] [] ]
                 , div [ class "program-content", id "dnb-content" ]
                     [ div [ class "program-text" ]
-                        [ h1 [] [ text "DNB" ] 
+                        [ h1 [] [ text "DNB" ]
                         , h3 [] [ text "11:00 - 15:00" ]
-                        , h3 [] [ text "Dronning Eufemias gate 30" ] 
+                        , h3 [] [ text "Dronning Eufemias gate 30" ]
                         ]
                     ]
                 ]
