@@ -1,23 +1,28 @@
-module Page.Hjem exposing (init, subscriptions, update, view, Model, Msg)
+module Page.Hjem exposing (Model, Msg, init, subscriptions, update, view)
 
 import Html exposing (Html, div, h1, text)
 import Html.Attributes exposing (class, id)
 import Svg
 import Svg.Attributes
 
+
 type Msg
     = None
 
+
 type alias Model =
     Html Msg
+
 
 init : Model
 init =
     div [] []
 
-subscriptions : Model -> Sub Msg 
+
+subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
+
 
 view : Model -> Html Msg
 view model =
@@ -35,7 +40,7 @@ view model =
                 [ Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-1", Svg.Attributes.x "0", Svg.Attributes.y "153", Svg.Attributes.width "66", Svg.Attributes.height "207" ] []
                 , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-2", Svg.Attributes.x "91", Svg.Attributes.y "84", Svg.Attributes.width "59", Svg.Attributes.height "276" ] []
                 , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-3", Svg.Attributes.x "150", Svg.Attributes.y "46", Svg.Attributes.width "56", Svg.Attributes.height "314" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-4", Svg.Attributes.x "238", Svg.Attributes.y "93", Svg.Attributes.width "49", Svg.Attributes.height "367" ]  []
+                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-4", Svg.Attributes.x "238", Svg.Attributes.y "93", Svg.Attributes.width "49", Svg.Attributes.height "367" ] []
                 , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-1", Svg.Attributes.x "346", Svg.Attributes.y "44", Svg.Attributes.width "66", Svg.Attributes.height "316" ] []
                 , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-2", Svg.Attributes.x "425", Svg.Attributes.y "143", Svg.Attributes.width "44", Svg.Attributes.height "217" ] []
                 , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-3", Svg.Attributes.x "469", Svg.Attributes.y "130", Svg.Attributes.width "46", Svg.Attributes.height "230" ] []
@@ -46,6 +51,7 @@ view model =
             ]
         ]
 
-update : Msg -> Model -> (Model, Cmd Msg)
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    (model, Cmd.none)
+    ( model, Cmd.none )

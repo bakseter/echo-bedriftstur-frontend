@@ -1,21 +1,23 @@
-port module Page.LoggInn exposing (init, subscriptions, update, view, Model, Msg, route)
+port module Page.LoggInn exposing (Model, Msg, init, route, subscriptions, update, view)
 
-import Html exposing (Html, div, text, h1, input, br, span, a)
-import Html.Attributes exposing (class, id, src, alt, type_, value, disabled, autocomplete, href, target, rel, placeholder)
+import Email exposing (..)
+import Error exposing (Error(..))
+import Html exposing (Html, a, br, div, h1, input, span, text)
+import Html.Attributes exposing (alt, autocomplete, class, disabled, href, id, placeholder, rel, src, target, type_, value)
 import Html.Events
 import Json.Encode
 import Time
 
-import Email exposing (..)
-import Error exposing (Error(..))
 
 ready : Int
 ready =
     1588067400000
 
+
 route : String
 route =
     "logg-inn"
+
 
 type Msg
     = Tick Time.Posix
@@ -24,18 +26,21 @@ type Msg
     | SendSignInLinkSucceeded Json.Encode.Value
     | SendSignInLinkError Json.Encode.Value
 
+
 type SubPage
     = NotReady
     | SignIn
     | LinkSent
 
-type alias Model = 
+
+type alias Model =
     { currentSubPage : SubPage
     , currentTime : Time.Posix
     , email : Email
     , error : Error
     }
-     
+
+
 init : Model
 init =
     { currentSubPage = NotReady
@@ -44,42 +49,64 @@ init =
     , error = NoError
     }
 
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Time.every 100 Tick
         , sendSignInLinkSucceeded SendSignInLinkSucceeded
         , sendSignInLinkError SendSignInLinkError
-        ] 
+        ]
+
 
 port sendSignInLink : Json.Encode.Value -> Cmd msg
+
+
 port sendSignInLinkError : (Json.Encode.Value -> msg) -> Sub msg
+
+
 port sendSignInLinkSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
-update : Msg -> Model -> (Model, Cmd Msg)
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick time ->
-            let isReady = (Time.posixToMillis time) >= ready
-                newSubPage = if isReady && model.currentSubPage == NotReady then
-                                SignIn
-                            else
-                                model.currentSubPage
-            in ({ model | currentTime = time, currentSubPage = newSubPage }, Cmd.none)
+            let
+                isReady =
+                    Time.posixToMillis time >= ready
+
+                newSubPage =
+                    if isReady && model.currentSubPage == NotReady then
+                        SignIn
+
+                    else
+                        model.currentSubPage
+            in
+            ( { model | currentTime = time, currentSubPage = newSubPage }, Cmd.none )
+
         TypedEmail str ->
-            ({ model | email = Email str }, Cmd.none)
+            ( { model | email = Email str }, Cmd.none )
+
         SendSignInLink ->
-            let lowercaseEmail = Email (String.toLower (Email.toString model.email))
-            in (model, sendSignInLink (Email.encode lowercaseEmail))
+            let
+                lowercaseEmail =
+                    Email (String.toLower (Email.toString model.email))
+            in
+            ( model, sendSignInLink (Email.encode lowercaseEmail) )
+
         SendSignInLinkSucceeded _ ->
-            ({ model | currentSubPage = LinkSent }, Cmd.none)
+            ( { model | currentSubPage = LinkSent }, Cmd.none )
+
         SendSignInLinkError json ->
-            ({ model | error = (Error.fromJson json) }, Cmd.none)
+            ( { model | error = Error.fromJson json }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
     div [ class "logg-inn" ]
         [ showPage model ]
+
 
 showPage : Model -> Html Msg
 showPage model =
@@ -98,12 +125,13 @@ showPage model =
                 , span [ class "text-bold" ]
                     [ text "." ]
                 ]
+
         SignIn ->
             div [ id "logg-inn-content" ]
-                [ h1 [] [ text "Lag bruker/logg inn" ] 
+                [ h1 [] [ text "Lag bruker/logg inn" ]
                 , div [ class "text", id "login-info" ]
                     [ br [] []
-                    , div [] 
+                    , div []
                         [ text "For å lage en bruker eller logge inn, vennligst oppgi en gyldig studentmail på formen:" ]
                     , div [ class "text-bold" ]
                         [ text "fornavn.etternavn@student.uib.no" ]
@@ -129,43 +157,51 @@ showPage model =
                     , br [] []
                     ]
                 , div [ id "login-form" ]
-                    [ input 
+                    [ input
                         [ if isEmailValid model.email then
                             id "email-valid"
+
                           else if model.error /= NoError then
                             id "email-invalid"
+
                           else
                             id "email"
-                        , type_ "text", Html.Events.onInput TypedEmail
+                        , type_ "text"
+                        , Html.Events.onInput TypedEmail
                         , autocomplete False
                         , placeholder "Email"
-                        ] []
+                        ]
+                        []
                     , br [] []
                     , br [] []
-                    , input 
+                    , input
                         [ id "submitBtn"
                         , type_ "button"
                         , value "Logg inn"
-                        , Html.Events.onClick SendSignInLink 
+                        , Html.Events.onClick SendSignInLink
                         , if isEmailValid model.email then
                             disabled False
+
                           else
                             disabled True
-                        ] []
+                        ]
+                        []
                     ]
                 , div [ id "err-msg" ] [ text (Error.toString model.error) ]
                 ]
+
         LinkSent ->
             div [ class "text-center", id "logg-inn-content" ]
                 [ h1 [] [ text "Lag bruker/logg inn" ]
                 , br [] []
                 , br [] []
                 , div []
-                    [ text ("Vi har nå sendt deg en mail på " ++ (String.toLower (Email.toString model.email)) ++ ".") ]
+                    [ text ("Vi har nå sendt deg en mail på " ++ String.toLower (Email.toString model.email) ++ ".") ]
                 , div []
                     [ text "Husk å sjekke søppelposten din!" ]
                 ]
 
+
 isEmailValid : Email -> Bool
 isEmailValid email =
-    (String.right (String.length "@student.uib.no")) (Email.toString email) == "@student.uib.no"
+    String.right (String.length "@student.uib.no") (Email.toString email) == "@student.uib.no"
