@@ -123,7 +123,7 @@ subscriptions model =
 
 manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg
 manageSubscriptions msg subFunc model =
-    Sub.map msg (subFunc model)
+    (Sub.map msg << subFunc) model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -137,7 +137,7 @@ update msg model =
                             model.modelLoggInn
                     in
                     ( { model | modelLoggInn = LoggInn.init }
-                    , Browser.Navigation.pushUrl model.key (Url.toString url)
+                    , (Browser.Navigation.pushUrl model.key << Url.toString) url
                     )
 
                 Browser.External href ->
@@ -380,7 +380,7 @@ view model =
 
 translateHtmlMsg : (a -> msg) -> (b -> Html.Html a) -> b -> Html.Html msg
 translateHtmlMsg msg viewFunc model =
-    Html.map msg (viewFunc model)
+    (Html.map msg << viewFunc) model
 
 
 
@@ -482,53 +482,52 @@ typeWriterAnim transitionToName =
                 nameToString (prevName transitionToName)
     in
     [ Animation.repeat 4
-        [ Animation.wait (Time.millisToPosix 500)
+        [ (Animation.wait << Time.millisToPosix) 500
         , Animation.Messenger.send (LogoTextCursor True)
-        , Animation.wait (Time.millisToPosix 500)
+        , (Animation.wait << Time.millisToPosix) 500
         , Animation.Messenger.send (LogoTextCursor False)
         ]
     , Animation.repeat 1
-        [ Animation.wait (Time.millisToPosix 500)
+        [ (Animation.wait << Time.millisToPosix) 500
         , Animation.Messenger.send (LogoTextCursor True)
-        , Animation.wait (Time.millisToPosix 500)
+        , (Animation.wait << Time.millisToPosix) 500
         ]
     , Animation.repeat 1
         (Animation.wait (Time.millisToPosix 120)
-            :: List.intersperse (Animation.wait (Time.millisToPosix 120))
-                (List.map Animation.Messenger.send
-                    (List.map AddCharLogoText
-                        (List.map Tuple.second
-                            (List.indexedMap
-                                (\x y -> ( x, String.dropLeft x (String.left (x + 1) y) ))
-                                (List.repeat (String.length stylizedName) stylizedName)
-                            )
-                        )
+            :: (List.intersperse << Animation.wait << Time.millisToPosix) 120
+                ((List.map Animation.Messenger.send
+                    << List.map AddCharLogoText
+                    << List.map Tuple.second
+                 )
+                    (List.indexedMap
+                        (\x y -> ( x, String.dropLeft x (String.left (x + 1) y) ))
+                        (List.repeat (String.length stylizedName) stylizedName)
                     )
                 )
         )
     , Animation.repeat 1
         [ Animation.Messenger.send (LogoTextCursor False)
-        , Animation.wait (Time.millisToPosix 500)
+        , (Animation.wait << Time.millisToPosix) 500
         , Animation.Messenger.send (LogoTextCursor False)
-        , Animation.wait (Time.millisToPosix 500)
+        , (Animation.wait << Time.millisToPosix) 500
         ]
     , Animation.repeat 4
-        [ Animation.wait (Time.millisToPosix 500)
+        [ (Animation.wait << Time.millisToPosix) 500
         , Animation.Messenger.send (LogoTextCursor True)
-        , Animation.wait (Time.millisToPosix 500)
+        , (Animation.wait << Time.millisToPosix) 500
         , Animation.Messenger.send (LogoTextCursor False)
         ]
     , Animation.repeat 1
-        [ Animation.wait (Time.millisToPosix 500)
+        [ (Animation.wait << Time.millisToPosix) 500
         , Animation.Messenger.send (LogoTextCursor True)
-        , Animation.wait (Time.millisToPosix 500)
+        , (Animation.wait << Time.millisToPosix) 500
         ]
     , Animation.repeat (String.length stylizedName + 1)
         [ Animation.Messenger.send RemoveCharLogoText
-        , Animation.wait (Time.millisToPosix 120)
+        , (Animation.wait << Time.millisToPosix) 120
         ]
     , Animation.repeat 1
-        [ Animation.wait (Time.millisToPosix 500)
+        [ (Animation.wait << Time.millisToPosix) 500
         , Animation.Messenger.send (LogoTextCursor False)
         ]
     ]

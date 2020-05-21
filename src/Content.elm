@@ -33,11 +33,11 @@ empty =
 
 
 updateAll : String -> String -> Degree -> Terms -> Content -> Content
-updateAll firstName lastName degree terms content =
-    updateFirstName firstName content
-        |> updateLastName lastName
-        |> updateDegree degree
-        |> updateTerms terms
+updateAll firstName lastName degree terms =
+    updateFirstName firstName
+        << updateLastName lastName
+        << updateDegree degree
+        << updateTerms terms
 
 
 

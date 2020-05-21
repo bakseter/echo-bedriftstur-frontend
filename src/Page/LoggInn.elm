@@ -91,9 +91,9 @@ update msg model =
         SendSignInLink ->
             let
                 lowercaseEmail =
-                    Email (String.toLower (Email.toString model.email))
+                    (Email << String.toLower << Email.toString) model.email
             in
-            ( model, sendSignInLink (Email.encode lowercaseEmail) )
+            ( model, (sendSignInLink << Email.encode) lowercaseEmail )
 
         SendSignInLinkSucceeded _ ->
             ( { model | currentSubPage = LinkSent }, Cmd.none )
@@ -196,7 +196,7 @@ showPage model =
                 , br [] []
                 , br [] []
                 , div []
-                    [ text ("Vi har nå sendt deg en mail på " ++ String.toLower (Email.toString model.email) ++ ".") ]
+                    [ text ("Vi har nå sendt deg en mail på " ++ (String.toLower << Email.toString) model.email ++ ".") ]
                 , div []
                     [ text "Husk å sjekke søppelposten din!" ]
                 ]
