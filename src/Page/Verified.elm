@@ -232,10 +232,10 @@ update msg model =
                     in
                     case maybeNull of
                         Ok err ->
-                            update (GotError (Error.encode err)) model
+                            (update << GotError << Error.encode) err model
 
                         Err _ ->
-                            update (GotError (Error.encode "json-parse-error")) model
+                            (update << GotError << Error.encode) "json-parse-error" model
 
         SignInSucceeded userJson ->
             ( { model | currentSubPage = MinSide }, Browser.Navigation.pushUrl model.key (redirectToHome ++ "/" ++ route) )
@@ -262,7 +262,16 @@ update msg model =
                                 TicketIdle
                     in
                     ( { model
-                        | user = User content.email content.firstName content.lastName content.degree content.terms content.hasTicket content.submittedTicket content.ticketNumber
+                        | user =
+                            User
+                                content.email
+                                content.firstName
+                                content.lastName
+                                content.degree
+                                content.terms
+                                content.hasTicket
+                                content.submittedTicket
+                                content.ticketNumber
                         , submittedContent = submittedContent
                         , inputContent = submittedContent
                         , checkedTerms = newCheckedRules
@@ -323,7 +332,7 @@ update msg model =
         TypedDegree str ->
             let
                 input =
-                    Content.updateDegree (Degree.fromString True str) model.inputContent
+                    (Content.updateDegree << Degree.fromString True) str model.inputContent
             in
             ( { model | inputContent = input }, Cmd.none )
 
@@ -333,7 +342,7 @@ update msg model =
                     model.checkedTerms
 
                 input =
-                    Content.updateTerms (Terms (not one && two && three)) model.inputContent
+                    (Content.updateTerms << Terms) (not one && two && three) model.inputContent
 
                 newCheckedTerms =
                     ( not one, two, three )
@@ -346,7 +355,7 @@ update msg model =
                     model.checkedTerms
 
                 input =
-                    Content.updateTerms (Terms (one && not two && three)) model.inputContent
+                    (Content.updateTerms << Terms) (one && not two && three) model.inputContent
 
                 newCheckedTerms =
                     ( one, not two, three )
@@ -359,7 +368,7 @@ update msg model =
                     model.checkedTerms
 
                 input =
-                    Content.updateTerms (Terms (one && two && not three)) model.inputContent
+                    (Content.updateTerms << Terms) (one && two && not three) model.inputContent
 
                 newCheckedTerms =
                     ( one, two, not three )
@@ -532,7 +541,7 @@ showSubPage model =
             Time.posixToMillis model.currentTime >= paameldingUte
 
         debugTime =
-            String.fromInt (Time.posixToMillis model.currentTime)
+            (String.fromInt << Time.posixToMillis) model.currentTime
     in
     case model.currentSubPage of
         Verified ->
@@ -676,11 +685,15 @@ showSubPage model =
                                  else
                                     " . . . "
                                 )
-                            , Html.Events.onClick
-                                (UpdateUserInfo model.session
-                                    (Content model.inputContent.firstName model.inputContent.lastName model.inputContent.degree model.inputContent.terms)
+                            , (Html.Events.onClick << UpdateUserInfo model.session)
+                                (Content
+                                    model.inputContent.firstName
+                                    model.inputContent.lastName
+                                    model.inputContent.degree
+                                    model.inputContent.terms
                                 )
-                            , disabled (not (hasChangedInfo model && Terms.toBool model.inputContent.terms && infoIsNotEmpty model && Session.isSignedIn model.session))
+                            , (not >> disabled)
+                                (hasChangedInfo model && Terms.toBool model.inputContent.terms && infoIsNotEmpty model && Session.isSignedIn model.session)
                             ]
                             []
                         , input [ id "signout-btn", type_ "button", value "Logg ut", Html.Events.onClick AttemptSignOut ] []

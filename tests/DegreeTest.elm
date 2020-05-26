@@ -1,12 +1,12 @@
 module DegreeTest exposing (suite)
 
+import Degree exposing (..)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Test exposing (..)
-import Json.Encode as Encode
 import Json.Decode as Decode
+import Json.Encode as Encode
+import Test exposing (..)
 
-import Degree exposing (..)
 
 suite : Test
 suite =
