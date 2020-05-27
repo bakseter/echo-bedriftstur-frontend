@@ -230,7 +230,7 @@ input[type=button]:disabled:hover{
     bottom: 0%;
     left: 0%;
     right: 0%;
-    width: 800px;
+    width: 700px;
     margin: auto;
     z-index: -1;
 }
@@ -632,7 +632,7 @@ input[type=button]:disabled:hover{
     }
 
     #logo {
-        max-width: 100px;
+        max-width: 80px;
     }
 
     #logo-text {
