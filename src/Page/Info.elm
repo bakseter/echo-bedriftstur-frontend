@@ -82,7 +82,7 @@ view model =
                         [ text
                             """
                             være påmeldt et bachelorprogram og begynne ditt femte semester august 2020, 
-                            ha søkt/være påmeldt et masterprogram og begynne ditt første eller andre semester august 2020,
+                            ha søkt/være påmeldt et masterprogram høsten 2020,
                             eller være en postbachelorstudent og ta emner ved institutt for informatikk eller institutt for matematikk høsten 2020.
                             """
                         ]
