@@ -42,13 +42,11 @@ init =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ if allAreSlidIn model then
-            Sub.none
+    if allAreSlidIn model then
+        Sub.none
 
-          else
-            Time.every 10 Tick
-        ]
+    else
+        Time.every 10 Tick
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
