@@ -4,8 +4,7 @@ import Degree exposing (Degree(..))
 import Email exposing (Email(..))
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Session exposing (Session)
-import Terms exposing (..)
+import Terms exposing (Terms(..))
 import Ticket exposing (Ticket(..))
 import Uid exposing (Uid(..))
 

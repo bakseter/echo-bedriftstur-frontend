@@ -1,9 +1,9 @@
 port module Page.LoggInn exposing (Model, Msg, init, route, subscriptions, update, view)
 
-import Email exposing (..)
+import Email exposing (Email(..))
 import Error exposing (Error(..))
 import Html exposing (Html, a, br, div, h1, input, span, text)
-import Html.Attributes exposing (alt, autocomplete, class, disabled, href, id, placeholder, rel, src, target, type_, value)
+import Html.Attributes exposing (autocomplete, class, disabled, href, id, placeholder, rel, target, type_, value)
 import Html.Events
 import Json.Encode
 import Time
@@ -51,7 +51,7 @@ init =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.batch
         [ Time.every 100 Tick
         , sendSignInLinkSucceeded SendSignInLinkSucceeded

@@ -1,4 +1,4 @@
-module Uid exposing (..)
+module Uid exposing (Uid(..), orNullDecoder, toString)
 
 import Json.Decode as Decode
 

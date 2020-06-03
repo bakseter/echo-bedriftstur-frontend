@@ -1,7 +1,7 @@
 module Page.Program exposing (Model, Msg, init, route, subscriptions, update, view)
 
 import Browser.Navigation as Nav
-import Html exposing (Html, a, br, div, h1, h3, text)
+import Html exposing (Html, br, div, h1, h3, text)
 import Html.Attributes exposing (class, id)
 import Html.Events
 
@@ -30,7 +30,7 @@ init =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -57,7 +57,7 @@ update msg model =
 
 
 view : Model -> Html Msg
-view model =
+view _ =
     div [ class "program" ]
         [ div [ class "day-item", id "onsdag" ]
             [ h1 [] [ text "Onsdag 26. august" ]

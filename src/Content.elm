@@ -1,10 +1,10 @@
-module Content exposing (..)
+module Content exposing (Content, empty, encode, updateAll, updateDegree, updateFirstName, updateLastName, updateTerms)
 
-import Degree exposing (..)
+import Degree exposing (Degree(..))
 import Json.Encode as Encode
-import Session exposing (..)
-import Terms exposing (..)
-import Uid exposing (..)
+import Session exposing (Session)
+import Terms exposing (Terms(..))
+import Uid
 
 
 

@@ -40,26 +40,6 @@ encode session =
 
 
 
--- Decodes a Ticket type from a JSON value.
--- If the decoder succeeds, returns a Ticket type.
--- If not, returns Nothing.
-
-
-decode : Encode.Value -> Maybe Ticket
-decode json =
-    let
-        jsonStr =
-            Encode.encode 0 json
-    in
-    case Decode.decodeString (orNullDecoder "hasTicket") jsonStr of
-        Ok ticket ->
-            Just ticket
-
-        Err _ ->
-            Nothing
-
-
-
 -- Decoder for converting a JSON value to a Ticket type.
 
 
