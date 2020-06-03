@@ -1,15 +1,7 @@
-module Page.Info exposing (Model, Msg, init, route, subscriptions, update, view)
+module Page.Info exposing (route, view)
 
 import Html exposing (Html, a, br, div, h1, li, span, text, ul)
-import Html.Attributes exposing (class, download, href, id, rel, src, style, target)
-
-
-type Msg
-    = None
-
-
-type alias Model =
-    Html Msg
+import Html.Attributes exposing (class, download, href)
 
 
 route : String
@@ -17,23 +9,8 @@ route =
     "info"
 
 
-init : Model
-init =
-    div [] []
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    ( model, Cmd.none )
-
-
-view : Model -> Html Msg
-view model =
+view : Html msg
+view =
     div [ class "info" ]
         [ div [ class "info-content" ]
             [ div [ class "text" ]

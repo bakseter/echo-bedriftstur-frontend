@@ -1,8 +1,7 @@
 module Page.Bedrifter exposing (Model, Msg, init, route, subscriptions, update, view)
 
-import Animation exposing (percent)
 import Browser.Dom
-import Html exposing (Html, a, div, h1, h2, img, p, span, text)
+import Html exposing (Html, a, div, img, span, text)
 import Html.Attributes exposing (alt, class, href, id, rel, src, target)
 import Task
 import Time
@@ -99,7 +98,7 @@ update msg model =
             else
                 ( newModel, Cmd.none )
 
-        Tick time ->
+        Tick _ ->
             ( model, Task.perform GotViewport Browser.Dom.getViewport )
 
 

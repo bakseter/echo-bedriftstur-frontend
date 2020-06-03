@@ -4,7 +4,7 @@ import Animation
 import Animation.Messenger
 import Browser
 import Browser.Navigation
-import Html exposing (Html, a, div, h1, i, img, span, text)
+import Html exposing (Html, a, div, i, img, span, text)
 import Html.Attributes exposing (alt, class, href, id, src)
 import Html.Events
 import Page exposing (Page(..))
@@ -26,8 +26,6 @@ import Url
 type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
-    | GotHjemMsg Hjem.Msg
-    | GotInfoMsg Info.Msg
     | GotLoggInnMsg LoggInn.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
@@ -61,8 +59,6 @@ type alias Model =
     , showNavbar : Bool
     , logoTextNameAnim : String
     , logoTextStyle : Animation.Messenger.State Msg
-    , modelHjem : Hjem.Model
-    , modelInfo : Info.Model
     , modelLoggInn : LoggInn.Model
     , modelVerified : Verified.Model
     , modelBedrifter : Bedrifter.Model
@@ -91,8 +87,6 @@ init _ url key =
                     )
                 ]
                 (Animation.style [])
-      , modelHjem = Hjem.init
-      , modelInfo = Info.init
       , modelLoggInn = LoggInn.init
       , modelVerified = Verified.init url key
       , modelBedrifter = Bedrifter.init
@@ -106,9 +100,7 @@ init _ url key =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ manageSubscriptions GotHjemMsg Hjem.subscriptions model.modelHjem
-        , manageSubscriptions GotInfoMsg Info.subscriptions model.modelInfo
-        , manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
+        [ manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
         , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
         , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
         , if model.route == Bedrifter then
@@ -132,10 +124,6 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    let
-                        modelLoggInn =
-                            model.modelLoggInn
-                    in
                     ( { model | modelLoggInn = LoggInn.init }
                     , (Browser.Navigation.pushUrl model.key << Url.toString) url
                     )
@@ -149,20 +137,6 @@ update msg model =
                     Page.urlToPage url
             in
             ( { model | url = url, route = route }, Cmd.none )
-
-        GotHjemMsg pageMsg ->
-            let
-                ( newModel, cmd ) =
-                    updateWithAndSendMsg Hjem.update pageMsg model.modelHjem GotHjemMsg
-            in
-            ( { model | modelHjem = newModel }, cmd )
-
-        GotInfoMsg pageMsg ->
-            let
-                ( newModel, cmd ) =
-                    updateWithAndSendMsg Info.update pageMsg model.modelInfo GotInfoMsg
-            in
-            ( { model | modelInfo = newModel }, cmd )
 
         GotLoggInnMsg pageMsg ->
             let
@@ -247,7 +221,7 @@ update msg model =
             ( { model | logoTextNameAnim = newText }, Cmd.none )
 
 
-header : Model -> List (Html Msg)
+header : Model -> Html Msg
 header model =
     let
         navbtnId =
@@ -260,7 +234,7 @@ header model =
         name =
             model.logoTextNameAnim
     in
-    [ div [ class "menu" ]
+    div [ class "menu" ]
         [ div [ id "logo-wrapper" ]
             [ a [ href "/", Html.Events.onClick (ShowNavbar True) ]
                 [ img [ id "logo", alt "logo", src "/img/echoicon.png" ] [] ]
@@ -291,7 +265,6 @@ header model =
             ]
             (navbar model)
         ]
-    ]
 
 
 userInfo : Model -> List (Html Msg)
@@ -328,48 +301,48 @@ view model =
     case model.route of
         Hjem ->
             { title = "echo bedriftstur"
-            , body = header model ++ [ translateHtmlMsg GotHjemMsg Hjem.view model.modelHjem ]
+            , body = [ header model, Hjem.view ]
             }
 
         Info ->
             { title = "Informasjon"
-            , body = header model ++ [ translateHtmlMsg GotInfoMsg Info.view model.modelInfo ]
+            , body = [ header model, Info.view ]
             }
 
         LoggInn ->
             { title = "Logg inn"
-            , body = header model ++ [ translateHtmlMsg GotLoggInnMsg LoggInn.view model.modelLoggInn ]
+            , body = [ header model, translateHtmlMsg GotLoggInnMsg LoggInn.view model.modelLoggInn ]
             }
 
         Verified ->
             { title = "Min side"
-            , body = header model ++ [ translateHtmlMsg GotVerifiedMsg Verified.view model.modelVerified ]
+            , body = [ header model, translateHtmlMsg GotVerifiedMsg Verified.view model.modelVerified ]
             }
 
         Program ->
             { title = "Program"
-            , body = header model ++ [ translateHtmlMsg GotProgramMsg Program.view model.modelProgram ]
+            , body = [ header model, translateHtmlMsg GotProgramMsg Program.view model.modelProgram ]
             }
 
         Bedrifter ->
             { title = "Bedrifter"
-            , body = header model ++ [ translateHtmlMsg GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
+            , body = [ header model, translateHtmlMsg GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
             }
 
         Om ->
             { title = "Om oss"
-            , body = header model ++ [ translateHtmlMsg GotOmMsg Om.view model.modelOm ]
+            , body = [ header model, translateHtmlMsg GotOmMsg Om.view model.modelOm ]
             }
 
         NotFound ->
             { title = "Fant ikke siden"
             , body =
-                header model
-                    ++ [ div [ class "not-found" ]
-                            [ div [ id "not-found-header" ] [ text "404" ]
-                            , div [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke." ]
-                            ]
-                       ]
+                [ header model
+                , div [ class "not-found" ]
+                    [ div [ id "not-found-header" ] [ text "404" ]
+                    , div [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke." ]
+                    ]
+                ]
             }
 
 
@@ -405,7 +378,7 @@ nameToString : Name -> String
 nameToString name =
     let
         result =
-            List.filter (\( x, y ) -> x == name) namesList
+            List.filter (\( x, _ ) -> x == name) namesList
     in
     case result of
         [ ( _, string ) ] ->
@@ -432,35 +405,6 @@ namesList =
 
 
 
--- Gets the previous name (used in the typewriterAnim function)
-
-
-prevName : Name -> Name
-prevName name =
-    case name of
-        Bedriftstur ->
-            Bekk
-
-        Mnemonic ->
-            Bedriftstur
-
-        Computas ->
-            Mnemonic
-
-        Cisco ->
-            Computas
-
-        Knowit ->
-            Cisco
-
-        Dnb ->
-            Knowit
-
-        Bekk ->
-            Dnb
-
-
-
 -- Animates the top left part of the logo text
 
 
@@ -473,13 +417,6 @@ typeWriterAnim transitionToName =
 
             else
                 nameToString transitionToName
-
-        stylizedPrevName =
-            if prevName transitionToName /= Bedriftstur then
-                "+ " ++ nameToString (prevName transitionToName)
-
-            else
-                nameToString (prevName transitionToName)
     in
     [ Animation.repeat 4
         [ (Animation.wait << Time.millisToPosix) 500
@@ -533,6 +470,7 @@ typeWriterAnim transitionToName =
     ]
 
 
+main : Program () Model Msg
 main =
     Browser.application
         { init = init

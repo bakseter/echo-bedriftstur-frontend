@@ -1,31 +1,13 @@
-module Page.Hjem exposing (Model, Msg, init, subscriptions, update, view)
+module Page.Hjem exposing (view)
 
-import Html exposing (Html, div, h1, text)
+import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, id)
 import Svg
 import Svg.Attributes
 
 
-type Msg
-    = None
-
-
-type alias Model =
-    Html Msg
-
-
-init : Model
-init =
-    div [] []
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
-
-
-view : Model -> Html Msg
-view model =
+view : Html msg
+view =
     div [ class "hjem" ]
         [ div [ id "hjem-header" ]
             [ div [] [ text "Bedriftstur til Oslo" ]
@@ -50,8 +32,3 @@ view model =
                 ]
             ]
         ]
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    ( model, Cmd.none )

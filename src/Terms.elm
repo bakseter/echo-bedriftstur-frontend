@@ -1,4 +1,4 @@
-module Terms exposing (..)
+module Terms exposing (Terms(..), orNullDecoder, toBool)
 
 import Array exposing (Array(..))
 import Json.Decode as Decode
