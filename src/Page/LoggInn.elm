@@ -19,6 +19,15 @@ route =
     "logg-inn"
 
 
+port sendSignInLink : Json.Encode.Value -> Cmd msg
+
+
+port sendSignInLinkError : (Json.Encode.Value -> msg) -> Sub msg
+
+
+port sendSignInLinkSucceeded : (Json.Encode.Value -> msg) -> Sub msg
+
+
 type Msg
     = Tick Time.Posix
     | TypedEmail String
@@ -57,15 +66,6 @@ subscriptions _ =
         , sendSignInLinkSucceeded SendSignInLinkSucceeded
         , sendSignInLinkError SendSignInLinkError
         ]
-
-
-port sendSignInLink : Json.Encode.Value -> Cmd msg
-
-
-port sendSignInLinkError : (Json.Encode.Value -> msg) -> Sub msg
-
-
-port sendSignInLinkSucceeded : (Json.Encode.Value -> msg) -> Sub msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

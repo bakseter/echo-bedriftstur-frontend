@@ -1,7 +1,7 @@
 {
   "short_name": "Bedriftstur",
   "name": "echo Bedriftstur",
-  "description": "Bedriftstur til Oslo arrangert av echo - Fagutvalget for informatikk ved Universitetet i Bergen",
+  "description": "Bedriftstur til Oslo arrangert av echo – Fagutvalget for informatikk ved Universitetet i Bergen",
   "icons": [
     {
       "src": "/img/echo-favicon-192.png",

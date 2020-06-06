@@ -99,23 +99,22 @@ init _ url key =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ manageSubscriptions GotProgramMsg Program.subscriptions model.modelProgram
-        , manageSubscriptions GotLoggInnMsg LoggInn.subscriptions model.modelLoggInn
-        , manageSubscriptions GotVerifiedMsg Verified.subscriptions model.modelVerified
-        , if model.route == Bedrifter then
-            manageSubscriptions GotBedrifterMsg Bedrifter.subscriptions model.modelBedrifter
+    let
+        subBedrifter =
+            if model.route == Bedrifter then
+                (Sub.map GotBedrifterMsg << Bedrifter.subscriptions) model.modelBedrifter
 
-          else
-            Sub.none
-        , manageSubscriptions GotOmMsg Om.subscriptions model.modelOm
+            else
+                Sub.none
+    in
+    Sub.batch
+        [ (Sub.map GotLoggInnMsg << LoggInn.subscriptions) model.modelLoggInn
+        , (Sub.map GotVerifiedMsg << Verified.subscriptions) model.modelVerified
+        , subBedrifter
+        , (Sub.map GotProgramMsg << Program.subscriptions) model.modelProgram
+        , (Sub.map GotOmMsg << Om.subscriptions) model.modelOm
         , Animation.subscription AnimateLogoText [ model.logoTextStyle ]
         ]
-
-
-manageSubscriptions : (a -> msg) -> (b -> Sub a) -> b -> Sub msg
-manageSubscriptions msg subFunc model =
-    (Sub.map msg << subFunc) model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -230,9 +229,6 @@ header model =
 
             else
                 ""
-
-        name =
-            model.logoTextNameAnim
     in
     div [ class "menu" ]
         [ div [ id "logo-wrapper" ]
@@ -243,7 +239,7 @@ header model =
             [ span [] [ text "echo " ]
             , span
                 (Animation.render model.logoTextStyle)
-                [ text name ]
+                [ text model.logoTextNameAnim ]
             ]
         , Svg.svg [ Svg.Attributes.id "navbtn", Svg.Events.onClick (ShowNavbar False), Svg.Attributes.width "50", Svg.Attributes.height "40" ]
             [ Svg.line
@@ -269,11 +265,7 @@ header model =
 
 userInfo : Model -> List (Html Msg)
 userInfo model =
-    let
-        isSignedIn =
-            Session.isSignedIn model.modelVerified.session
-    in
-    [ if isSignedIn then
+    [ if Session.isSignedIn model.modelVerified.session then
         a [ class "user-info", href ("/" ++ Verified.route), Html.Events.onClick (ShowNavbar False) ]
             [ i [ id "profile-icon", class "fa fa-user-circle" ] [], text "Min profil" ]
 
@@ -311,27 +303,27 @@ view model =
 
         LoggInn ->
             { title = "Logg inn"
-            , body = [ header model, translateHtmlMsg GotLoggInnMsg LoggInn.view model.modelLoggInn ]
+            , body = [ header model, (Html.map GotLoggInnMsg << LoggInn.view) model.modelLoggInn ]
             }
 
         Verified ->
             { title = "Min side"
-            , body = [ header model, translateHtmlMsg GotVerifiedMsg Verified.view model.modelVerified ]
+            , body = [ header model, (Html.map GotVerifiedMsg << Verified.view) model.modelVerified ]
             }
 
         Program ->
             { title = "Program"
-            , body = [ header model, translateHtmlMsg GotProgramMsg Program.view model.modelProgram ]
+            , body = [ header model, (Html.map GotProgramMsg << Program.view) model.modelProgram ]
             }
 
         Bedrifter ->
             { title = "Bedrifter"
-            , body = [ header model, translateHtmlMsg GotBedrifterMsg Bedrifter.view model.modelBedrifter ]
+            , body = [ header model, (Html.map GotBedrifterMsg << Bedrifter.view) model.modelBedrifter ]
             }
 
         Om ->
             { title = "Om oss"
-            , body = [ header model, translateHtmlMsg GotOmMsg Om.view model.modelOm ]
+            , body = [ header model, (Html.map GotOmMsg << Om.view) model.modelOm ]
             }
 
         NotFound ->
@@ -347,27 +339,32 @@ view model =
 
 
 
--- Voodo and black magic to transform the Html Msg types from all the different Page modules
--- into the same type
+{-
+   Runs the update function of a Page module and maps the
+   commands to the message type `msg`
+
+   updateFunc:
+       the update function of the page
+
+   pageMsg:
+       the message that was sent from the page
+
+   model:
+       the model of the page
+
+   msg:
+       the message type the pageMsg is mapped to
+
+-}
 
 
-translateHtmlMsg : (a -> msg) -> (b -> Html.Html a) -> b -> Html.Html msg
-translateHtmlMsg msg viewFunc model =
-    (Html.map msg << viewFunc) model
-
-
-
--- More voodoo and black magic to call the update functions of the Page modules, and send
--- messages with the Page modules respective Msg type
-
-
-updateWithAndSendMsg : (b -> c -> ( d, Cmd a )) -> b -> c -> (a -> msg) -> ( d, Cmd msg )
-updateWithAndSendMsg updateFunc msg model msg2 =
+updateWithAndSendMsg : (pageMsg -> model -> ( model, Cmd pageMsg )) -> pageMsg -> model -> (pageMsg -> msg) -> ( model, Cmd msg )
+updateWithAndSendMsg updateFunc pageMsg model msg =
     let
         ( newModel, cmd ) =
-            updateFunc msg model
+            updateFunc pageMsg model
     in
-    ( newModel, Cmd.map msg2 cmd )
+    ( newModel, Cmd.map msg cmd )
 
 
 

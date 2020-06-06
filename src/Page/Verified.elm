@@ -14,10 +14,9 @@ import Session exposing (Session)
 import Svg
 import Svg.Attributes exposing (rx, ry, x, y)
 import Svg.Events
-import Terms exposing (..)
+import Terms exposing (Terms(..))
 import Ticket exposing (Ticket(..), toBool)
 import Time
-import Uid exposing (Uid(..))
 import Url
 import Url.Parser as Parser exposing ((<?>))
 import Url.Parser.Query as Query
@@ -45,10 +44,12 @@ redirectToHome =
    Elm can either send or receive data to Javascript, using JSON objects.
    This means we need to either encode (when sending) or decode (when receiving) all the
    data.
+
+
 -}
 -- Port for then a users status has changed (they sign in or out)
 -- Firebase Authentication is currently set up to remember if a user is signed in,
--- so this happens every basically every time a user visits the site.
+-- so this happens basically every time a user visits the site.
 
 
 port userStatusChanged : (Encode.Value -> msg) -> Sub msg
@@ -474,7 +475,7 @@ ticketElem user =
 
         Nothing ->
             div [ class "ticket-item", id "has-ticket-maybe" ]
-                [ text "Du har ikke fått plass enda." ]
+                [ text "Du har ikke fått plass enda. Du vil få en bekreftelse på om du har fått plass eller ikke snarest." ]
 
 
 getTicketBtn : Model -> Bool -> Html Msg
@@ -540,8 +541,19 @@ showSubPage model =
         isRelease =
             Time.posixToMillis model.currentTime >= paameldingUte
 
-        debugTime =
-            (String.fromInt << Time.posixToMillis) model.currentTime
+        updateText =
+            if model.updateStage == Succeeded then
+                "Dine endringer har blitt lagret!"
+
+            else
+                ""
+
+        updateBtnText =
+            if model.updateStage /= Updating then
+                "Lagre endringer"
+
+            else
+                " . . . "
     in
     case model.currentSubPage of
         Verified ->
@@ -666,25 +678,12 @@ showSubPage model =
                             ]
                         ]
                     , div [ id "update-info-text" ]
-                        [ text
-                            (if model.updateStage == Succeeded then
-                                "Dine endringer har blitt lagret!"
-
-                             else
-                                ""
-                            )
-                        ]
+                        [ text updateText ]
                     , div [ class "min-side-item", id "min-side-buttons" ]
                         [ input
                             [ id "save-btn"
                             , type_ "button"
-                            , value
-                                (if model.updateStage /= Updating then
-                                    "Lagre endringer"
-
-                                 else
-                                    " . . . "
-                                )
+                            , value updateBtnText
                             , (Html.Events.onClick << UpdateUserInfo model.session)
                                 (Content
                                     model.inputContent.firstName
