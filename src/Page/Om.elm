@@ -64,6 +64,16 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    let
+        ( eliasMail, eliasClass ) =
+            getMail model EliasMail
+
+        ( andreasMail, andreasClass ) =
+            getMail model AndreasMail
+
+        ( tuvaMail, tuvaClass ) =
+            getMail model TuvaMail
+    in
     div [ class "om" ]
         [ div [ id "om-content" ]
             [ div [ id "om-tekst" ]
@@ -77,31 +87,22 @@ view model =
             , div [ class "om-info", id "elias-info" ]
                 [ div [ class "om-navn text-center" ] [ text "Elias Djupesland" ]
                 , div [ class "text-center" ] [ text "Leder og bedriftskontakt" ]
-                , div
-                    [ (class << String.append " text-center" << Tuple.first << getMail model) EliasMail
-                    , Html.Events.onClick EliasMail
-                    ]
-                    [ (text << Tuple.second << getMail model) EliasMail ]
+                , div [ class "text-center", class eliasClass, Html.Events.onClick EliasMail ]
+                    [ text eliasMail ]
                 ]
             , div [ id "andreas" ] [ img [ class "portrett", src "/img/andreas.png", alt "Andreas", Html.Events.onClick AndreasLinkedIn ] [] ]
             , div [ class "om-info", id "andreas-info" ]
                 [ div [ class "om-navn text-center" ] [ text "Andreas Salhus Bakseter" ]
                 , div [ class "text-center" ] [ text "Webansvarlig" ]
-                , div
-                    [ (class << String.append " text-center" << Tuple.first << getMail model) AndreasMail
-                    , Html.Events.onClick AndreasMail
-                    ]
-                    [ (text << Tuple.second << getMail model) AndreasMail ]
+                , div [ class "text-center", class andreasClass, Html.Events.onClick AndreasMail ]
+                    [ text andreasMail ]
                 ]
             , div [ id "tuva" ] [ img [ class "portrett", src "/img/tuva.png", alt "Tuva", Html.Events.onClick TuvaLinkedIn ] [] ]
             , div [ class "om-info", id "tuva-info" ]
                 [ div [ class "om-navn text-center" ] [ text "Tuva Kvalsøren" ]
                 , div [ class "text-center" ] [ text "PR-ansvarlig" ]
-                , div
-                    [ (class << String.append " text-center" << Tuple.first << getMail model) TuvaMail
-                    , Html.Events.onClick TuvaMail
-                    ]
-                    [ (text << Tuple.second << getMail model) TuvaMail ]
+                , div [ class "text-center", class tuvaClass, Html.Events.onClick TuvaMail ]
+                    [ text tuvaMail ]
                 ]
             ]
         , div [ id "om-links" ]
