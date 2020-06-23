@@ -65,13 +65,13 @@ update msg model =
 view : Model -> Html Msg
 view model =
     let
-        ( eliasMail, eliasClass ) =
+        ( eliasClass, eliasMail ) =
             getMail model EliasMail
 
-        ( andreasMail, andreasClass ) =
+        ( andreasClass, andreasMail ) =
             getMail model AndreasMail
 
-        ( tuvaMail, tuvaClass ) =
+        ( tuvaClass, tuvaMail ) =
             getMail model TuvaMail
     in
     div [ class "om" ]
