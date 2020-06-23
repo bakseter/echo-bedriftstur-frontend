@@ -77,14 +77,7 @@ init _ url key =
       , logoTextStyle =
             Animation.interrupt
                 [ Animation.loop
-                    (typeWriterAnim Bedriftstur
-                        ++ typeWriterAnim Mnemonic
-                        ++ typeWriterAnim Computas
-                        ++ typeWriterAnim Cisco
-                        ++ typeWriterAnim Knowit
-                        ++ typeWriterAnim Dnb
-                        ++ typeWriterAnim Bekk
-                    )
+                    (List.concatMap typeWriterAnim [ Bedriftstur, Mnemonic, Computas, Cisco, Knowit, Dnb, Bekk ])
                 ]
                 (Animation.style [])
       , modelLoggInn = LoggInn.init
@@ -140,37 +133,37 @@ update msg model =
         GotLoggInnMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    updateWithAndSendMsg LoggInn.update pageMsg model.modelLoggInn GotLoggInnMsg
+                    LoggInn.update pageMsg model.modelLoggInn
             in
-            ( { model | modelLoggInn = newModel }, cmd )
+            ( { model | modelLoggInn = newModel }, Cmd.map GotLoggInnMsg cmd )
 
         GotVerifiedMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    updateWithAndSendMsg Verified.update pageMsg model.modelVerified GotVerifiedMsg
+                    Verified.update pageMsg model.modelVerified
             in
-            ( { model | modelVerified = newModel }, cmd )
+            ( { model | modelVerified = newModel }, Cmd.map GotVerifiedMsg cmd )
 
         GotProgramMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    updateWithAndSendMsg Program.update pageMsg model.modelProgram GotProgramMsg
+                    Program.update pageMsg model.modelProgram
             in
-            ( { model | modelProgram = newModel }, cmd )
+            ( { model | modelProgram = newModel }, Cmd.map GotProgramMsg cmd )
 
         GotBedrifterMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    updateWithAndSendMsg Bedrifter.update pageMsg model.modelBedrifter GotBedrifterMsg
+                    Bedrifter.update pageMsg model.modelBedrifter
             in
-            ( { model | modelBedrifter = newModel }, cmd )
+            ( { model | modelBedrifter = newModel }, Cmd.map GotBedrifterMsg cmd )
 
         GotOmMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    updateWithAndSendMsg Om.update pageMsg model.modelOm GotOmMsg
+                    Om.update pageMsg model.modelOm
             in
-            ( { model | modelOm = newModel }, cmd )
+            ( { model | modelOm = newModel }, Cmd.map GotOmMsg cmd )
 
         ShowNavbar linksToHome ->
             if model.showNavbar == False then
@@ -223,12 +216,12 @@ update msg model =
 header : Model -> Html Msg
 header model =
     let
-        navbtnId =
+        ( navbtnId, navbarClass ) =
             if model.showNavbar then
-                "-anim"
+                ( "-anim", "navbar" )
 
             else
-                ""
+                ( "", "navbar-hidden" )
     in
     div [ class "menu" ]
         [ div [ id "logo-wrapper" ]
@@ -252,13 +245,7 @@ header model =
                 [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("second-line" ++ navbtnId), x1 "0", x2 "50", y1 "35", y2 "35" ]
                 []
             ]
-        , div
-            [ if model.showNavbar then
-                class "navbar"
-
-              else
-                class "navbar-hidden"
-            ]
+        , div [ class navbarClass ]
             (navbar model)
         ]
 
@@ -290,81 +277,55 @@ navbar model =
 
 view : Model -> Browser.Document Msg
 view model =
-    case model.route of
-        Hjem ->
-            { title = "echo bedriftstur"
-            , body = [ header model, Hjem.view ]
-            }
-
-        Info ->
-            { title = "Informasjon"
-            , body = [ header model, Info.view ]
-            }
-
-        LoggInn ->
-            { title = "Logg inn"
-            , body = [ header model, (Html.map GotLoggInnMsg << LoggInn.view) model.modelLoggInn ]
-            }
-
-        Verified ->
-            { title = "Min side"
-            , body = [ header model, (Html.map GotVerifiedMsg << Verified.view) model.modelVerified ]
-            }
-
-        Program ->
-            { title = "Program"
-            , body = [ header model, (Html.map GotProgramMsg << Program.view) model.modelProgram ]
-            }
-
-        Bedrifter ->
-            { title = "Bedrifter"
-            , body = [ header model, (Html.map GotBedrifterMsg << Bedrifter.view) model.modelBedrifter ]
-            }
-
-        Om ->
-            { title = "Om oss"
-            , body = [ header model, (Html.map GotOmMsg << Om.view) model.modelOm ]
-            }
-
-        NotFound ->
-            { title = "Fant ikke siden"
-            , body =
-                [ header model
-                , div [ class "not-found" ]
-                    [ div [ id "not-found-header" ] [ text "404" ]
-                    , div [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke." ]
-                    ]
-                ]
-            }
-
-
-
-{-
-   Runs the update function of a Page module and maps the
-   commands to the message type `msg`
-
-   updateFunc:
-       the update function of the page
-
-   pageMsg:
-       the message that was sent from the page
-
-   model:
-       the model of the page
-
-   msg:
-       the message type the pageMsg is mapped to
-
--}
-
-
-updateWithAndSendMsg : (pageMsg -> model -> ( model, Cmd pageMsg )) -> pageMsg -> model -> (pageMsg -> msg) -> ( model, Cmd msg )
-updateWithAndSendMsg updateFunc pageMsg model msg =
     let
-        ( newModel, cmd ) =
-            updateFunc pageMsg model
+        ( title, body ) =
+            case model.route of
+                Hjem ->
+                    ( "echo bedriftstur"
+                    , Hjem.view
+                    )
+
+                Info ->
+                    ( "Informasjon"
+                    , Info.view
+                    )
+
+                LoggInn ->
+                    ( "Logg inn"
+                    , (Html.map GotLoggInnMsg << LoggInn.view) model.modelLoggInn
+                    )
+
+                Verified ->
+                    ( "Min side"
+                    , (Html.map GotVerifiedMsg << Verified.view) model.modelVerified
+                    )
+
+                Program ->
+                    ( "Program"
+                    , (Html.map GotProgramMsg << Program.view) model.modelProgram
+                    )
+
+                Bedrifter ->
+                    ( "Bedrifter"
+                    , (Html.map GotBedrifterMsg << Bedrifter.view) model.modelBedrifter
+                    )
+
+                Om ->
+                    ( "Om oss"
+                    , (Html.map GotOmMsg << Om.view) model.modelOm
+                    )
+
+                NotFound ->
+                    ( "Fant ikke siden"
+                    , div [ class "not-found" ]
+                        [ div [ id "not-found-header" ] [ text "404" ]
+                        , div [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke." ]
+                        ]
+                    )
     in
-    ( newModel, Cmd.map msg cmd )
+    { title = title
+    , body = [ header model, body ]
+    }
 
 
 
@@ -429,10 +390,7 @@ typeWriterAnim transitionToName =
     , Animation.repeat 1
         (Animation.wait (Time.millisToPosix 120)
             :: (List.intersperse << Animation.wait << Time.millisToPosix) 120
-                ((List.map Animation.Messenger.send
-                    << List.map AddCharLogoText
-                    << List.map Tuple.second
-                 )
+                (List.map (Animation.Messenger.send << AddCharLogoText << Tuple.second)
                     (List.indexedMap
                         (\x y -> ( x, String.dropLeft x (String.left (x + 1) y) ))
                         (List.repeat (String.length stylizedName) stylizedName)
