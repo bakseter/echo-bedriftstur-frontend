@@ -82,7 +82,7 @@ input[type=button]:disabled:hover{
     font-size: 1.5rem;
 }
 
-.text, .text-italic, .text-bold, .text-underline, .text-center {
+.text, .text-italic, .text-bold, .text-underline, .text-center, .text-strike {
     font-size: 1.2rem;
     line-height: 1.5;
 }
@@ -100,10 +100,23 @@ input[type=button]:disabled:hover{
     text-decoration: underline;
 }
 
+.text-strike {
+    font-weight: bold;
+    text-decoration: line-through solid 3px;
+    padding-left: 0.4%;
+    padding-right: 0.4%;
+}
+
 .text-center {
     text-align: center;
 }
 
+.update-text {
+    font-size: 1.7rem;
+    padding-bottom: 1%;
+    font-weight: bold;
+    color: red;
+}
 .menu {
     display: grid;
     align-items: center;
