@@ -1,7 +1,7 @@
 module Page.Info exposing (route, view)
 
 import Html exposing (Html, a, br, div, h1, li, span, text, ul)
-import Html.Attributes exposing (class, download, href)
+import Html.Attributes exposing (class, download, href, style)
 
 
 route : String
@@ -103,16 +103,16 @@ view =
                 , h1 [] [ text "Transport og hotell" ]
                 , br [] []
                 , br [] []
-                , div [] [ text "Vi flyr med Norwegian fra Bergen lufthavn 26. august kl. 07:30." ]
-                , div [] [ text "Det anmodes å møte opp i god tid, senest kl. 06:30." ]
+                , span [] [ text "Vi flyr med Norwegian fra Bergen lufthavn 26. august " ]
+                , span [ class "text-strike" ] [ text "kl. 07:30 " ]
+                , span [ class "text-bold" ] [ text "kl. 08:45." ]
+                , br [] []
+                , span [] [ text "Det anmodes å møte opp i god tid, senest " ]
+                , span [ class "text-bold" ] [ text "kl. 07:45 " ]
+                , span [] [ text "(én time før avgang)." ]
                 , div [] [ text "Du er selv ansvarlig for å rekke flyet." ]
                 , br [] []
                 , div [] [ text "Inkludert i billetten er opptil to kolli innsjekket bagasje per person (maks 20 kg per kolli), i tillegg til én håndbagasje (10 kg)." ]
-                , br [] []
-                , div [] [ text "Flyet lander 26. august kl 08:25." ]
-                , br [] []
-                , div [] [ text "Vi har leid felles buss fra Gardermoen til hotellet som går kl 09:00 fra flyplassen." ]
-                , div [] [ text "Du er selv ansvarlig for å møte opp på riktig sted og tid." ]
                 , br [] []
                 , span [] [ text "Det er " ]
                 , span [ class "text-underline" ] [ text "IKKE" ]
@@ -125,6 +125,15 @@ view =
                 , br [] []
                 , h1 [] [ text "COVID-19" ]
                 , br [] []
+                , br [] []
+                , div [ class "update-text" ] [ text "OPPDATERING 22.07:" ]
+                , div [ class "text-bold", style "color" "red" ]
+                    [ text
+                        """
+                        Det har skjedd endringer i programmet og avreisetid, pga. COVID-19.
+                        Om du er påmeldt turen, har du fått nødvendig info på mail.
+                        """
+                    ]
                 , br [] []
                 , div []
                     [ text
