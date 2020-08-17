@@ -14,7 +14,17 @@ view =
     div [ class "info" ]
         [ div [ class "info-content" ]
             [ div [ class "text" ]
-                [ h1 [] [ text "Hvordan bli med" ]
+                [ div [ class "update-text" ] [ text "OPPDATERING 17.08:" ]
+                , div [ class "text-bold", style "color" "red" ]
+                    [ text
+                        """
+                        Grunnet de to siste ukenes utvikling av COVID-19, anser vi det som uforsvarlig å reise med 50 studenter til Oslo.
+                        De fleste andre linjeforeninger har valgt å avlyse sine bedriftsekskursjoner i år, noe vi dessverre også ser oss nødt til å gjøre.
+                        Vi har derfor besluttet å avlyse echo bedriftstur 2020.
+                        """
+                    ]
+                , br [] []
+                , h1 [] [ text "Hvordan bli med" ]
                 , br [] []
                 , br [] []
                 , span [] [ text "Registrering åpner " ]
@@ -125,15 +135,6 @@ view =
                 , br [] []
                 , h1 [] [ text "COVID-19" ]
                 , br [] []
-                , br [] []
-                , div [ class "update-text" ] [ text "OPPDATERING 22.07:" ]
-                , div [ class "text-bold", style "color" "red" ]
-                    [ text
-                        """
-                        Det har skjedd endringer i programmet og avreisetid, pga. COVID-19.
-                        Om du er påmeldt turen, har du fått nødvendig info på mail.
-                        """
-                    ]
                 , br [] []
                 , div []
                     [ text
