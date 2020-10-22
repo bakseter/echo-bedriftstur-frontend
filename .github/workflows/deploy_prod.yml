@@ -13,13 +13,24 @@ jobs:
         uses: actions/checkout@master
       - name: Install dependencies
         run: yarn
+      - name: Create environment file
+        run: |
+          touch .env.production
+          echo ELM_APP_API_KEY=${{ secrets.PROD_ELM_APP_API_KEY }} >> .env.production
+          echo ELM_APP_AUTH_DOMAIN=${{ secrets.PROD_ELM_APP_AUTH_DOMAIN }} >> .env.production
+          echo ELM_APP_DATABASE_URL=${{ secrets.PROD_ELM_APP_DATABASE_URL }} >> .env.production
+          echo ELM_APP_PROJECT_ID=${{ secrets.PROD_ELM_APP_PROJECT_ID }} >> .env.production
+          echo ELM_APP_STORAGE_BUCKET=${{ secrets.PROD_ELM_APP_STORAGE_BUCKET }} >> .env.production
+          echo ELM_APP_MESSAGING_SENDER_ID=${{ secrets.PROD_ELM_APP_MESSAGING_SENDER_ID }} >> .env.production
+          echo ELM_APP_APP_ID=${{ secrets.PROD_ELM_APP_APP_ID }} >> .env.production
+          echo ELM_APP_MEASUREMENT_ID=${{ secrets.PROD_ELM_APP_MEASUREMENT_ID }} >> .env.production
       - name: Build
         run: yarn build
       - name: Archive production artifact
         uses: actions/upload-artifact@master
         with:
-          name: dist
-          path: dist
+          name: build
+          path: build
   deploy:
     name: Deploy
     needs: build
@@ -30,8 +41,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@master
         with:
-          name: dist
-          path: dist
+          name: build
+          path: build
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
