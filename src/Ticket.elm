@@ -1,9 +1,9 @@
 module Ticket exposing (Ticket(..), encode, orNullDecoder, toBool)
 
+import Cred exposing (Cred)
 import Email exposing (toString)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Session exposing (Session)
 import Uid exposing (toString)
 
 
@@ -30,11 +30,11 @@ toBool (Ticket bool) =
 -- The JSON value is sent to Firestore when createTicket in the Verified module is called.
 
 
-encode : Session -> Encode.Value
-encode session =
+encode : Cred -> Encode.Value
+encode cred =
     Encode.object
         [ ( "collection", Encode.string "users" )
-        , ( "uid", Encode.string (Uid.toString session.uid) )
+        , ( "uid", Encode.string (Uid.toString cred.uid) )
         , ( "submittedTicket", Encode.bool True )
         ]
 

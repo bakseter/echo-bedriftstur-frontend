@@ -1,12 +1,22 @@
-module Page.Info exposing (route, view)
+module Page.Info exposing (Model, init, route, title, toSession, view)
 
 import Html exposing (Html, a, br, div, h1, li, span, text, ul)
 import Html.Attributes exposing (class, download, href, style)
+import Session exposing (Session)
 
 
-route : String
-route =
-    "info"
+type Model
+    = Model Session
+
+
+init : Session -> Model
+init =
+    Model
+
+
+toSession : Model -> Session
+toSession (Model session) =
+    session
 
 
 view : Html msg
@@ -166,3 +176,13 @@ view =
                 ]
             ]
         ]
+
+
+route : String
+route =
+    "info"
+
+
+title : String
+title =
+    "Informasjon"

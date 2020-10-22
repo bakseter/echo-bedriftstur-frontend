@@ -1,14 +1,10 @@
-module Page.Program exposing (Model, Msg, init, route, subscriptions, update, view)
+module Page.Program exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
 
 import Browser.Navigation as Nav
 import Html exposing (Html, br, div, h1, h3, text)
 import Html.Attributes exposing (class, id)
 import Html.Events
-
-
-route : String
-route =
-    "program"
+import Session exposing (Session)
 
 
 type Msg
@@ -20,13 +16,13 @@ type Msg
     | BekkMap
 
 
-type alias Model =
-    Html Msg
+type Model
+    = Model Session
 
 
-init : Model
-init =
-    div [] []
+init : Session -> Model
+init session =
+    Model session
 
 
 subscriptions : Model -> Sub Msg
@@ -129,3 +125,18 @@ view _ =
                 ]
             ]
         ]
+
+
+route : String
+route =
+    "program"
+
+
+title : String
+title =
+    "Program"
+
+
+toSession : Model -> Session
+toSession (Model session) =
+    session

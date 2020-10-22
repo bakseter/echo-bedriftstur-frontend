@@ -1,9 +1,19 @@
-module Page.Hjem exposing (view)
+module Page.Hjem exposing (Model, init, title, toSession, view)
 
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, id)
+import Session exposing (Session)
 import Svg
 import Svg.Attributes
+
+
+type Model
+    = Model Session
+
+
+init : Session -> Model
+init =
+    Model
 
 
 view : Html msg
@@ -32,3 +42,13 @@ view =
                 ]
             ]
         ]
+
+
+title : String
+title =
+    "echo bedriftstur"
+
+
+toSession : Model -> Session
+toSession (Model session) =
+    session
