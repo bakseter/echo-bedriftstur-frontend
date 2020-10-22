@@ -1,8 +1,8 @@
 module Content exposing (Content, empty, encode, updateAll, updateDegree, updateFirstName, updateLastName, updateTerms)
 
+import Cred exposing (Cred)
 import Degree exposing (Degree(..))
 import Json.Encode as Encode
-import Session exposing (Session)
 import Terms exposing (Terms(..))
 import Uid
 
@@ -83,11 +83,11 @@ updateTerms terms content =
 -}
 
 
-encode : Session -> Content -> Encode.Value
-encode session content =
+encode : Cred -> Content -> Encode.Value
+encode cred content =
     Encode.object
         [ ( "collection", Encode.string "users" )
-        , ( "uid", Encode.string (Uid.toString session.uid) )
+        , ( "uid", Encode.string (Uid.toString cred.uid) )
         , ( "firstName", Encode.string content.firstName )
         , ( "lastName", Encode.string content.lastName )
         , ( "degree", Encode.string (Degree.toString False content.degree) )

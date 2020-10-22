@@ -1,11 +1,10 @@
-module Page exposing (Page(..), urlToPage)
+module Page exposing (Page(..), fromUrl)
 
 import Page.Bedrifter as Bedrifter
 import Page.Info as Info
 import Page.LoggInn as LoggInn
 import Page.Om as Om
 import Page.Program as Program
-import Page.Verified as Verified
 import Url
 import Url.Parser as Parser
 
@@ -18,7 +17,6 @@ type Page
     = Hjem
     | Info
     | LoggInn
-    | Verified
     | Program
     | Bedrifter
     | Om
@@ -29,8 +27,8 @@ type Page
 -- Runs the pageParser function on a url, converting it to a Page type.
 
 
-urlToPage : Url.Url -> Page
-urlToPage url =
+fromUrl : Url.Url -> Page
+fromUrl url =
     case Parser.parse pageParser url of
         Just page ->
             page
@@ -49,7 +47,6 @@ pageParser =
         [ Parser.map Hjem Parser.top
         , Parser.map Info (Parser.s Info.route)
         , Parser.map LoggInn (Parser.s LoggInn.route)
-        , Parser.map Verified (Parser.s Verified.route)
         , Parser.map Program (Parser.s Program.route)
         , Parser.map Bedrifter (Parser.s Bedrifter.route)
         , Parser.map Om (Parser.s Om.route)

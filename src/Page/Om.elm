@@ -1,14 +1,10 @@
-module Page.Om exposing (Model, Msg, init, route, subscriptions, update, view)
+module Page.Om exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
 
 import Browser.Navigation
 import Html exposing (Html, a, div, i, img, span, text)
 import Html.Attributes exposing (alt, class, href, id, rel, src, target)
 import Html.Events
-
-
-route : String
-route =
-    "om"
+import Session exposing (Session)
 
 
 type Msg
@@ -21,15 +17,17 @@ type Msg
 
 
 type alias Model =
-    { showMailElias : Bool
+    { session : Session
+    , showMailElias : Bool
     , showMailAndreas : Bool
     , showMailTuva : Bool
     }
 
 
-init : Model
-init =
-    { showMailElias = False
+init : Session -> Model
+init session =
+    { session = session
+    , showMailElias = False
     , showMailAndreas = False
     , showMailTuva = False
     }
@@ -154,3 +152,18 @@ getMail model msg =
 
         _ ->
             ( "", "" )
+
+
+route : String
+route =
+    "om"
+
+
+title : String
+title =
+    "Om oss"
+
+
+toSession : Model -> Session
+toSession model =
+    model.session

@@ -5,11 +5,11 @@
   "targets": {
     "echo-bedriftstur-81a2e": {
       "hosting": {
-        "auth": [
-          "echobedriftstur-userauth"
-        ],
-        "app": [
+        "prod": [
           "echo-bedriftstur-81a2e"
+        ],
+        "dev": [
+          "echo-bedriftstur-dev"
         ]
       }
     }

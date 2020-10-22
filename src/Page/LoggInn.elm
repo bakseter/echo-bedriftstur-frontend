@@ -1,11 +1,11 @@
-port module Page.LoggInn exposing (Model, Msg, init, route, subscriptions, update, view)
+module Page.LoggInn exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
 
 import Email exposing (Email(..))
 import Error exposing (Error(..))
 import Html exposing (Html, a, br, div, h1, input, span, text)
 import Html.Attributes exposing (autocomplete, class, disabled, href, id, placeholder, rel, target, type_, value)
 import Html.Events
-import Json.Encode
+import Session exposing (Session)
 import Time
 
 
@@ -14,26 +14,9 @@ ready =
     1588067400000
 
 
-route : String
-route =
-    "logg-inn"
-
-
-port sendSignInLink : Json.Encode.Value -> Cmd msg
-
-
-port sendSignInLinkError : (Json.Encode.Value -> msg) -> Sub msg
-
-
-port sendSignInLinkSucceeded : (Json.Encode.Value -> msg) -> Sub msg
-
-
 type Msg
     = Tick Time.Posix
     | TypedEmail String
-    | SendSignInLink
-    | SendSignInLinkSucceeded Json.Encode.Value
-    | SendSignInLinkError Json.Encode.Value
 
 
 type SubPage
@@ -43,19 +26,21 @@ type SubPage
 
 
 type alias Model =
-    { currentSubPage : SubPage
+    { session : Session
+    , currentSubPage : SubPage
     , currentTime : Time.Posix
     , email : Email
     , error : Error
     }
 
 
-init : Model
-init =
+init : Session -> Model
+init session =
     { currentSubPage = NotReady
     , currentTime = Time.millisToPosix 0
     , email = Email ""
     , error = NoError
+    , session = session
     }
 
 
@@ -63,8 +48,6 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ Time.every 100 Tick
-        , sendSignInLinkSucceeded SendSignInLinkSucceeded
-        , sendSignInLinkError SendSignInLinkError
         ]
 
 
@@ -87,19 +70,6 @@ update msg model =
 
         TypedEmail str ->
             ( { model | email = Email str }, Cmd.none )
-
-        SendSignInLink ->
-            let
-                lowercaseEmail =
-                    (Email << String.toLower << Email.toString) model.email
-            in
-            ( model, (sendSignInLink << Email.encode) lowercaseEmail )
-
-        SendSignInLinkSucceeded _ ->
-            ( { model | currentSubPage = LinkSent }, Cmd.none )
-
-        SendSignInLinkError json ->
-            ( { model | error = Error.fromJson json }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -178,7 +148,6 @@ showPage model =
                         [ id "submitBtn"
                         , type_ "button"
                         , value "Logg inn"
-                        , Html.Events.onClick SendSignInLink
                         , if isEmailValid model.email then
                             disabled False
 
@@ -205,3 +174,18 @@ showPage model =
 isEmailValid : Email -> Bool
 isEmailValid email =
     String.right (String.length "@student.uib.no") (Email.toString email) == "@student.uib.no"
+
+
+route : String
+route =
+    "logg-inn"
+
+
+title : String
+title =
+    "Logg inn"
+
+
+toSession : Model -> Session
+toSession model =
+    model.session

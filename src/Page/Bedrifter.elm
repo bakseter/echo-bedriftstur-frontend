@@ -1,15 +1,11 @@
-module Page.Bedrifter exposing (Model, Msg, init, route, subscriptions, update, view)
+module Page.Bedrifter exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
 
 import Browser.Dom
 import Html exposing (Html, a, div, img, span, text)
 import Html.Attributes exposing (alt, class, href, id, rel, src, target)
+import Session exposing (Session)
 import Task
 import Time
-
-
-route : String
-route =
-    "bedrifter"
 
 
 type Msg
@@ -18,7 +14,8 @@ type Msg
 
 
 type alias Model =
-    { viewport : Browser.Dom.Viewport
+    { session : Session
+    , viewport : Browser.Dom.Viewport
     , mnemonicSlidIn : Bool
     , computasSlidIn : Bool
     , ciscoSlidIn : Bool
@@ -28,9 +25,10 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { viewport = maybeViewport
+init : Session -> Model
+init session =
+    { session = session
+    , viewport = maybeViewport
     , mnemonicSlidIn = False
     , computasSlidIn = False
     , ciscoSlidIn = False
@@ -271,3 +269,18 @@ allAreSlidIn model =
         && model.knowitSlidIn
         && model.dnbSlidIn
         && model.bekkSlidIn
+
+
+route : String
+route =
+    "bedrifter"
+
+
+title : String
+title =
+    "Bedrifter"
+
+
+toSession : Model -> Session
+toSession model =
+    model.session
