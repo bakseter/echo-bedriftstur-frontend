@@ -1,8 +1,6 @@
 name: Build and deploy from dev branch
 
 on:
-  push:
-    branches: develop
   pull_request:
     branches: develop
 
@@ -12,13 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@develop
+        uses: actions/checkout@master
       - name: Install dependencies
         run: yarn
       - name: Build
         run: yarn build
       - name: Archive production artifact
-        uses: actions/upload-artifact@develop
+        uses: actions/upload-artifact@master
         with:
           name: dist
           path: dist
@@ -28,9 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@develop
+        uses: actions/checkout@master
       - name: Download artifact
-        uses: actions/download-artifact@develop
+        uses: actions/download-artifact@master
         with:
           name: dist
           path: dist
