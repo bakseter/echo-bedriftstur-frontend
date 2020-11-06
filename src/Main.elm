@@ -1,9 +1,12 @@
 module Main exposing (main)
 
+import Api
 import Browser
 import Browser.Navigation
-import Html exposing (Html, a, div, img, span, text)
-import Html.Attributes exposing (alt, class, href, id, src)
+import Element exposing (..)
+import Element.Background as Background
+import Element.Font as Font
+import Html.Attributes
 import Json.Encode as Encode
 import Page exposing (Page(..))
 import Page.Bedrifter as Bedrifter
@@ -14,8 +17,6 @@ import Page.NotFound as NotFound
 import Page.Om as Om
 import Page.Program as Program
 import Session exposing (Session)
-import Svg
-import Svg.Attributes exposing (x1, x2, y1, y2)
 import Url
 
 
@@ -26,26 +27,6 @@ type Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
-
-
-
-{-
-   | AnimateLogoText Animation.Msg
-   | LogoTextCursor Bool
-   | RemoveCharLogoText
-   | AddCharLogoText String
--}
--- The names displayed in the typewriter animation
-
-
-type Name
-    = Bedriftstur
-    | Mnemonic
-    | Computas
-    | Cisco
-    | Knowit
-    | Dnb
-    | Bekk
 
 
 type Model
@@ -62,7 +43,7 @@ init : Encode.Value -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init apiKeyJson url navKey =
     let
         apiKey =
-            Session.decodeApiKey apiKeyJson
+            Api.decodeKey apiKeyJson
     in
     changeRouteTo url <| Session navKey apiKey
 
@@ -107,19 +88,19 @@ update msg model =
             in
             ( LoggInn newModel, Cmd.map GotLoggInnMsg cmd )
 
-        ( GotProgramMsg pageMsg, Program program ) ->
-            let
-                ( newModel, cmd ) =
-                    Program.update pageMsg program
-            in
-            ( Program newModel, Cmd.map GotProgramMsg cmd )
-
         ( GotBedrifterMsg pageMsg, Bedrifter bedrifter ) ->
             let
                 ( newModel, cmd ) =
                     Bedrifter.update pageMsg bedrifter
             in
             ( Bedrifter newModel, Cmd.map GotBedrifterMsg cmd )
+
+        ( GotProgramMsg pageMsg, Program program ) ->
+            let
+                ( newModel, cmd ) =
+                    Program.update pageMsg program
+            in
+            ( Program newModel, Cmd.map GotProgramMsg cmd )
 
         ( GotOmMsg pageMsg, Om om ) ->
             let
@@ -173,10 +154,7 @@ changeRouteTo url session =
             )
 
         Page.Program ->
-            ( Program (Program.init session)
-            , Cmd.map GotProgramMsg <|
-                Cmd.batch []
-            )
+            ( Program (Program.init session), Cmd.none )
 
         Page.Bedrifter ->
             ( Bedrifter (Bedrifter.init session)
@@ -196,52 +174,42 @@ changeRouteTo url session =
             )
 
 
-header : Model -> Html Msg
-header model =
-    div [ class "menu" ]
-        [ div [ id "logo-wrapper" ]
-            [ a [ href "/" ]
-                [ img [ id "logo", alt "logo", src "/img/echoicon.png" ] [] ]
-            ]
-        , div [ id "logo-text" ]
-            [ span [] [ text "echo " ]
-            , span
-                []
-                [ text "" ]
-            ]
-        , Svg.svg [ Svg.Attributes.id "navbtn", Svg.Attributes.width "50", Svg.Attributes.height "40" ]
-            [ Svg.line
-                [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("first-line" ++ ""), x1 "0", x2 "50", y1 "5", y2 "5" ]
-                []
-            , Svg.line
-                [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("middle-line" ++ ""), x1 "0", x2 "50", y1 "20", y2 "20" ]
-                []
-            , Svg.line
-                [ Svg.Attributes.class "navbtn-line", Svg.Attributes.id ("second-line" ++ ""), x1 "0", x2 "50", y1 "35", y2 "35" ]
-                []
-            ]
-        , div [ class "" ]
-            (navbar model)
+header : Model -> Element msg
+header _ =
+    row [ centerX, spacing 100, paddingEach { top = 75, left = 0, right = 0, bottom = 100 } ] <|
+        link []
+            { url = "/"
+            , label =
+                image [ width (fill |> maximum 100) ]
+                    { src = "/img/echoicon.png"
+                    , description = "Logo"
+                    }
+            }
+            :: List.map
+                (\( route, title ) ->
+                    Element.link []
+                        { url = "/" ++ route
+                        , label = el [ Font.bold ] <| Element.text title
+                        }
+                )
+                [ ( Info.route, Info.title )
+                , ( LoggInn.route, LoggInn.title )
+                , ( Program.route, Program.title )
+                , ( Bedrifter.route, Bedrifter.title )
+                , ( Om.route, Om.title )
+                ]
+
+
+footer : Model -> Element Msg
+footer _ =
+    row
+        [ alignBottom
+        , centerX
+        , padding 20
+        , Background.color (rgb255 128 128 128)
+        , width fill
         ]
-
-
-userInfo : Model -> List (Html Msg)
-userInfo =
-    \_ ->
-        []
-
-
-navbar : Model -> List (Html Msg)
-navbar model =
-    [ span [] []
-    , div [ class "navbar-item" ]
-        (userInfo model)
-    , span [] []
-    , a [ class "navbar-item", href ("/" ++ Info.route) ] [ text "Informasjon" ]
-    , a [ class "navbar-item", href ("/" ++ Program.route) ] [ text "Program" ]
-    , a [ class "navbar-item", href ("/" ++ Bedrifter.route) ] [ text "Bedrifter" ]
-    , a [ class "navbar-item", href ("/" ++ Om.route) ] [ text "Om oss" ]
-    ]
+        [ el [] (text "echo – Fagutvalget for informatikk") ]
 
 
 view : Model -> Browser.Document Msg
@@ -261,22 +229,22 @@ view model =
 
                 LoggInn loggInn ->
                     ( LoggInn.title
-                    , Html.map GotLoggInnMsg <| LoggInn.view loggInn
+                    , Element.map GotLoggInnMsg <| LoggInn.view loggInn
                     )
 
                 Program program ->
                     ( Program.title
-                    , Html.map GotProgramMsg <| Program.view program
+                    , Element.map GotProgramMsg <| Program.view program
                     )
 
                 Bedrifter bedrifter ->
                     ( Bedrifter.title
-                    , Html.map GotBedrifterMsg <| Bedrifter.view bedrifter
+                    , Element.map GotBedrifterMsg <| Bedrifter.view bedrifter
                     )
 
                 Om om ->
                     ( Om.title
-                    , Html.map GotOmMsg <| Om.view om
+                    , Element.map GotOmMsg <| Om.view om
                     )
 
                 NotFound _ ->
@@ -285,7 +253,15 @@ view model =
                     )
     in
     { title = title
-    , body = [ header model, body ]
+    , body =
+        [ layout
+            [ Font.family [ Font.typeface "IBM Plex Sans" ]
+            , htmlAttribute <| Html.Attributes.style "overflow-y" "scroll"
+            ]
+            (column [ centerX, height fill, width fill ]
+                [ header model, body, footer model ]
+            )
+        ]
     }
 
 

@@ -2,7 +2,6 @@ import * as firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 
-import './main.css';
 import { Elm } from './Main.elm';
 
 const firebaseConfig =

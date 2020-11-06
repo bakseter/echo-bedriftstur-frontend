@@ -1,7 +1,6 @@
 module Page.NotFound exposing (Model, init, title, toSession, view)
 
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, id)
+import Element exposing (Element, el, text)
 import Session exposing (Session)
 
 
@@ -14,12 +13,9 @@ init =
     Model
 
 
-view : Html msg
+view : Element msg
 view =
-    div [ class "not-found" ]
-        [ div [ id "not-found-header" ] [ text "404" ]
-        , div [ id "not-found-text" ] [ text "Siden du leter etter eksisterer ikke." ]
-        ]
+    el [] <| text "404 not found"
 
 
 title : String

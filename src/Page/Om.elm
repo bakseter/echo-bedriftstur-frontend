@@ -1,35 +1,31 @@
 module Page.Om exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
 
-import Browser.Navigation
-import Html exposing (Html, a, div, i, img, span, text)
-import Html.Attributes exposing (alt, class, href, id, rel, src, target)
-import Html.Events
+import Element exposing (..)
+import Element.Events as Events
+import Element.Font as Font
 import Session exposing (Session)
 
 
 type Msg
-    = EliasMail
-    | AndreasMail
-    | TuvaMail
-    | EliasLinkedIn
-    | AndreasLinkedIn
-    | TuvaLinkedIn
+    = ShowMailElias
+    | ShowMailAndreas
+    | ShowMailTuva
 
 
 type alias Model =
     { session : Session
-    , showMailElias : Bool
-    , showMailAndreas : Bool
-    , showMailTuva : Bool
+    , mailElias : String
+    , mailAndreas : String
+    , mailTuva : String
     }
 
 
 init : Session -> Model
 init session =
     { session = session
-    , showMailElias = False
-    , showMailAndreas = False
-    , showMailTuva = False
+    , mailElias = "Trykk for å se mail"
+    , mailAndreas = "Trykk for å se mail"
+    , mailTuva = "Trykk for å se mail"
     }
 
 
@@ -41,117 +37,64 @@ subscriptions _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        EliasMail ->
-            ( { model | showMailElias = True }, Cmd.none )
+        ShowMailElias ->
+            ( { model | mailElias = "elias.djupesland@echo.uib.no" }, Cmd.none )
 
-        AndreasMail ->
-            ( { model | showMailAndreas = True }, Cmd.none )
+        ShowMailAndreas ->
+            ( { model | mailAndreas = "andreas.bakseter@echo.uib.no" }, Cmd.none )
 
-        TuvaMail ->
-            ( { model | showMailTuva = True }, Cmd.none )
-
-        EliasLinkedIn ->
-            ( model, Browser.Navigation.load "https://www.linkedin.com/in/elias-djupesland-a51462176/" )
-
-        AndreasLinkedIn ->
-            ( model, Browser.Navigation.load "https://www.linkedin.com/in/andreas-salhus-bakseter-54416316a/" )
-
-        TuvaLinkedIn ->
-            ( model, Browser.Navigation.load "https://www.linkedin.com/in/tuva-kvalsoren" )
+        ShowMailTuva ->
+            ( { model | mailTuva = "tuva.kvalsoren@echo.uib.no" }, Cmd.none )
 
 
-view : Model -> Html Msg
+view : Model -> Element Msg
 view model =
-    let
-        ( eliasClass, eliasMail ) =
-            getMail model EliasMail
-
-        ( andreasClass, andreasMail ) =
-            getMail model AndreasMail
-
-        ( tuvaClass, tuvaMail ) =
-            getMail model TuvaMail
-    in
-    div [ class "om" ]
-        [ div [ id "om-content" ]
-            [ div [ id "om-tekst" ]
-                [ div [ class "text" ] [ text "Bedriftsturkomitéen består av tre frivillige studenter." ]
-                , span [ class "text" ] [ text "Har du noen spørsmål om turen? Send oss gjerne en mail på " ]
-                , a [ class "text-underline", href "mailto:kontakt@echobedriftstur.no" ]
-                    [ text "kontakt@echobedriftstur.no" ]
-                , span [ class "text" ] [ text "." ]
-                ]
-            , div [ id "elias" ] [ img [ class "portrett", src "/img/elias.png", alt "Elias", Html.Events.onClick EliasLinkedIn ] [] ]
-            , div [ class "om-info", id "elias-info" ]
-                [ div [ class "om-navn text-center" ] [ text "Elias Djupesland" ]
-                , div [ class "text-center" ] [ text "Leder og bedriftskontakt" ]
-                , div [ class "text-center", class eliasClass, Html.Events.onClick EliasMail ]
-                    [ text eliasMail ]
-                ]
-            , div [ id "andreas" ] [ img [ class "portrett", src "/img/andreas.png", alt "Andreas", Html.Events.onClick AndreasLinkedIn ] [] ]
-            , div [ class "om-info", id "andreas-info" ]
-                [ div [ class "om-navn text-center" ] [ text "Andreas Salhus Bakseter" ]
-                , div [ class "text-center" ] [ text "Webansvarlig" ]
-                , div [ class "text-center", class andreasClass, Html.Events.onClick AndreasMail ]
-                    [ text andreasMail ]
-                ]
-            , div [ id "tuva" ] [ img [ class "portrett", src "/img/tuva.png", alt "Tuva", Html.Events.onClick TuvaLinkedIn ] [] ]
-            , div [ class "om-info", id "tuva-info" ]
-                [ div [ class "om-navn text-center" ] [ text "Tuva Kvalsøren" ]
-                , div [ class "text-center" ] [ text "PR-ansvarlig" ]
-                , div [ class "text-center", class tuvaClass, Html.Events.onClick TuvaMail ]
-                    [ text tuvaMail ]
+    row []
+        [ textColumn [ paddingEach { edges | right = 100 }, spacing 50 ]
+            [ el [ Font.bold, Font.size 42 ] <| text "Hvem er vi?"
+            , paragraph [ Font.justify, spacing 15 ]
+                [ text
+                    """
+                    Leo duis ut diam quam nulla porttitor. Egestas sed tempus urna et pharetra. Arcu odio ut sem nulla pharetra. Bibendum est ultricies integer quis auctor elit. Eu volutpat odio facilisis mauris sit. Integer feugiat scelerisque varius morbi. Egestas erat imperdiet sed euismod nisi porta. Adipiscing elit pellentesque habitant morbi tristique senectus et. Senectus et netus et malesuada. Id cursus metus aliquam eleifend mi in nulla posuere sollicitudin. Magna etiam tempor orci eu lobortis elementum nibh tellus. Lacus vestibulum sed arcu non. Dictum fusce ut placerat orci nulla. Amet tellus cras adipiscing enim eu turpis egestas pretium aenean. Tristique sollicitudin nibh sit amet commodo nulla. Sit amet est placerat in egestas erat imperdiet. Interdum varius sit amet mattis vulputate enim. Feugiat nisl pretium fusce id velit ut tortor pretium. Urna nunc id cursus metus aliquam eleifend mi.
+                    """
                 ]
             ]
-        , div [ id "om-links" ]
-            [ a
-                [ target "_blank"
-                , rel "noopener noreferrer"
-                , href "https://www.linkedin.com/showcase/echobedriftstur"
-                , id "linkedinLink"
+        , column [ spacing 40 ]
+            [ row [ spacing 20 ]
+                [ image [ width (px 180), height (px 180) ] { src = "img/elias.png", description = "Elias" }
+                , column [ spacing 20 ]
+                    [ el [ Font.bold, Font.size 26 ] <| text "Elias Djupesland"
+                    , el [ Font.bold, Font.size 20 ] <| text "Leder og bedriftskontakt"
+                    , el [ Font.italic, Events.onClick ShowMailElias ] <| text model.mailElias
+                    ]
                 ]
-                [ i [ class "fa fa-linkedin" ] [] ]
-            , a
-                [ target "_blank"
-                , rel "noopener noreferrer"
-                , href "https://github.com/bakseter/echo-bedriftstur"
-                , id "githubLink"
+            , row [ spacing 20 ]
+                [ image [ width (px 180), height (px 180) ] { src = "/img/andreas.png", description = "Andreas" }
+                , column [ spacing 20 ]
+                    [ el [ Font.bold, Font.size 26 ] <| text "Andreas Salhus Bakseter"
+                    , el [ Font.bold, Font.size 20 ] <| text "Webansvarlig"
+                    , el [ Font.italic, Events.onClick ShowMailAndreas ] <| text model.mailAndreas
+                    ]
                 ]
-                [ i [ class "fa fa-github" ] [] ]
+            , row [ spacing 20 ]
+                [ image [ width (px 180), height (px 180) ] { src = "/img/tuva.png", description = "Tuva" }
+                , column [ spacing 20 ]
+                    [ el [ Font.bold, Font.size 26 ] <| text "Tuva Kvalsøren"
+                    , el [ Font.bold, Font.size 20 ] <| text "PR-ansvarlig"
+                    , el [ Font.italic, Events.onClick ShowMailTuva ] <| text model.mailTuva
+                    ]
+                ]
             ]
         ]
 
 
-getMail : Model -> Msg -> ( String, String )
-getMail model msg =
-    let
-        hiddenMail =
-            ( "hidden-mail", "Trykk for mail" )
-    in
-    case msg of
-        EliasMail ->
-            if model.showMailElias then
-                ( "mail", "elias.djupesland@echo.uib.no" )
-
-            else
-                hiddenMail
-
-        AndreasMail ->
-            if model.showMailAndreas then
-                ( "mail", "andreas.bakseter@echo.uib.no" )
-
-            else
-                hiddenMail
-
-        TuvaMail ->
-            if model.showMailTuva then
-                ( "mail", "tuva.kvalsoren@echo.uib.no" )
-
-            else
-                hiddenMail
-
-        _ ->
-            ( "", "" )
+edges : { top : Int, right : Int, bottom : Int, left : Int }
+edges =
+    { top = 0
+    , right = 0
+    , bottom = 0
+    , left = 0
+    }
 
 
 route : String

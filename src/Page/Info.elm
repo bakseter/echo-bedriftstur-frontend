@@ -1,7 +1,6 @@
 module Page.Info exposing (Model, init, route, title, toSession, view)
 
-import Html exposing (Html, a, br, div, h1, li, span, text, ul)
-import Html.Attributes exposing (class, download, href, style)
+import Element exposing (Element, centerX, padding, paddingEach, paragraph, spacing, text, textColumn)
 import Session exposing (Session)
 
 
@@ -19,163 +18,24 @@ toSession (Model session) =
     session
 
 
-view : Html msg
+view : Element msg
 view =
-    div [ class "info" ]
-        [ div [ class "info-content" ]
-            [ div [ class "text" ]
-                [ div [ class "update-text" ] [ text "OPPDATERING 17.08:" ]
-                , div [ class "text-bold", style "color" "red" ]
-                    [ text
-                        """
-                        Grunnet de to siste ukenes utvikling av COVID-19, anser vi det som uforsvarlig å reise med 50 studenter til Oslo.
-                        De fleste andre linjeforeninger har valgt å avlyse sine bedriftsekskursjoner i år, noe vi dessverre også ser oss nødt til å gjøre.
-                        Vi har derfor besluttet å avlyse echo bedriftstur 2020.
-                        """
-                    ]
-                , br [] []
-                , h1 [] [ text "Hvordan bli med" ]
-                , br [] []
-                , br [] []
-                , span [] [ text "Registrering åpner " ]
-                , span [ class "text-underline" ] [ text "28. april kl. 12:00" ]
-                , span []
-                    [ text
-                        """
-                        . Da kan du registrere deg med din studentmail, og fylle inn din kontaktinformasjon.
-                        Dette gjør det lettere og raskere for deg å melde deg på når påmeldingen kommer ut,
-                        fordi all informasjonen din allerede er fylt inn.
-                        """
-                    ]
-                , br [] []
-                , br [] []
-                , span [] [ text "Påmelding åpner " ]
-                , span [ class "text-underline" ] [ text "5. mai kl. 12:00" ]
-                , span [] [ text ". Her gjelder \"førstemann-til-mølla\"-prinsippet." ]
-                , br [] []
-                , span [] [ text "Det vil være 20 plasser til 3. klassinger og 27 plasser til 4. klassinger " ]
-                , span [ class "text-bold" ] [ text "(altså de som er 3. og 4. klassinger høsten 2020)." ]
-                , div [] [ text "Både registrering og påmelding vil foregå på denne nettsiden." ]
-                , br [] []
-                , div [] [ text "Du vil ikke få svar på om du har fått plass med en gang. Vi vil sende deg en mail når alle har fått plass." ]
-                , span [] [ text "Dersom du ønsker å melde deg av turen, må du sende oss en mail på " ]
-                , a [ class "text-underline", href "mailto:kontakt@echobedriftstur.no" ] [ text "kontakt@echobedriftstur.no" ]
-                , span [] [ text " innen " ]
-                , span [ class "text-underline" ] [ text "1. august 2020" ]
-                , span [] [ text "." ]
-                , br [] []
-                , div []
-                    [ text
-                        """
-                        Det er ikke mulig å melde seg av etter denne fristen. Dersom du likevel ikke møter opp etter
-                        å ha prøvd å melde deg av etter fristen, gjelder regelen for å ikke møte opp på et bedriftsbesøk
-                        (beskrevet under).
-                        """
-                    ]
-                , br [] []
-                , div [] [ text "For å melde deg på bedriftsturen må du:" ]
-                , ul []
-                    [ li []
-                        [ text
-                            """
-                            være påmeldt et bachelorprogram og begynne ditt femte semester august 2020, 
-                            ha søkt/være påmeldt et masterprogram høsten 2020,
-                            eller være en postbachelorstudent og ta emner ved institutt for informatikk eller institutt for matematikk høsten 2020.
-                            """
-                        ]
-                    , li []
-                        [ text "være representert av echo – Fagutvalget for informatikk, ifølge echo sine "
-                        , a [ class "text-underline", href "/docs/statutter_30_04_2020.pdf", download "statutter_30_04_2020.pdf" ]
-                            [ text "statutter" ]
-                        , text " per 30. april 2020"
-                        ]
-                    , li []
-                        [ span [ class "text" ] [ text "følge " ]
-                        , span [ class "text-underline" ] [ text "normert studieløp" ]
-                        , span [ class "text-bold" ] [ text " *" ]
-                        ]
-                    ]
-                , br [] []
-                , span [ class "text-bold" ] [ text "*" ]
-                , span [ class "text-bold" ]
-                    [ text
-                        """
-                        Det vi mener med å følge normert studieløp, er at du tar fagene som ditt studieprogram krever det gjeldende semestret.
-                        Du kan ta opp/konte så mange fag du vil ved siden av, så lenge du fortsatt følger studieprogrammet ditt det semesteret.
-                        """
-                    ]
-                , br [] []
-                , br [] []
-                , div []
-                    [ text
-                        """
-                        Dersom du har søkt master til høsten, trenger vi en bekreftelse på at du har fått plass.
-                        Når du registrerer deg, fyller du bare inn det masterprogrammet du har søkt på.
-                        Nærmere informasjon om dette vil komme på mail til de det gjelder.
-                        """
-                    ]
-                , br [] []
-                , span [] [ text "Har du et spesielt studieløp som ikke faller under disse kriteriene, kan du kontakte oss på " ]
-                , a [ class "text-underline", href "mailto:kontakt@echobedriftstur.no" ] [ text "kontakt@echobedriftstur.no" ]
-                , span [] [ text ", så vil vi evaluere om du kan melde deg på turen." ]
-                , br [] []
-                , br [] []
-                , h1 [] [ text "Transport og hotell" ]
-                , br [] []
-                , br [] []
-                , span [] [ text "Vi flyr med Norwegian fra Bergen lufthavn 26. august " ]
-                , span [ class "text-strike" ] [ text "kl. 07:30 " ]
-                , span [ class "text-bold" ] [ text "kl. 08:45." ]
-                , br [] []
-                , span [] [ text "Det anmodes å møte opp i god tid, senest " ]
-                , span [ class "text-bold" ] [ text "kl. 07:45 " ]
-                , span [] [ text "(én time før avgang)." ]
-                , div [] [ text "Du er selv ansvarlig for å rekke flyet." ]
-                , br [] []
-                , div [] [ text "Inkludert i billetten er opptil to kolli innsjekket bagasje per person (maks 20 kg per kolli), i tillegg til én håndbagasje (10 kg)." ]
-                , br [] []
-                , span [] [ text "Det er " ]
-                , span [ class "text-underline" ] [ text "IKKE" ]
-                , span [] [ text " felles hjemreise, og kostnadene for dette må du dekke selv." ]
-                , br [] []
-                , br [] []
-                , div [] [ text "Under hele oppholdet bor alle på Hotell Bondeheimen, Rosenkrantz' gate 8, 0159 Oslo." ]
-                , div [] [ text "Det vil bo 2-5 personer på rom sammen. Romfordeling vil bli bestemt på et senere tidspunkt." ]
-                , div [] [ text "Utsjekking er 29. august kl. 12:00." ]
-                , br [] []
-                , h1 [] [ text "COVID-19" ]
-                , br [] []
-                , br [] []
-                , div []
-                    [ text
-                        """
-                        Vi i bedriftsturkomitéen følger nøye med på situasjonen rundt Koronaviruset, og vi vil følge alle retningslinjer fra regjeringen angående store arrangementer.
-                        Slik det ser ut nå, velger vi å gå fremover med påmeldingsprosessen, og den eventuelle turen til høsten.
-                        """
-                    ]
-                , br [] []
-                , div []
-                    [ text
-                        """
-                        Hvis situasjonen endrer seg fremover, og det ikke lenger er forsvarlig å arrangere en slik tur, vil vi enten finne en alternativ løsning, eller i verste fall avlyse turen.
-                        Vi er i kontinuerlig dialog med andre linjeforeninger i Norge som også arrangerer samme type turer, og vi er sammen enige i at vi ikke trenger å avlyse enda.
-                        """
-                    ]
-                , br [] []
-                , h1 [] [ text "Regler" ]
-                , br [] []
-                , ul []
-                    [ li [] [ text "Dersom du ikke møter opp på et bedriftsbesøk, vil du bli fakturert 1 500 NOK per besøk du bryter denne regelen på." ]
-                    , br [] []
-                    , li [] [ text "Dersom du ikke melder deg av turen i tide, vil du bli utestengt fra neste års tur." ]
-                    , br [] []
-                    , li [] [ text "Du er personlig ansvarlig for hærverk eller andre ekstra kostnader du påfører." ]
-                    , br [] []
-                    , li [] [ text "Du er personlig ansvarlig for dine egne eiendeler." ]
-                    ]
-                ]
-            ]
+    textColumn [ centerX, spacing 50, paddingEach { edges | bottom = 100 } ]
+        [ paragraph [] [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Velit laoreet id donec ultrices tincidunt arcu non. Nibh cras pulvinar mattis nunc sed. Eu volutpat odio facilisis mauris sit. At urna condimentum mattis pellentesque id nibh. Elementum eu facilisis sed odio morbi quis commodo. Iaculis nunc sed augue lacus viverra vitae congue. Id ornare arcu odio ut sem. Lectus sit amet est placerat in egestas. Enim diam vulputate ut pharetra sit amet aliquam. Ante metus dictum at tempor commodo. Risus quis varius quam quisque id diam vel. Quis varius quam quisque id diam. Nulla pellentesque dignissim enim sit amet venenatis. Habitasse platea dictumst quisque sagittis. In hac habitasse platea dictumst. Cras sed felis eget velit aliquet. Lorem sed risus ultricies tristique nulla. Blandit cursus risus at ultrices mi tempus imperdiet nulla." ]
+        , paragraph [] [ text "Leo duis ut diam quam nulla porttitor. Egestas sed tempus urna et pharetra. Arcu odio ut sem nulla pharetra. Bibendum est ultricies integer quis auctor elit. Eu volutpat odio facilisis mauris sit. Integer feugiat scelerisque varius morbi. Egestas erat imperdiet sed euismod nisi porta. Adipiscing elit pellentesque habitant morbi tristique senectus et. Senectus et netus et malesuada. Id cursus metus aliquam eleifend mi in nulla posuere sollicitudin. Magna etiam tempor orci eu lobortis elementum nibh tellus. Lacus vestibulum sed arcu non. Dictum fusce ut placerat orci nulla. Amet tellus cras adipiscing enim eu turpis egestas pretium aenean. Tristique sollicitudin nibh sit amet commodo nulla. Sit amet est placerat in egestas erat imperdiet. Interdum varius sit amet mattis vulputate enim. Feugiat nisl pretium fusce id velit ut tortor pretium. Urna nunc id cursus metus aliquam eleifend mi." ]
+        , paragraph [] [ text "Quis hendrerit dolor magna eget est lorem ipsum dolor sit. Pretium viverra suspendisse potenti nullam. Dis parturient montes nascetur ridiculus. Est lorem ipsum dolor sit amet. Orci porta non pulvinar neque laoreet suspendisse interdum consectetur. Diam ut venenatis tellus in metus vulputate eu. Sed turpis tincidunt id aliquet risus feugiat in. Venenatis tellus in metus vulputate. Quisque egestas diam in arcu. Lorem donec massa sapien faucibus et molestie ac feugiat sed. Egestas maecenas pharetra convallis posuere morbi leo urna. Varius duis at consectetur lorem donec." ]
+        , paragraph [] [ text "Augue neque gravida in fermentum et sollicitudin ac orci phasellus. Aenean et tortor at risus. Rhoncus dolor purus non enim praesent elementum facilisis leo vel. Sem viverra aliquet eget sit amet tellus cras. Sit amet dictum sit amet. At tempor commodo ullamcorper a lacus vestibulum sed arcu. Id diam vel quam elementum. Et ligula ullamcorper malesuada proin libero nunc. Lectus proin nibh nisl condimentum. Arcu risus quis varius quam quisque id. Vel pretium lectus quam id. Suspendisse sed nisi lacus sed viverra tellus in. Rhoncus mattis rhoncus urna neque viverra. Sed arcu non odio euismod." ]
+        , paragraph [] [ text "Nec nam aliquam sem et tortor consequat id porta nibh. Enim blandit volutpat maecenas volutpat. Urna neque viverra justo nec. Convallis posuere morbi leo urna molestie at elementum eu facilisis. Id ornare arcu odio ut sem nulla pharetra diam sit. Dui faucibus in ornare quam viverra orci sagittis. Id donec ultrices tincidunt arcu non sodales neque. Bibendum enim facilisis gravida neque convallis a. Risus commodo viverra maecenas accumsan lacus vel facilisis volutpat est. Tincidunt arcu non sodales neque. Nec feugiat in fermentum posuere urna nec tincidunt praesent. Sed augue lacus viverra vitae congue eu consequat ac felis." ]
         ]
+
+
+edges : { top : Int, right : Int, bottom : Int, left : Int }
+edges =
+    { top = 0
+    , right = 0
+    , bottom = 0
+    , left = 0
+    }
 
 
 route : String
