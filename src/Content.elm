@@ -25,7 +25,7 @@ type alias Content =
 
 empty : Content
 empty =
-    Content "" "" None (Terms False)
+    Content "" "" DTEK (Terms False)
 
 
 

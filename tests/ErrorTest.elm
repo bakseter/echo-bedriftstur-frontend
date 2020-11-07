@@ -16,12 +16,12 @@ suite =
     in
     describe "Tests for the Error module"
         [ describe "Tests that check that a JSON error string gets translated from"
-            [ test "\"auth/app-deleted\" to \"Det har skjedd en feil. Vennligst prøv igjen (felkode 1).\"" <|
-                \_ -> Expect.equal (Error (ErrorCode "Det har skjedd en feil. Vennligst prøv igjen (feilkode 1).")) (Error.fromJson (Encode.string "auth/app-deleted"))
-            , test "\"unauthenticated\" to \"Du har ikke tilgang til å utføre denne handlingen\"" <|
-                \_ -> Expect.equal (Error (ErrorCode "Du har ikke tilgang til å utføre denne handlingen (feilkode 38).")) (Error.fromJson (Encode.string "unauthenticated"))
-            , test "a random string to NoError" <|
-                \_ -> Expect.equal NoError (Error.fromJson (Encode.string "garbage"))
+            [ test "\"auth/app-deleted\" to AuthAppDeleted" <|
+                \_ -> Expect.equal (Just AuthAppDeleted) (Error.decode (Encode.string "auth/app-deleted"))
+            , test "\"unauthenticated\" to Unauthenticated" <|
+                \_ -> Expect.equal (Just Unauthenticated) (Error.decode (Encode.string "unauthenticated"))
+            , test "a random string to Nothing" <|
+                \_ -> Expect.equal Nothing (Error.decode (Encode.string "garbage"))
             ]
         , describe "TODO:"
             [ test "the ErrorCode \"auth/invalid-email\"" <|

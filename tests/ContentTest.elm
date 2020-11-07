@@ -12,7 +12,7 @@ suite : Test
 suite =
     let
         content =
-            Content "Test" "Testesen" (Valid BINF) (Terms False)
+            Content "Test" "Testesen" BINF (Terms False)
     in
     describe "Tests for the Content module"
         [ describe "The Content record is updated with the"
@@ -21,10 +21,10 @@ suite =
             , test "updateLastName function" <|
                 \_ -> Expect.equal { content | lastName = "Bar" } (Content.updateLastName "Bar" content)
             , test "updateDegree function" <|
-                \_ -> Expect.equal { content | degree = Valid INF } (Content.updateDegree (Valid INF) content)
+                \_ -> Expect.equal { content | degree = INF } (Content.updateDegree INF content)
             , test "updateAll function" <|
                 \_ ->
-                    Expect.equal { content | firstName = "Example", lastName = "McTest", degree = Valid PROG, terms = Terms True }
-                        (updateAll "Example" "McTest" (Valid PROG) (Terms True) content)
+                    Expect.equal { content | firstName = "Example", lastName = "McTest", degree = PROG, terms = Terms True }
+                        (updateAll "Example" "McTest" PROG (Terms True) content)
             ]
         ]

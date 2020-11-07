@@ -6,24 +6,28 @@ import Browser.Navigation
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
+import FontAwesome.Brands
+import FontAwesome.Icon as Icon
+import FontAwesome.Regular
+import FontAwesome.Solid
 import Html.Attributes
 import Json.Encode as Encode
 import Page exposing (Page(..))
 import Page.Bedrifter as Bedrifter
 import Page.Hjem as Hjem
-import Page.Info as Info
-import Page.LoggInn as LoggInn
 import Page.NotFound as NotFound
 import Page.Om as Om
+import Page.Profil as Profil
 import Page.Program as Program
 import Session exposing (Session)
+import Theme
 import Url
 
 
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
-    | GotLoggInnMsg LoggInn.Msg
+    | GotProfilMsg Profil.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
@@ -31,8 +35,7 @@ type Msg
 
 type Model
     = Hjem Hjem.Model
-    | Info Info.Model
-    | LoggInn LoggInn.Model
+    | Profil Profil.Model
     | Bedrifter Bedrifter.Model
     | Program Program.Model
     | Om Om.Model
@@ -51,8 +54,8 @@ init apiKeyJson url navKey =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
-        LoggInn loggInn ->
-            Sub.map GotLoggInnMsg <| LoggInn.subscriptions loggInn
+        Profil profil ->
+            Sub.map GotProfilMsg <| Profil.subscriptions profil
 
         Bedrifter bedrifter ->
             Sub.map GotBedrifterMsg <| Bedrifter.subscriptions bedrifter
@@ -81,12 +84,12 @@ update msg model =
         ( UrlChanged url, anyModel ) ->
             changeRouteTo url (toSession anyModel)
 
-        ( GotLoggInnMsg pageMsg, LoggInn loggInn ) ->
+        ( GotProfilMsg pageMsg, Profil profil ) ->
             let
                 ( newModel, cmd ) =
-                    LoggInn.update pageMsg loggInn
+                    Profil.update pageMsg profil
             in
-            ( LoggInn newModel, Cmd.map GotLoggInnMsg cmd )
+            ( Profil newModel, Cmd.map GotProfilMsg cmd )
 
         ( GotBedrifterMsg pageMsg, Bedrifter bedrifter ) ->
             let
@@ -119,11 +122,8 @@ toSession model =
         Hjem hjem ->
             Hjem.toSession hjem
 
-        Info info ->
-            Info.toSession info
-
-        LoggInn loggInn ->
-            LoggInn.toSession loggInn
+        Profil profil ->
+            Profil.toSession profil
 
         Program program ->
             Program.toSession program
@@ -144,12 +144,9 @@ changeRouteTo url session =
         Page.Hjem ->
             ( Hjem (Hjem.init session), Cmd.none )
 
-        Page.Info ->
-            ( Info (Info.init session), Cmd.none )
-
-        Page.LoggInn ->
-            ( LoggInn (LoggInn.init session)
-            , Cmd.map GotLoggInnMsg <|
+        Page.Profil ->
+            ( Profil (Profil.init session)
+            , Cmd.map GotProfilMsg <|
                 Cmd.batch []
             )
 
@@ -174,42 +171,68 @@ changeRouteTo url session =
             )
 
 
-header : Model -> Element msg
-header _ =
-    row [ centerX, spacing 100, paddingEach { top = 75, left = 0, right = 0, bottom = 100 } ] <|
-        link []
-            { url = "/"
-            , label =
-                image [ width (fill |> maximum 100) ]
-                    { src = "/img/echoicon.png"
-                    , description = "Logo"
-                    }
-            }
-            :: List.map
-                (\( route, title ) ->
-                    Element.link []
-                        { url = "/" ++ route
-                        , label = el [ Font.bold ] <| Element.text title
-                        }
-                )
-                [ ( Info.route, Info.title )
-                , ( LoggInn.route, LoggInn.title )
-                , ( Program.route, Program.title )
-                , ( Bedrifter.route, Bedrifter.title )
-                , ( Om.route, Om.title )
-                ]
+header : Element msg
+header =
+    row
+        [ Background.color Theme.foreground
+        , width fill
+        , centerX
+        , paddingEach { top = 75, left = 0, right = 0, bottom = 75 }
+        ]
+        [ row
+            [ centerX
+            , spacing 100
+            ]
+            [ link []
+                { url = "/"
+                , label =
+                    image [ width (fill |> maximum 100) ]
+                        { src = "/img/echoicon.png", description = "echo logo" }
+                }
+            , link []
+                { url = "/" ++ Program.route
+                , label = text Program.title
+                }
+            , link []
+                { url = "/" ++ Bedrifter.route
+                , label = text Bedrifter.title
+                }
+            , link []
+                { url = "/" ++ Om.route
+                , label = text Om.title
+                }
+            , link []
+                { url = "/" ++ Profil.route
+                , label = html <| Icon.viewStyled [ Html.Attributes.width 20 ] FontAwesome.Regular.user
+                }
+            ]
+        ]
 
 
 footer : Model -> Element Msg
 footer _ =
     row
-        [ alignBottom
-        , centerX
+        [ centerX
+        , alignBottom
         , padding 20
-        , Background.color (rgb255 128 128 128)
         , width fill
+        , spacing 20
+        , padding 50
         ]
-        [ el [] (text "echo – Fagutvalget for informatikk") ]
+        [ el
+            [ Font.size 36
+            , centerX
+            ]
+            (text "echo bedriftstur")
+        , column []
+            [ row []
+                [ html <| Icon.viewStyled [ Html.Attributes.width 80 ] FontAwesome.Brands.githubSquare
+                , html <| Icon.viewStyled [ Html.Attributes.width 80 ] FontAwesome.Brands.linkedin
+                ]
+            , row []
+                [ html <| Icon.viewStyled [ Html.Attributes.width 80 ] FontAwesome.Solid.envelope ]
+            ]
+        ]
 
 
 view : Model -> Browser.Document Msg
@@ -222,14 +245,9 @@ view model =
                     , Hjem.view
                     )
 
-                Info _ ->
-                    ( Info.title
-                    , Info.view
-                    )
-
-                LoggInn loggInn ->
-                    ( LoggInn.title
-                    , Element.map GotLoggInnMsg <| LoggInn.view loggInn
+                Profil profil ->
+                    ( Profil.title
+                    , Element.map GotProfilMsg <| Profil.view profil
                     )
 
                 Program program ->
@@ -255,11 +273,9 @@ view model =
     { title = title
     , body =
         [ layout
-            [ Font.family [ Font.typeface "IBM Plex Sans" ]
-            , htmlAttribute <| Html.Attributes.style "overflow-y" "scroll"
-            ]
-            (column [ centerX, height fill, width fill ]
-                [ header model, body, footer model ]
+            [ Font.family [ Font.typeface "IBM Plex Sans" ], Background.color Theme.background ]
+            (column [ height fill, width fill ]
+                [ header, body ]
             )
         ]
     }

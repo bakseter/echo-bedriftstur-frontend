@@ -49,7 +49,7 @@ update msg model =
 
 view : Model -> Element Msg
 view model =
-    row []
+    row [ centerX ]
         [ textColumn [ paddingEach { edges | right = 100 }, spacing 50 ]
             [ el [ Font.bold, Font.size 42 ] <| text "Hvem er vi?"
             , paragraph [ Font.justify, spacing 15 ]

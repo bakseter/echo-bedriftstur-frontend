@@ -16,8 +16,8 @@ suite =
     in
     describe "Tests for the Page module)"
         [ describe "The fromUrl function returns a"
-            [ test "LoggInn Page when given the corresponding url" <|
-                \_ -> Expect.equal LoggInn <| fromUrl <| stringToUrl <| Builder.crossOrigin host [ "logg-inn" ] []
+            [ test "Profil Page when given the corresponding url" <|
+                \_ -> Expect.equal Profil <| fromUrl <| stringToUrl <| Builder.crossOrigin host [ "profil" ] []
             , test "Hjem Page when given the corresponding url" <|
                 \_ -> Expect.equal Hjem <| fromUrl <| stringToUrl <| host
             , test "Program Page when given the corresponding url" <|
@@ -42,8 +42,9 @@ suite =
         ]
 
 
-stringToUrl string =
-    case Url.fromString string of
+stringToUrl : String -> Url
+stringToUrl str =
+    case Url.fromString str of
         Just url ->
             url
 

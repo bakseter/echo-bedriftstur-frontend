@@ -1,22 +1,13 @@
-module Degree exposing (Degree(..), Degrees(..), fromString, orNullDecoder, toString)
+module Degree exposing (Degree(..), fromString, orNullDecoder, toString)
 
 import Json.Decode as Decode
-
-
-
--- Type wrapper for the Degrees type
-
-
-type Degree
-    = Valid Degrees
-    | None
 
 
 
 -- Type representing all the possible degrees a student can have
 
 
-type Degrees
+type Degree
     = DTEK
     | DSIK
     | DVIT
@@ -34,79 +25,130 @@ type Degrees
 -- List of valid degrees with their shorthand and long strings
 
 
-degreesList : List ( Degrees, ( String, String ) )
-degreesList =
-    [ ( DTEK, ( "DTEK", "Datateknologi" ) )
-    , ( DVIT, ( "DVIT", "Datavitenskap" ) )
-    , ( DSIK, ( "DSIK", "Datasikkerhet" ) )
-    , ( BINF, ( "BINF", "Bioinformatikk" ) )
-    , ( IMØ, ( "IMØ", "Informatikk-matematikk-økonomi" ) )
-    , ( IKT, ( "IKT", "Informasjons- og kommunikasjonsteknologi" ) )
-    , ( KOGNI, ( "KOGNI", "Kognitiv vitenskap med spesialisering i informatikk" ) )
-    , ( INF, ( "INF", "Master i informatikk" ) )
-    , ( PROG, ( "PROG", "Felles master i programutvikling" ) )
-    , ( POST, ( "POST", "Postbachelor" ) )
-    , ( MISC, ( "MISC", "Annet studieløp" ) )
-    ]
-
-
-
--- Convert degree to either shorthand or long string
-
-
 toString : Bool -> Degree -> String
 toString shorthand degree =
     case degree of
-        Valid d ->
-            case List.filter (\( x, ( y, z ) ) -> x == d) degreesList of
-                [ ( deg, ( short, long ) ) ] ->
-                    if shorthand then
-                        short
-
-                    else
-                        long
-
-                _ ->
-                    ""
-
-        None ->
-            ""
-
-
-
--- Convert either shorthand or long string to degree
-
-
-fromString : Bool -> String -> Degree
-fromString shorthand str =
-    let
-        filter arg =
+        DTEK ->
             if shorthand then
-                \( x, ( y, z ) ) -> y == str
+                "DTEK"
 
             else
-                \( x, ( y, z ) ) -> z == str
-    in
-    case List.filter (filter str) degreesList of
-        [ ( deg, ( short, long ) ) ] ->
-            Valid deg
+                "Datateknologi"
 
-        _ ->
-            None
+        DVIT ->
+            if shorthand then
+                "DVIT"
+
+            else
+                "Datavitenskap"
+
+        DSIK ->
+            if shorthand then
+                "DSIK"
+
+            else
+                "Datasikkerhet"
+
+        BINF ->
+            if shorthand then
+                "BINF"
+
+            else
+                "Bioinformatikk"
+
+        IMØ ->
+            if shorthand then
+                "IMØ"
+
+            else
+                "Informatikk-matematikk-økonomi"
+
+        IKT ->
+            if shorthand then
+                "IKT"
+
+            else
+                "Informasjons- og kommunikasjonsteknologi"
+
+        KOGNI ->
+            if shorthand then
+                "KOGNI"
+
+            else
+                "Kognitiv vitenskap med spesialisering i informatikk"
+
+        INF ->
+            if shorthand then
+                "INF"
+
+            else
+                "Master i informatikk"
+
+        PROG ->
+            if shorthand then
+                "PROG"
+
+            else
+                "Felles master i programutvikling"
+
+        POST ->
+            if shorthand then
+                "POST"
+
+            else
+                "Postbachelor"
+
+        MISC ->
+            if shorthand then
+                "MISC"
+
+            else
+                "Annet studieløp"
 
 
+fromString : String -> Maybe Degree
+fromString str =
+    if str == "DTEK" || str == "Datateknologi" then
+        Just DTEK
 
-{-
-   Decodes a degree from a JSON value.
-   Returns (Valid Degrees) if successful.
-   Return None if not successful
--}
+    else if str == "DSIK" || str == "Datasikkerhet" then
+        Just DSIK
+
+    else if str == "DVIT" || str == "Datavitenskap" then
+        Just DVIT
+
+    else if str == "BINF" || str == "Bioinformatikk" then
+        Just BINF
+
+    else if str == "IMØ" || str == "Informatikk-matematikk-økonomi" then
+        Just IMØ
+
+    else if str == "IKT" || str == "Informasjons- og kommunikasjonsteknologi" then
+        Just IKT
+
+    else if str == "KOGNI" || str == "Kognitiv vitenskap med spesialisering i informatikk" then
+        Just KOGNI
+
+    else if str == "INF" || str == "Master i informatikk" then
+        Just INF
+
+    else if str == "PROG" || str == "Felles master i programutvikling" then
+        Just PROG
+
+    else if str == "POST" || str == "Postbachelor" then
+        Just POST
+
+    else if str == "MISC" || str == "Annet studieløp" then
+        Just MISC
+
+    else
+        Nothing
 
 
 orNullDecoder : String -> Decode.Decoder Degree
 orNullDecoder field =
     Decode.oneOf
-        [ Decode.map (fromString False) (Decode.at [ field ] Decode.string)
-        , Decode.at [ field ] (Decode.null None)
-        , Decode.succeed None
+        [ Decode.map (Maybe.withDefault DTEK << fromString) (Decode.at [ field ] Decode.string)
+        , Decode.at [ field ] (Decode.null DTEK)
+        , Decode.succeed DTEK
         ]

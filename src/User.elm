@@ -44,7 +44,7 @@ type alias User =
 
 empty : User
 empty =
-    User (Email "") "" "" None (Terms False) (Ticket Nothing) False -1
+    User (Email "") "" "" DTEK (Terms False) (Ticket Nothing) False -1
 
 
 
