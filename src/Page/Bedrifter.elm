@@ -1,4 +1,4 @@
-module Page.Bedrifter exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
+module Page.Bedrifter exposing (Model, Msg, init, route, subscriptions, title, toSession, update, updateSession, view)
 
 import Browser.Dom
 import Element exposing (Element, el, text)
@@ -104,3 +104,8 @@ title =
 toSession : Model -> Session
 toSession model =
     model.session
+
+
+updateSession : Model -> Session -> Model
+updateSession model session =
+    { model | session = session }

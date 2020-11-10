@@ -1,4 +1,4 @@
-module Page.Program exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
+module Page.Program exposing (Model, Msg, init, route, subscriptions, title, toSession, update, updateSession, view)
 
 import Element exposing (..)
 import Element.Border as Border
@@ -98,3 +98,8 @@ title =
 toSession : Model -> Session
 toSession (Model session) =
     session
+
+
+updateSession : Model -> Session -> Model
+updateSession _ session =
+    Model session

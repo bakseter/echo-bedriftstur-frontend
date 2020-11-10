@@ -1,4 +1,4 @@
-module Page.Om exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
+module Page.Om exposing (Model, Msg, init, route, subscriptions, title, toSession, update, updateSession, view)
 
 import Element exposing (..)
 import Element.Events as Events
@@ -110,3 +110,8 @@ title =
 toSession : Model -> Session
 toSession model =
     model.session
+
+
+updateSession : Model -> Session -> Model
+updateSession model session =
+    { model | session = session }

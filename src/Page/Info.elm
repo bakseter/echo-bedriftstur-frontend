@@ -1,4 +1,4 @@
-module Page.Info exposing (Model, init, route, title, toSession, view)
+module Page.Info exposing (Model, init, route, title, toSession, updateSession, view)
 
 import Element exposing (Element, centerX, padding, paddingEach, paragraph, spacing, text, textColumn)
 import Session exposing (Session)
@@ -11,11 +11,6 @@ type Model
 init : Session -> Model
 init =
     Model
-
-
-toSession : Model -> Session
-toSession (Model session) =
-    session
 
 
 view : Element msg
@@ -46,3 +41,13 @@ route =
 title : String
 title =
     "Informasjon"
+
+
+toSession : Model -> Session
+toSession (Model session) =
+    session
+
+
+updateSession : Model -> Session -> Model
+updateSession _ =
+    Model

@@ -1,4 +1,4 @@
-module Page.Hjem exposing (Model, init, title, toSession, view)
+module Page.Hjem exposing (Model, init, title, toSession, updateSession, view)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -49,3 +49,8 @@ title =
 toSession : Model -> Session
 toSession (Model session) =
     session
+
+
+updateSession : Model -> Session -> Model
+updateSession _ =
+    Model

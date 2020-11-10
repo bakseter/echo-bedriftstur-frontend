@@ -1,16 +1,19 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Api
 import Browser
 import Browser.Navigation
+import Cred
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
+import Error
 import FontAwesome.Brands
 import FontAwesome.Icon as Icon
 import FontAwesome.Regular
 import FontAwesome.Solid
 import Html.Attributes
+import Json.Decode as Decode
 import Json.Encode as Encode
 import Page exposing (Page(..))
 import Page.Bedrifter as Bedrifter
@@ -24,9 +27,13 @@ import Theme
 import Url
 
 
+port userStatusChanged : (Encode.Value -> msg) -> Sub msg
+
+
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
+    | UserStatusChanged Decode.Value
     | GotProfilMsg Profil.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
@@ -48,41 +55,64 @@ init apiKeyJson url navKey =
         apiKey =
             Api.decodeKey apiKeyJson
     in
-    changeRouteTo url <| Session navKey apiKey
+    changeRouteTo url <| Session navKey apiKey Nothing
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model of
-        Profil profil ->
-            Sub.map GotProfilMsg <| Profil.subscriptions profil
+    let
+        pageSubs =
+            case model of
+                Profil profil ->
+                    Sub.map GotProfilMsg <| Profil.subscriptions profil
 
-        Bedrifter bedrifter ->
-            Sub.map GotBedrifterMsg <| Bedrifter.subscriptions bedrifter
+                Bedrifter bedrifter ->
+                    Sub.map GotBedrifterMsg <| Bedrifter.subscriptions bedrifter
 
-        Program program ->
-            Sub.map GotProgramMsg <| Program.subscriptions program
+                Program program ->
+                    Sub.map GotProgramMsg <| Program.subscriptions program
 
-        Om om ->
-            Sub.map GotOmMsg <| Om.subscriptions om
+                Om om ->
+                    Sub.map GotOmMsg <| Om.subscriptions om
 
-        _ ->
-            Sub.none
+                _ ->
+                    Sub.none
+
+        globalSubs =
+            Sub.batch
+                [ userStatusChanged UserStatusChanged ]
+    in
+    Sub.batch [ pageSubs ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( UrlRequested request, anyModel ) ->
+        ( UrlRequested request, _ ) ->
             case request of
                 Browser.Internal url ->
-                    ( model, Browser.Navigation.pushUrl (.navKey <| toSession anyModel) (Url.toString url) )
+                    ( model, Browser.Navigation.pushUrl (.navKey <| toSession model) (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Browser.Navigation.load href )
 
-        ( UrlChanged url, anyModel ) ->
-            changeRouteTo url (toSession anyModel)
+        ( UrlChanged url, _ ) ->
+            changeRouteTo url (toSession model)
+
+        ( UserStatusChanged json, _ ) ->
+            let
+                session =
+                    toSession model
+
+                newSession =
+                    case Cred.decode json of
+                        Just cred ->
+                            { session | cred = Just cred }
+
+                        Nothing ->
+                            { session | cred = Nothing }
+            in
+            ( updateSession model newSession, Cmd.none )
 
         ( GotProfilMsg pageMsg, Profil profil ) ->
             let
@@ -136,6 +166,28 @@ toSession model =
 
         NotFound notFound ->
             NotFound.toSession notFound
+
+
+updateSession : Model -> Session -> Model
+updateSession model session =
+    case model of
+        Hjem hjem ->
+            Hjem <| Hjem.updateSession hjem session
+
+        Profil profil ->
+            Profil <| Profil.updateSession profil session
+
+        Program program ->
+            Program <| Program.updateSession program session
+
+        Bedrifter bedrifter ->
+            Bedrifter <| Bedrifter.updateSession bedrifter session
+
+        Om om ->
+            Om <| Om.updateSession om session
+
+        NotFound notFound ->
+            NotFound <| NotFound.updateSession notFound session
 
 
 changeRouteTo : Url.Url -> Session -> ( Model, Cmd Msg )

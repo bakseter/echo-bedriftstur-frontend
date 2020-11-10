@@ -45,7 +45,6 @@ pageParser =
         [ Parser.map Hjem Parser.top
         , Parser.map Profil (Parser.s Profil.route)
         , Parser.map Program (Parser.s Program.route)
-        , Parser.map Profil (Parser.s "verified")
         , Parser.map Bedrifter (Parser.s Bedrifter.route)
         , Parser.map Om (Parser.s Om.route)
         ]

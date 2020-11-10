@@ -25,13 +25,26 @@ firebase.auth().onAuthStateChanged(user => {
     app.ports.userStatusChanged.send(user);
 });
 
+app.ports.saveLocalStorage.subscribe(data => {
+    window.localStorage.setItem(data.key, data.val);
+});
+
+app.ports.retrieveLocalStorage.subscribe(data => {
+    const val = window.localStorage.getItem(data.key);
+
+    if (data.del === true) {
+        window.localStorage.removeItem(data.key);
+    }
+
+    app.ports.retrieveLocalStorageResult(val);
+});
+
 app.ports.sendSignInLink.subscribe(data => {
     console.log(data);
     console.log(data.actionCodeSettings);
 
     firebase.auth().sendSignInLinkToEmail(data.email, data.actionCodeSettings)
     .then(() => {
-        window.localStorage.setItem("emailForSignIn", data.email);
         app.ports.sendSignInLinkSucceeded.send(true);
     })
     .catch(error => {
@@ -41,16 +54,9 @@ app.ports.sendSignInLink.subscribe(data => {
     });
 });
 
-if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
-    var email = window.localStorage.getItem("emailForSignIn");
-
-    if (!email) {
-        email = window.prompt("Vennligst skriv inn email.");
-    }
-
-    firebase.auth().signInWithEmailLink(email, window.location.href)
+app.ports.signIn.subscribe(data => {
+    firebase.auth().signInWithEmailLink(data.email, data.link)
     .then(result => {
-        window.localStorage.removeItem("emailForSignIn");
         app.ports.signInSucceeded.send(result.user);
         console.log(result);
         console.log(result.user);
@@ -60,4 +66,8 @@ if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
         console.log(error);
         console.log(error.code);
     });
+});
+
+if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+    app.ports.send.isSignInWithEmailLink(true);
 }
