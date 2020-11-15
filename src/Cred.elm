@@ -25,10 +25,7 @@ isSignedIn cred =
 encode : Cred -> Encode.Value
 encode cred =
     Encode.object
-        [ ( "collection", Encode.string "users" )
-        , ( "uid", Encode.string (Uid.toString cred.uid) )
-        , ( "email", Encode.string (Email.toString cred.email) )
-        ]
+        [ ( "uid", Encode.string (Uid.toString cred.uid) ) ]
 
 
 

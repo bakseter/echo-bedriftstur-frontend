@@ -1,13 +1,10 @@
-port module Main exposing (main)
+module Main exposing (main)
 
-import Api
 import Browser
 import Browser.Navigation
-import Cred
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
-import Error
 import FontAwesome.Brands
 import FontAwesome.Icon as Icon
 import FontAwesome.Regular
@@ -27,13 +24,9 @@ import Theme
 import Url
 
 
-port userStatusChanged : (Encode.Value -> msg) -> Sub msg
-
-
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
-    | UserStatusChanged Decode.Value
     | GotProfilMsg Profil.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
@@ -49,40 +42,28 @@ type Model
     | NotFound NotFound.Model
 
 
-init : Encode.Value -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
-init apiKeyJson url navKey =
-    let
-        apiKey =
-            Api.decodeKey apiKeyJson
-    in
-    changeRouteTo url <| Session navKey apiKey Nothing
+init : () -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
+init _ url navKey =
+    changeRouteTo url <| Session navKey Nothing
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    let
-        pageSubs =
-            case model of
-                Profil profil ->
-                    Sub.map GotProfilMsg <| Profil.subscriptions profil
+    case model of
+        Profil profil ->
+            Sub.map GotProfilMsg <| Profil.subscriptions profil
 
-                Bedrifter bedrifter ->
-                    Sub.map GotBedrifterMsg <| Bedrifter.subscriptions bedrifter
+        Bedrifter bedrifter ->
+            Sub.map GotBedrifterMsg <| Bedrifter.subscriptions bedrifter
 
-                Program program ->
-                    Sub.map GotProgramMsg <| Program.subscriptions program
+        Program program ->
+            Sub.map GotProgramMsg <| Program.subscriptions program
 
-                Om om ->
-                    Sub.map GotOmMsg <| Om.subscriptions om
+        Om om ->
+            Sub.map GotOmMsg <| Om.subscriptions om
 
-                _ ->
-                    Sub.none
-
-        globalSubs =
-            Sub.batch
-                [ userStatusChanged UserStatusChanged ]
-    in
-    Sub.batch [ pageSubs ]
+        _ ->
+            Sub.none
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -98,21 +79,6 @@ update msg model =
 
         ( UrlChanged url, _ ) ->
             changeRouteTo url (toSession model)
-
-        ( UserStatusChanged json, _ ) ->
-            let
-                session =
-                    toSession model
-
-                newSession =
-                    case Cred.decode json of
-                        Just cred ->
-                            { session | cred = Just cred }
-
-                        Nothing ->
-                            { session | cred = Nothing }
-            in
-            ( updateSession model newSession, Cmd.none )
 
         ( GotProfilMsg pageMsg, Profil profil ) ->
             let
@@ -197,9 +163,13 @@ changeRouteTo url session =
             ( Hjem (Hjem.init session), Cmd.none )
 
         Page.Profil ->
-            ( Profil (Profil.init session)
+            let
+                ( model, cmd ) =
+                    Profil.init session
+            in
+            ( Profil model
             , Cmd.map GotProfilMsg <|
-                Cmd.batch []
+                Cmd.batch [ cmd ]
             )
 
         Page.Program ->
@@ -333,7 +303,7 @@ view model =
     }
 
 
-main : Program Encode.Value Model Msg
+main : Program () Model Msg
 main =
     Browser.application
         { init = init

@@ -1,4 +1,4 @@
-module Email exposing (Email(..), encode, encodeForSignInLink, orNullDecoder, toString)
+module Email exposing (Email(..), encodeForSignInLink, orNullDecoder, toString)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
