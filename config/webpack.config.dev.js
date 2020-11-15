@@ -80,7 +80,7 @@ module.exports = {
   },
   resolve: {
     modules: ['node_modules'],
-    extensions: ['.js', '.elm'],
+    extensions: ['.js', '.elm', '.ts'],
   },
   module: {
     strictExportPresence: true,
@@ -146,6 +146,14 @@ module.exports = {
               cacheDirectory: true,
               highlightCode: true,
             },
+          },
+        ],
+      },
+      {
+        test: /\.ts$/,
+        use: [
+          {
+            loader: require.resolve('ts-loader')
           },
         ],
       },
