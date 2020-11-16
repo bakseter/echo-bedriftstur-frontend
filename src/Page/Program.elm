@@ -1,14 +1,14 @@
 module Page.Program exposing (Model, Msg, init, route, subscriptions, title, toSession, update, updateSession, view)
 
+import Assets
 import Element exposing (..)
-import Element.Border as Border
 import Element.Font as Font
 import Html.Attributes
 import Session exposing (Session)
 
 
-type Model
-    = Model Session
+type alias Model =
+    { session : Session }
 
 
 type Msg
@@ -25,8 +25,8 @@ type Company
 
 
 init : Session -> Model
-init =
-    Model
+init session =
+    { session = session }
 
 
 subscriptions : Model -> Sub Msg
@@ -40,7 +40,7 @@ update _ model =
 
 
 view : Model -> Element Msg
-view _ =
+view model =
     let
         grid =
             List.map2
@@ -52,7 +52,9 @@ view _ =
                             , mouseOver [ scale 4.0 ]
                             , htmlAttribute (Html.Attributes.style "transition" "0.4s ease")
                             ]
-                            { src = "/img/" ++ companyToString company ++ ".png", description = companyToString company }
+                            { src = Assets.get model.session.assets <| companyToString company
+                            , description = companyToString company
+                            }
                         , el [ centerX, Font.bold, padding 50 ] <| text time
                         ]
                 )
@@ -96,10 +98,10 @@ title =
 
 
 toSession : Model -> Session
-toSession (Model session) =
-    session
+toSession model =
+    model.session
 
 
 updateSession : Model -> Session -> Model
-updateSession _ session =
-    Model session
+updateSession model session =
+    { model | session = session }

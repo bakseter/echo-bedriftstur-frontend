@@ -61,7 +61,7 @@ view model =
             ]
         , column [ spacing 40 ]
             [ row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ] { src = "img/elias.png", description = "Elias" }
+                [ image [ width (px 180), height (px 180) ] { src = "elias.png", description = "Elias" }
                 , column [ spacing 20 ]
                     [ el [ Font.bold, Font.size 26 ] <| text "Elias Djupesland"
                     , el [ Font.bold, Font.size 20 ] <| text "Leder og bedriftskontakt"
@@ -69,7 +69,7 @@ view model =
                     ]
                 ]
             , row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ] { src = "/img/andreas.png", description = "Andreas" }
+                [ image [ width (px 180), height (px 180) ] { src = "andreas.png", description = "Andreas" }
                 , column [ spacing 20 ]
                     [ el [ Font.bold, Font.size 26 ] <| text "Andreas Salhus Bakseter"
                     , el [ Font.bold, Font.size 20 ] <| text "Webansvarlig"
@@ -77,7 +77,7 @@ view model =
                     ]
                 ]
             , row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ] { src = "/img/tuva.png", description = "Tuva" }
+                [ image [ width (px 180), height (px 180) ] { src = "tuva.png", description = "Tuva" }
                 , column [ spacing 20 ]
                     [ el [ Font.bold, Font.size 26 ] <| text "Tuva Kvalsøren"
                     , el [ Font.bold, Font.size 20 ] <| text "PR-ansvarlig"

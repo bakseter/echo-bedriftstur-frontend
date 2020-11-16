@@ -2,8 +2,11 @@ import * as firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 import 'firebase/database';
+import * as assets from 'assets/*.png'
 
-import { Elm } from './Main.elm';
+console.log(assets.default);
+
+import { Elm } from './Main';
 
 const firebaseConfig =
   { apiKey: process.env.ELM_APP_API_KEY
@@ -22,7 +25,7 @@ const auth: firebase.auth.Auth = firebase.auth();
 
 const app = Elm.Main.init ({
     node: document.getElementById("elm"),
-    flags: firebaseConfig.apiKey
+    flags: assets.default
 });
 
 
@@ -30,18 +33,8 @@ auth.onAuthStateChanged(user => {
     app.ports.userStatusChanged.send(user);
 });
 
-interface SignInLinkData {
-    email: string;
-    actionCodeSettings: ActionCodeSettings;
-};
 
-interface ActionCodeSettings {
-    url: string;
-    handleCodeInApp: boolean;
-};
-
-
-app.ports.sendSignInLink.subscribe(data: SignInLinkData => {
+app.ports.sendSignInLink.subscribe(data => {
     auth.sendSignInLinkToEmail(data.email, data.actionCodeSettings)
     .then(() => {
         window.localStorage.setItem("emailForSignIn", data.email);
@@ -70,7 +63,7 @@ if (auth.isSignInWithEmailLink(window.location.href)) {
 }
 
 app.ports.getUserInfo.subscribe(data => {
-    const ref = firebase.database().ref('/users/' + data.uid);
+    const ref = db.ref('/users/' + data.uid);
 
     ref.on('value', (snapshot) => {
             if (snapshot.exists()) {
@@ -91,7 +84,7 @@ app.ports.updateUserInfo.subscribe(data => {
                     , degree: data.degree
                     , terms: data.terms
                     };
-    updateUserInfo(data.collection, data.uid, content);
+    // updateUserInfo(data.collection, data.uid, content);
 });
 
 app.ports.createTicket.subscribe(data => {
@@ -99,7 +92,7 @@ app.ports.createTicket.subscribe(data => {
         { timestamp: firebase.firestore.FieldValue.serverTimestamp() 
         , submittedTicket: data.submittedTicket
         };
-    createTicket(data.collection, data.uid, newData);
+    // createTicket(data.collection, data.uid, newData);
 });
 
 app.ports.signOut.subscribe(() => {

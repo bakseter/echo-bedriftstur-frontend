@@ -8,6 +8,9 @@ import Element.Background as Background
 import Element.Input as Input
 import Email exposing (Email(..))
 import Error exposing (Error)
+import Html exposing (Html)
+import Html.Attributes as HtmlA
+import Html.Events as HtmlE
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Monocle.Compose as Compose
@@ -98,7 +101,7 @@ type ProfileMsg
     | SignOutSucceeded Encode.Value
     | TypedFirstName String
     | TypedLastName String
-    | ChangedDegree Degree
+    | ChangedDegree String
     | CheckedBoxOne Bool
     | CheckedBoxTwo Bool
     | CheckedBoxThree Bool
@@ -330,10 +333,10 @@ updateProfileModel msg model =
             case User.decode json of
                 Just user ->
                     ( updateUser.set (Just user) model
-                        |> updateFirstName.set user.firstName
-                        |> updateLastName.set user.lastName
-                        |> updateDegree.set (Just user.degree)
-                        |> updateTerms.set user.terms
+                        |> updateFirstName.set user.content.firstName
+                        |> updateLastName.set user.content.lastName
+                        |> updateDegree.set (Just user.content.degree)
+                        |> updateTerms.set user.content.terms
                     , Cmd.none
                     )
 
@@ -364,8 +367,13 @@ updateProfileModel msg model =
         TypedLastName str ->
             ( updateLastName.set str model, Cmd.none )
 
-        ChangedDegree degree ->
-            ( updateDegree.set (Just degree) model, Cmd.none )
+        ChangedDegree str ->
+            case Degree.fromString str of
+                Just degree ->
+                    ( updateDegree.set (Just degree) model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         CheckedBoxOne bool ->
             let
@@ -440,15 +448,15 @@ viewProfile model =
             , placeholder = Just <| Input.placeholder [] (text "Etternavn")
             , label = Input.labelHidden "Etternavn"
             }
-        , Input.radio [ spacing 20 ]
-            { onChange = GotProfileMsg << ChangedDegree
-            , selected = model.profileModel.degree
-            , label = Input.labelAbove [] <| text "Studieretning"
-            , options =
+        , html <|
+            Html.select [] <|
                 List.map
-                    (\d -> Input.option d <| text <| Degree.toString False d)
+                    (\d ->
+                        Html.option
+                            [ HtmlA.value <| Degree.toString False d ]
+                            [ Html.text <| Degree.toString True d ]
+                    )
                     [ DTEK, DSIK, DVIT, BINF, IMØ, IKT, KOGNI, INF, PROG, POST, MISC ]
-            }
         , Input.checkbox []
             { onChange = GotProfileMsg << CheckedBoxOne
             , icon = Input.defaultCheckbox
