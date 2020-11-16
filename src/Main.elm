@@ -1,7 +1,9 @@
 module Main exposing (main)
 
+import Assets exposing (Assets)
 import Browser
 import Browser.Navigation
+import Dict exposing (Dict)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
@@ -10,7 +12,6 @@ import FontAwesome.Icon as Icon
 import FontAwesome.Regular
 import FontAwesome.Solid
 import Html.Attributes
-import Json.Decode as Decode
 import Json.Encode as Encode
 import Page exposing (Page(..))
 import Page.Bedrifter as Bedrifter
@@ -42,9 +43,18 @@ type Model
     | NotFound NotFound.Model
 
 
-init : () -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
-init _ url navKey =
-    changeRouteTo url <| Session navKey Nothing
+init : Encode.Value -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
+init json url navKey =
+    let
+        assets =
+            case Assets.decode json of
+                Just a ->
+                    a
+
+                Nothing ->
+                    []
+    in
+    changeRouteTo url <| Session navKey Nothing assets
 
 
 subscriptions : Model -> Sub Msg
@@ -193,8 +203,8 @@ changeRouteTo url session =
             )
 
 
-header : Element msg
-header =
+header : List Assets -> Element msg
+header assets =
     row
         [ Background.color Theme.foreground
         , width fill
@@ -209,7 +219,7 @@ header =
                 { url = "/"
                 , label =
                     image [ width (fill |> maximum 100) ]
-                        { src = "/img/echoicon.png", description = "echo logo" }
+                        { src = Assets.get assets "echoicon", description = "echo logo" }
                 }
             , link []
                 { url = "/" ++ Program.route
@@ -291,19 +301,22 @@ view model =
                     ( NotFound.title
                     , NotFound.view
                     )
+
+        session =
+            toSession model
     in
     { title = title
     , body =
         [ layout
             [ Font.family [ Font.typeface "IBM Plex Sans" ], Background.color Theme.background ]
             (column [ height fill, width fill ]
-                [ header, body ]
+                [ header session.assets, body ]
             )
         ]
     }
 
 
-main : Program () Model Msg
+main : Program Encode.Value Model Msg
 main =
     Browser.application
         { init = init

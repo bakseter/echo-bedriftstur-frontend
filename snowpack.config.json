@@ -1,9 +1,0 @@
-{
-    "mount": {
-        "public": "/public"
-    },
-    "plugins": ["snowpack-plugin-elm", "@snowpack/plugin-typescript"],
-    "devOptions": {
-        "fallback": "index.html"
-    }
-}

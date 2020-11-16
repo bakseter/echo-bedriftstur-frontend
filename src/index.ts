@@ -2,6 +2,9 @@ import * as firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 import 'firebase/database';
+import * as assets from 'assets/*.png'
+
+console.log(assets.default);
 
 import { Elm } from './Main';
 
@@ -22,7 +25,7 @@ const auth: firebase.auth.Auth = firebase.auth();
 
 const app = Elm.Main.init ({
     node: document.getElementById("elm"),
-    flags: firebaseConfig.apiKey
+    flags: assets.default
 });
 
 
@@ -60,7 +63,7 @@ if (auth.isSignInWithEmailLink(window.location.href)) {
 }
 
 app.ports.getUserInfo.subscribe(data => {
-    const ref = firebase.database().ref('/users/' + data.uid);
+    const ref = db.ref('/users/' + data.uid);
 
     ref.on('value', (snapshot) => {
             if (snapshot.exists()) {
