@@ -3,7 +3,7 @@ import 'firebase/auth';
 import 'firebase/firestore';
 import 'firebase/database';
 
-import { Elm } from './Main.elm';
+import { Elm } from './Main';
 
 const firebaseConfig =
   { apiKey: process.env.ELM_APP_API_KEY
@@ -30,18 +30,8 @@ auth.onAuthStateChanged(user => {
     app.ports.userStatusChanged.send(user);
 });
 
-interface SignInLinkData {
-    email: string;
-    actionCodeSettings: ActionCodeSettings;
-};
 
-interface ActionCodeSettings {
-    url: string;
-    handleCodeInApp: boolean;
-};
-
-
-app.ports.sendSignInLink.subscribe(data: SignInLinkData => {
+app.ports.sendSignInLink.subscribe(data => {
     auth.sendSignInLinkToEmail(data.email, data.actionCodeSettings)
     .then(() => {
         window.localStorage.setItem("emailForSignIn", data.email);
@@ -91,7 +81,7 @@ app.ports.updateUserInfo.subscribe(data => {
                     , degree: data.degree
                     , terms: data.terms
                     };
-    updateUserInfo(data.collection, data.uid, content);
+    // updateUserInfo(data.collection, data.uid, content);
 });
 
 app.ports.createTicket.subscribe(data => {
@@ -99,7 +89,7 @@ app.ports.createTicket.subscribe(data => {
         { timestamp: firebase.firestore.FieldValue.serverTimestamp() 
         , submittedTicket: data.submittedTicket
         };
-    createTicket(data.collection, data.uid, newData);
+    // createTicket(data.collection, data.uid, newData);
 });
 
 app.ports.signOut.subscribe(() => {
