@@ -5,8 +5,38 @@ on:
     branches: master
 
 jobs:
+  build:
+    name: Build and run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: yarn
+      - name: Create environment file
+        run: |
+          touch .env.production
+          echo ELM_APP_API_KEY=${{ secrets.PROD_ELM_APP_API_KEY }} >> .env.production
+          echo ELM_APP_AUTH_DOMAIN=${{ secrets.PROD_ELM_APP_AUTH_DOMAIN }} >> .env.production
+          echo ELM_APP_DATABASE_URL=${{ secrets.PROD_ELM_APP_DATABASE_URL }} >> .env.production
+          echo ELM_APP_PROJECT_ID=${{ secrets.PROD_ELM_APP_PROJECT_ID }} >> .env.production
+          echo ELM_APP_STORAGE_BUCKET=${{ secrets.PROD_ELM_APP_STORAGE_BUCKET }} >> .env.production
+          echo ELM_APP_MESSAGING_SENDER_ID=${{ secrets.PROD_ELM_APP_MESSAGING_SENDER_ID }} >> .env.production
+          echo ELM_APP_APP_ID=${{ secrets.PROD_ELM_APP_APP_ID }} >> .env.production
+          echo ELM_APP_MEASUREMENT_ID=${{ secrets.PROD_ELM_APP_MEASUREMENT_ID }} >> .env.production
+      - name: Run tests
+        run: yarn test
+      - name: Build
+        run: yarn build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: prod-build
+          path: dist
+
   deploy:
     name: Deploy to production site
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

@@ -28,8 +28,3 @@ jobs:
         run: yarn test
       - name: Build
         run: yarn build
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: prod-build
-          path: dist
