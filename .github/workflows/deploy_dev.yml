@@ -15,15 +15,15 @@ jobs:
         run: yarn
       - name: Create environment file
         run: |
-          touch .env.development
-          echo ELM_APP_API_KEY=${{ secrets.DEV_ELM_APP_API_KEY }} >> .env.development
-          echo ELM_APP_AUTH_DOMAIN=${{ secrets.DEV_ELM_APP_AUTH_DOMAIN }} >> .env.development
-          echo ELM_APP_DATABASE_URL=${{ secrets.DEV_ELM_APP_DATABASE_URL }} >> .env.development
-          echo ELM_APP_PROJECT_ID=${{ secrets.DEV_ELM_APP_PROJECT_ID }} >> .env.development
-          echo ELM_APP_STORAGE_BUCKET=${{ secrets.DEV_ELM_APP_STORAGE_BUCKET }} >> .env.development
-          echo ELM_APP_MESSAGING_SENDER_ID=${{ secrets.DEV_ELM_APP_MESSAGING_SENDER_ID }} >> .env.development
-          echo ELM_APP_APP_ID=${{ secrets.DEV_ELM_APP_APP_ID }} >> .env.development
-          echo ELM_APP_MEASUREMENT_ID=${{ secrets.DEV_ELM_APP_MEASUREMENT_ID }} >> .env.development
+          touch .env
+          echo ELM_APP_API_KEY=${{ secrets.DEV_ELM_APP_API_KEY }} >> .env
+          echo ELM_APP_AUTH_DOMAIN=${{ secrets.DEV_ELM_APP_AUTH_DOMAIN }} >> .env
+          echo ELM_APP_DATABASE_URL=${{ secrets.DEV_ELM_APP_DATABASE_URL }} >> .env
+          echo ELM_APP_PROJECT_ID=${{ secrets.DEV_ELM_APP_PROJECT_ID }} >> .env
+          echo ELM_APP_STORAGE_BUCKET=${{ secrets.DEV_ELM_APP_STORAGE_BUCKET }} >> .env
+          echo ELM_APP_MESSAGING_SENDER_ID=${{ secrets.DEV_ELM_APP_MESSAGING_SENDER_ID }} >> .env
+          echo ELM_APP_APP_ID=${{ secrets.DEV_ELM_APP_APP_ID }} >> .env
+          echo ELM_APP_MEASUREMENT_ID=${{ secrets.DEV_ELM_APP_MEASUREMENT_ID }} >> .env
       - name: Run tests
         run: yarn test
       - name: Build
