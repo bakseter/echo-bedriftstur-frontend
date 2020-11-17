@@ -64,10 +64,14 @@ node_modules/
 # dotenv environment variables file
 .env*
 
-# elm build files
+# build files
 main.js
 elm-stuff/
 build/
+dist/
 
 # JS linter
 .eslintignore
+
+# cache
+.cache

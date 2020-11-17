@@ -1,0 +1,35 @@
+name: Build and tests from development branch
+
+on:
+  pull_request:
+    branches: develop
+
+jobs:
+  build:
+    name: Build and run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: yarn
+      - name: Create environment file
+        run: |
+          touch .env.development
+          echo ELM_APP_API_KEY=${{ secrets.DEV_ELM_APP_API_KEY }} >> .env.development
+          echo ELM_APP_AUTH_DOMAIN=${{ secrets.DEV_ELM_APP_AUTH_DOMAIN }} >> .env.development
+          echo ELM_APP_DATABASE_URL=${{ secrets.DEV_ELM_APP_DATABASE_URL }} >> .env.development
+          echo ELM_APP_PROJECT_ID=${{ secrets.DEV_ELM_APP_PROJECT_ID }} >> .env.development
+          echo ELM_APP_STORAGE_BUCKET=${{ secrets.DEV_ELM_APP_STORAGE_BUCKET }} >> .env.development
+          echo ELM_APP_MESSAGING_SENDER_ID=${{ secrets.DEV_ELM_APP_MESSAGING_SENDER_ID }} >> .env.development
+          echo ELM_APP_APP_ID=${{ secrets.DEV_ELM_APP_APP_ID }} >> .env.development
+          echo ELM_APP_MEASUREMENT_ID=${{ secrets.DEV_ELM_APP_MEASUREMENT_ID }} >> .env.development
+      - name: Run tests
+        run: yarn test
+      - name: Build
+        run: yarn build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: dev-build
+          path: dist

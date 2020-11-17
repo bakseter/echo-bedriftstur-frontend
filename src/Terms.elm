@@ -1,4 +1,4 @@
-module Terms exposing (Terms(..), orNullDecoder, toBool)
+module Terms exposing (Terms(..), fromAbsolute, fst, orNullDecoder, snd, thd, toBool)
 
 import Array exposing (Array(..))
 import Json.Decode as Decode
@@ -11,7 +11,16 @@ import Json.Decode as Decode
 
 
 type Terms
-    = Terms Bool
+    = Terms Bool Bool Bool
+
+
+fromAbsolute : Bool -> Terms
+fromAbsolute bool =
+    if bool then
+        Terms True True True
+
+    else
+        Terms False False False
 
 
 
@@ -19,8 +28,23 @@ type Terms
 
 
 toBool : Terms -> Bool
-toBool (Terms bool) =
-    bool
+toBool (Terms b1 b2 b3) =
+    b1 && b2 && b3
+
+
+fst : Terms -> Bool
+fst (Terms b _ _) =
+    b
+
+
+snd : Terms -> Bool
+snd (Terms _ b _) =
+    b
+
+
+thd : Terms -> Bool
+thd (Terms _ _ b) =
+    b
 
 
 
@@ -30,7 +54,7 @@ toBool (Terms bool) =
 orNullDecoder : String -> Decode.Decoder Terms
 orNullDecoder field =
     Decode.oneOf
-        [ Decode.map Terms (Decode.at [ field ] Decode.bool)
-        , Decode.at [ field ] (Decode.null (Terms False))
-        , Decode.succeed (Terms False)
+        [ Decode.map fromAbsolute (Decode.at [ field ] Decode.bool)
+        , Decode.at [ field ] (Decode.null (Terms False False False))
+        , Decode.succeed (Terms False False False)
         ]

@@ -1,17 +1,22 @@
 {
-  "projects": {
-    "default": "echo-bedriftstur-81a2e"
-  },
-  "targets": {
-    "echo-bedriftstur-81a2e": {
-      "hosting": {
-        "prod": [
-          "echo-bedriftstur-81a2e"
-        ],
-        "dev": [
-          "echo-bedriftstur-dev"
-        ]
-      }
+    "projects": {
+        "production": "echo-bedriftstur-81a2e",
+        "development": "echo-bedriftstur-dev-60683"
+    },
+    "targets": {
+        "echo-bedriftstur-81a2e": {
+            "hosting": {
+                "prod": [
+                    "echo-bedriftstur-81a2e"
+                ]
+            }
+        },
+        "echo-bedriftstur-dev-60683": {
+            "hosting": {
+                "dev": [
+                    "echo-bedriftstur-dev-60683"
+                ]
+            }
+        }
     }
-  }
 }

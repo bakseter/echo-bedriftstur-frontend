@@ -1,253 +1,250 @@
 module Main exposing (main)
 
-import Api
+import Assets exposing (Assets)
 import Browser
 import Browser.Navigation
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
+import FontAwesome.Brands
+import FontAwesome.Icon as Icon
+import FontAwesome.Regular
+import FontAwesome.Solid
 import Html.Attributes
 import Json.Encode as Encode
 import Page exposing (Page(..))
 import Page.Bedrifter as Bedrifter
 import Page.Hjem as Hjem
-import Page.Info as Info
-import Page.LoggInn as LoggInn
 import Page.NotFound as NotFound
 import Page.Om as Om
+import Page.Profil as Profil
 import Page.Program as Program
 import Session exposing (Session)
+import Theme
 import Url
 
 
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
-    | GotLoggInnMsg LoggInn.Msg
+    | GotHjemMsg Hjem.Msg
+    | GotProfilMsg Profil.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
 
 
-type Model
-    = Hjem Hjem.Model
-    | Info Info.Model
-    | LoggInn LoggInn.Model
-    | Bedrifter Bedrifter.Model
-    | Program Program.Model
-    | Om Om.Model
-    | NotFound NotFound.Model
+type alias Model =
+    { hjem : Hjem.Model
+    , profil : Profil.Model
+    , bedrifter : Bedrifter.Model
+    , program : Program.Model
+    , om : Om.Model
+    , page : Page
+    , session : Session
+    , assets : List Assets
+    }
 
 
 init : Encode.Value -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
-init apiKeyJson url navKey =
+init json url navKey =
     let
-        apiKey =
-            Api.decodeKey apiKeyJson
+        page =
+            Page.fromUrl url
+
+        session =
+            Session navKey Nothing
+
+        assets =
+            case Assets.decode json of
+                Just a ->
+                    a
+
+                Nothing ->
+                    []
+
+        ( hjem, hjemCmd ) =
+            Hjem.init session assets
+
+        ( profil, profilCmd ) =
+            Profil.init session assets
+
+        ( bedrifter, bedrifterCmd ) =
+            Bedrifter.init session assets
+
+        ( program, programCmd ) =
+            Program.init session assets
+
+        ( om, omCmd ) =
+            Om.init session assets
     in
-    changeRouteTo url <| Session navKey apiKey
+    ( { hjem = hjem
+      , profil = profil
+      , bedrifter = bedrifter
+      , program = program
+      , om = om
+      , page = page
+      , session = session
+      , assets = assets
+      }
+    , Cmd.batch <|
+        [ Cmd.map GotHjemMsg hjemCmd
+        , Cmd.map GotProfilMsg profilCmd
+        , Cmd.map GotBedrifterMsg bedrifterCmd
+        , Cmd.map GotProgramMsg programCmd
+        , Cmd.map GotOmMsg omCmd
+        ]
+    )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model of
-        LoggInn loggInn ->
-            Sub.map GotLoggInnMsg <| LoggInn.subscriptions loggInn
-
-        Bedrifter bedrifter ->
-            Sub.map GotBedrifterMsg <| Bedrifter.subscriptions bedrifter
-
-        Program program ->
-            Sub.map GotProgramMsg <| Program.subscriptions program
-
-        Om om ->
-            Sub.map GotOmMsg <| Om.subscriptions om
-
-        _ ->
-            Sub.none
+    Sub.batch
+        [ Sub.map GotProfilMsg <| Profil.subscriptions model.profil
+        , Sub.map GotBedrifterMsg <| Bedrifter.subscriptions model.bedrifter
+        , Sub.map GotProgramMsg <| Program.subscriptions model.program
+        , Sub.map GotOmMsg <| Om.subscriptions model.om
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
-        ( UrlRequested request, anyModel ) ->
+    case msg of
+        UrlRequested request ->
             case request of
                 Browser.Internal url ->
-                    ( model, Browser.Navigation.pushUrl (.navKey <| toSession anyModel) (Url.toString url) )
+                    ( model, Browser.Navigation.pushUrl model.session.navKey (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Browser.Navigation.load href )
 
-        ( UrlChanged url, anyModel ) ->
-            changeRouteTo url (toSession anyModel)
+        UrlChanged url ->
+            ( { model | page = Page.fromUrl url }, Cmd.none )
 
-        ( GotLoggInnMsg pageMsg, LoggInn loggInn ) ->
+        GotHjemMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    LoggInn.update pageMsg loggInn
+                    Hjem.update pageMsg model.hjem
             in
-            ( LoggInn newModel, Cmd.map GotLoggInnMsg cmd )
+            ( { model | hjem = newModel }, Cmd.map GotHjemMsg cmd )
 
-        ( GotBedrifterMsg pageMsg, Bedrifter bedrifter ) ->
+        GotProfilMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    Bedrifter.update pageMsg bedrifter
+                    Profil.update pageMsg model.profil
             in
-            ( Bedrifter newModel, Cmd.map GotBedrifterMsg cmd )
+            ( { model | profil = newModel }, Cmd.map GotProfilMsg cmd )
 
-        ( GotProgramMsg pageMsg, Program program ) ->
+        GotBedrifterMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    Program.update pageMsg program
+                    Bedrifter.update pageMsg model.bedrifter
             in
-            ( Program newModel, Cmd.map GotProgramMsg cmd )
+            ( { model | bedrifter = newModel }, Cmd.map GotBedrifterMsg cmd )
 
-        ( GotOmMsg pageMsg, Om om ) ->
+        GotProgramMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    Om.update pageMsg om
+                    Program.update pageMsg model.program
             in
-            ( Om newModel, Cmd.map GotOmMsg cmd )
+            ( { model | program = newModel }, Cmd.map GotProgramMsg cmd )
 
-        _ ->
-            ( model, Cmd.none )
-
-
-toSession : Model -> Session
-toSession model =
-    case model of
-        Hjem hjem ->
-            Hjem.toSession hjem
-
-        Info info ->
-            Info.toSession info
-
-        LoggInn loggInn ->
-            LoggInn.toSession loggInn
-
-        Program program ->
-            Program.toSession program
-
-        Bedrifter bedrifter ->
-            Bedrifter.toSession bedrifter
-
-        Om om ->
-            Om.toSession om
-
-        NotFound notFound ->
-            NotFound.toSession notFound
-
-
-changeRouteTo : Url.Url -> Session -> ( Model, Cmd Msg )
-changeRouteTo url session =
-    case Page.fromUrl url of
-        Page.Hjem ->
-            ( Hjem (Hjem.init session), Cmd.none )
-
-        Page.Info ->
-            ( Info (Info.init session), Cmd.none )
-
-        Page.LoggInn ->
-            ( LoggInn (LoggInn.init session)
-            , Cmd.map GotLoggInnMsg <|
-                Cmd.batch []
-            )
-
-        Page.Program ->
-            ( Program (Program.init session), Cmd.none )
-
-        Page.Bedrifter ->
-            ( Bedrifter (Bedrifter.init session)
-            , Cmd.map GotBedrifterMsg <|
-                Cmd.batch []
-            )
-
-        Page.Om ->
-            ( Om (Om.init session)
-            , Cmd.map GotOmMsg <|
-                Cmd.batch []
-            )
-
-        Page.NotFound ->
-            ( NotFound (NotFound.init session)
-            , Cmd.none
-            )
+        GotOmMsg pageMsg ->
+            let
+                ( newModel, cmd ) =
+                    Om.update pageMsg model.om
+            in
+            ( { model | om = newModel }, Cmd.map GotOmMsg cmd )
 
 
 header : Model -> Element msg
-header _ =
-    row [ centerX, spacing 100, paddingEach { top = 75, left = 0, right = 0, bottom = 100 } ] <|
-        link []
+header model =
+    row
+        [ centerX
+        , spacing 120
+        ]
+        [ link []
             { url = "/"
             , label =
-                image [ width (fill |> maximum 100) ]
-                    { src = "/img/echoicon.png"
-                    , description = "Logo"
-                    }
+                image [ width (fill |> maximum 120) ]
+                    { src = Assets.get model.assets "echoicon", description = "echo logo" }
             }
-            :: List.map
-                (\( route, title ) ->
-                    Element.link []
-                        { url = "/" ++ route
-                        , label = el [ Font.bold ] <| Element.text title
-                        }
-                )
-                [ ( Info.route, Info.title )
-                , ( LoggInn.route, LoggInn.title )
-                , ( Program.route, Program.title )
-                , ( Bedrifter.route, Bedrifter.title )
-                , ( Om.route, Om.title )
-                ]
+        , link []
+            { url = "/" ++ Program.route
+            , label = el [ Font.bold, Font.size 26 ] <| text Program.title
+            }
+        , link []
+            { url = "/" ++ Bedrifter.route
+            , label = el [ Font.bold, Font.size 26 ] <| text Bedrifter.title
+            }
+        , link []
+            { url = "/" ++ Om.route
+            , label = el [ Font.bold, Font.size 26 ] <| text Om.title
+            }
+        , link []
+            { url = "/" ++ Profil.route
+            , label = html <| Icon.viewStyled [ Html.Attributes.width 30 ] FontAwesome.Regular.user
+            }
+        ]
 
 
 footer : Model -> Element Msg
 footer _ =
     row
-        [ alignBottom
-        , centerX
+        [ centerX
+        , alignBottom
         , padding 20
-        , Background.color (rgb255 128 128 128)
         , width fill
+        , spacing 20
+        , padding 50
         ]
-        [ el [] (text "echo – Fagutvalget for informatikk") ]
+        [ el
+            [ Font.size 36
+            , centerX
+            ]
+            (text "echo bedriftstur")
+        , column []
+            [ row []
+                [ html <| Icon.viewStyled [ Html.Attributes.width 80 ] FontAwesome.Brands.githubSquare
+                , html <| Icon.viewStyled [ Html.Attributes.width 80 ] FontAwesome.Brands.linkedin
+                ]
+            , row []
+                [ html <| Icon.viewStyled [ Html.Attributes.width 80 ] FontAwesome.Solid.envelope ]
+            ]
+        ]
 
 
 view : Model -> Browser.Document Msg
 view model =
     let
         ( title, body ) =
-            case model of
-                Hjem _ ->
+            case model.page of
+                Hjem ->
                     ( Hjem.title
-                    , Hjem.view
+                    , Element.map GotHjemMsg <| Hjem.view model.hjem
                     )
 
-                Info _ ->
-                    ( Info.title
-                    , Info.view
+                Profil ->
+                    ( Profil.title
+                    , Element.map GotProfilMsg <| Profil.view model.profil
                     )
 
-                LoggInn loggInn ->
-                    ( LoggInn.title
-                    , Element.map GotLoggInnMsg <| LoggInn.view loggInn
-                    )
-
-                Program program ->
+                Program ->
                     ( Program.title
-                    , Element.map GotProgramMsg <| Program.view program
+                    , Element.map GotProgramMsg <| Program.view model.program
                     )
 
-                Bedrifter bedrifter ->
+                Bedrifter ->
                     ( Bedrifter.title
-                    , Element.map GotBedrifterMsg <| Bedrifter.view bedrifter
+                    , Element.map GotBedrifterMsg <| Bedrifter.view model.bedrifter
                     )
 
-                Om om ->
+                Om ->
                     ( Om.title
-                    , Element.map GotOmMsg <| Om.view om
+                    , Element.map GotOmMsg <| Om.view model.om
                     )
 
-                NotFound _ ->
+                NotFound ->
                     ( NotFound.title
                     , NotFound.view
                     )
@@ -255,11 +252,9 @@ view model =
     { title = title
     , body =
         [ layout
-            [ Font.family [ Font.typeface "IBM Plex Sans" ]
-            , htmlAttribute <| Html.Attributes.style "overflow-y" "scroll"
-            ]
-            (column [ centerX, height fill, width fill ]
-                [ header model, body, footer model ]
+            [ Font.family [ Font.typeface "IBM Plex Sans" ], Background.color Theme.background ]
+            (column [ height fill, width fill ]
+                [ header model, body ]
             )
         ]
     }

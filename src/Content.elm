@@ -1,10 +1,12 @@
-module Content exposing (Content, empty, encode, updateAll, updateDegree, updateFirstName, updateLastName, updateTerms)
+module Content exposing (Content, contentDecoder, empty, encode, updateAll, updateDegree, updateFirstName, updateLastName, updateTerms)
 
 import Cred exposing (Cred)
 import Degree exposing (Degree(..))
+import Json.Decode as Decode
 import Json.Encode as Encode
 import Terms exposing (Terms(..))
 import Uid
+import Util
 
 
 
@@ -25,7 +27,7 @@ type alias Content =
 
 empty : Content
 empty =
-    Content "" "" None (Terms False)
+    Content "" "" DTEK (Terms.fromAbsolute False)
 
 
 
@@ -81,6 +83,14 @@ updateTerms terms content =
    Encodes the Content record as a JSON object.
    This is used to send user input to the Firestore database.
 -}
+
+
+contentDecoder =
+    Decode.map4 Content
+        (Util.stringOrNullDecoder "firstName")
+        (Util.stringOrNullDecoder "lastName")
+        (Degree.orNullDecoder "degree")
+        (Terms.orNullDecoder "terms")
 
 
 encode : Cred -> Content -> Encode.Value

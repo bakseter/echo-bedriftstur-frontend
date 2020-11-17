@@ -1,51 +1,25 @@
-name: Build and deploy from dev branch
+name: Deploy from development branch
 
 on:
-  pull_request:
+  push:
     branches: develop
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@master
-      - name: Install dependencies
-        run: yarn
-      - name: Create environment file
-        run: |
-          touch .env.development
-          echo ELM_APP_API_KEY=${{ secrets.DEV_ELM_APP_API_KEY }} >> .env.development
-          echo ELM_APP_AUTH_DOMAIN=${{ secrets.DEV_ELM_APP_AUTH_DOMAIN }} >> .env.development
-          echo ELM_APP_DATABASE_URL=${{ secrets.DEV_ELM_APP_DATABASE_URL }} >> .env.development
-          echo ELM_APP_PROJECT_ID=${{ secrets.DEV_ELM_APP_PROJECT_ID }} >> .env.development
-          echo ELM_APP_STORAGE_BUCKET=${{ secrets.DEV_ELM_APP_STORAGE_BUCKET }} >> .env.development
-          echo ELM_APP_MESSAGING_SENDER_ID=${{ secrets.DEV_ELM_APP_MESSAGING_SENDER_ID }} >> .env.development
-          echo ELM_APP_APP_ID=${{ secrets.DEV_ELM_APP_APP_ID }} >> .env.development
-          echo ELM_APP_MEASUREMENT_ID=${{ secrets.DEV_ELM_APP_MEASUREMENT_ID }} >> .env.development
-      - name: Build
-        run: yarn build
-      - name: Archive production artifact
-        uses: actions/upload-artifact@master
-        with:
-          name: build
-          path: build
   deploy:
-    name: Deploy
-    needs: build
+    name: Deploy to development site
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@master
-      - name: Download artifact
-        uses: actions/download-artifact@master
+        uses: actions/checkout@v2
+      - name: Download build artifact
+        uses: actions/download-artifact@v2
         with:
-          name: build
-          path: build
-      - name: Deploy to Firebase
+          name: dev-build
+          path: dist
+      - name: Deploy to firebase
         uses: w9jds/firebase-action@master
         with:
           args: deploy --only hosting:dev
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
+          PROJECT_ID: echo-bedriftstur-dev-60683

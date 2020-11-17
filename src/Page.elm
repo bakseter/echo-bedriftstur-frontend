@@ -1,9 +1,8 @@
 module Page exposing (Page(..), fromUrl)
 
 import Page.Bedrifter as Bedrifter
-import Page.Info as Info
-import Page.LoggInn as LoggInn
 import Page.Om as Om
+import Page.Profil as Profil
 import Page.Program as Program
 import Url
 import Url.Parser as Parser
@@ -15,8 +14,7 @@ import Url.Parser as Parser
 
 type Page
     = Hjem
-    | Info
-    | LoggInn
+    | Profil
     | Program
     | Bedrifter
     | Om
@@ -45,8 +43,7 @@ pageParser : Parser.Parser (Page -> b) b
 pageParser =
     Parser.oneOf
         [ Parser.map Hjem Parser.top
-        , Parser.map Info (Parser.s Info.route)
-        , Parser.map LoggInn (Parser.s LoggInn.route)
+        , Parser.map Profil (Parser.s Profil.route)
         , Parser.map Program (Parser.s Program.route)
         , Parser.map Bedrifter (Parser.s Bedrifter.route)
         , Parser.map Om (Parser.s Om.route)

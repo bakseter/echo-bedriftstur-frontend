@@ -1,4 +1,4 @@
-module Email exposing (Email(..), encode, orNullDecoder, toString)
+module Email exposing (Email(..), encodeForSignInLink, orNullDecoder, toString)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -39,6 +39,19 @@ encode : Email -> Encode.Value
 encode email =
     Encode.object
         [ ( "email", Encode.string (toString email) ) ]
+
+
+encodeForSignInLink : Email -> Encode.Value
+encodeForSignInLink email =
+    Encode.object
+        [ ( "email", Encode.string (toString email) )
+        , ( "actionCodeSettings"
+          , Encode.object
+                [ ( "url", Encode.string "http://localhost:3000/profil" )
+                , ( "handleCodeInApp", Encode.bool True )
+                ]
+          )
+        ]
 
 
 

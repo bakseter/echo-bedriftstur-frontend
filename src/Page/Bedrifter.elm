@@ -1,5 +1,6 @@
-module Page.Bedrifter exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
+module Page.Bedrifter exposing (Model, Msg, init, route, subscriptions, title, update, view)
 
+import Assets exposing (Assets)
 import Browser.Dom
 import Element exposing (Element, el, text)
 import Session exposing (Session)
@@ -13,6 +14,7 @@ type Msg
 
 type alias Model =
     { session : Session
+    , assets : List Assets
     , viewport : Browser.Dom.Viewport
     , mnemonicSlidIn : Bool
     , computasSlidIn : Bool
@@ -23,17 +25,20 @@ type alias Model =
     }
 
 
-init : Session -> Model
-init session =
-    { session = session
-    , viewport = maybeViewport
-    , mnemonicSlidIn = False
-    , computasSlidIn = False
-    , ciscoSlidIn = False
-    , knowitSlidIn = False
-    , dnbSlidIn = False
-    , bekkSlidIn = False
-    }
+init : Session -> List Assets -> ( Model, Cmd Msg )
+init session assets =
+    ( { session = session
+      , assets = assets
+      , viewport = maybeViewport
+      , mnemonicSlidIn = False
+      , computasSlidIn = False
+      , ciscoSlidIn = False
+      , knowitSlidIn = False
+      , dnbSlidIn = False
+      , bekkSlidIn = False
+      }
+    , Cmd.none
+    )
 
 
 subscriptions : Model -> Sub Msg
@@ -99,8 +104,3 @@ route =
 title : String
 title =
     "Bedrifter"
-
-
-toSession : Model -> Session
-toSession model =
-    model.session

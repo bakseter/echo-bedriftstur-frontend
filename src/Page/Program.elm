@@ -1,14 +1,16 @@
-module Page.Program exposing (Model, Msg, init, route, subscriptions, title, toSession, update, view)
+module Page.Program exposing (Model, Msg, init, route, subscriptions, title, update, view)
 
+import Assets exposing (Assets)
 import Element exposing (..)
-import Element.Border as Border
 import Element.Font as Font
 import Html.Attributes
 import Session exposing (Session)
 
 
-type Model
-    = Model Session
+type alias Model =
+    { session : Session
+    , assets : List Assets
+    }
 
 
 type Msg
@@ -24,9 +26,13 @@ type Company
     | Bekk
 
 
-init : Session -> Model
-init =
-    Model
+init : Session -> List Assets -> ( Model, Cmd Msg )
+init session assets =
+    ( { session = session
+      , assets = assets
+      }
+    , Cmd.none
+    )
 
 
 subscriptions : Model -> Sub Msg
@@ -40,7 +46,7 @@ update _ model =
 
 
 view : Model -> Element Msg
-view _ =
+view model =
     let
         grid =
             List.map2
@@ -52,7 +58,9 @@ view _ =
                             , mouseOver [ scale 4.0 ]
                             , htmlAttribute (Html.Attributes.style "transition" "0.4s ease")
                             ]
-                            { src = "/img/" ++ companyToString company ++ ".png", description = companyToString company }
+                            { src = Assets.get model.assets <| companyToString company
+                            , description = companyToString company
+                            }
                         , el [ centerX, Font.bold, padding 50 ] <| text time
                         ]
                 )
@@ -93,8 +101,3 @@ route =
 title : String
 title =
     "Program"
-
-
-toSession : Model -> Session
-toSession (Model session) =
-    session

@@ -12,10 +12,6 @@ type alias Cred =
     }
 
 
-
--- Checks if the user is signed in, aka the Session fields are not empty
-
-
 isSignedIn : Maybe Cred -> Bool
 isSignedIn cred =
     case cred of
@@ -29,10 +25,7 @@ isSignedIn cred =
 encode : Cred -> Encode.Value
 encode cred =
     Encode.object
-        [ ( "collection", Encode.string "users" )
-        , ( "uid", Encode.string (Uid.toString cred.uid) )
-        , ( "email", Encode.string (Email.toString cred.email) )
-        ]
+        [ ( "uid", Encode.string (Uid.toString cred.uid) ) ]
 
 
 
@@ -42,11 +35,7 @@ encode cred =
 
 decode : Encode.Value -> Maybe Cred
 decode json =
-    let
-        jsonStr =
-            Encode.encode 0 json
-    in
-    case Decode.decodeString credDecoder jsonStr of
+    case Decode.decodeValue credDecoder json of
         Ok cred ->
             Just cred
 

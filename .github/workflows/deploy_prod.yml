@@ -1,51 +1,25 @@
-name: Build and deploy from produdction branch
+name: Deploy from production branch
 
 on:
-  pull_request:
+  push:
     branches: master
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@master
-      - name: Install dependencies
-        run: yarn
-      - name: Create environment file
-        run: |
-          touch .env.production
-          echo ELM_APP_API_KEY=${{ secrets.PROD_ELM_APP_API_KEY }} >> .env.production
-          echo ELM_APP_AUTH_DOMAIN=${{ secrets.PROD_ELM_APP_AUTH_DOMAIN }} >> .env.production
-          echo ELM_APP_DATABASE_URL=${{ secrets.PROD_ELM_APP_DATABASE_URL }} >> .env.production
-          echo ELM_APP_PROJECT_ID=${{ secrets.PROD_ELM_APP_PROJECT_ID }} >> .env.production
-          echo ELM_APP_STORAGE_BUCKET=${{ secrets.PROD_ELM_APP_STORAGE_BUCKET }} >> .env.production
-          echo ELM_APP_MESSAGING_SENDER_ID=${{ secrets.PROD_ELM_APP_MESSAGING_SENDER_ID }} >> .env.production
-          echo ELM_APP_APP_ID=${{ secrets.PROD_ELM_APP_APP_ID }} >> .env.production
-          echo ELM_APP_MEASUREMENT_ID=${{ secrets.PROD_ELM_APP_MEASUREMENT_ID }} >> .env.production
-      - name: Build
-        run: yarn build
-      - name: Archive production artifact
-        uses: actions/upload-artifact@master
-        with:
-          name: build
-          path: build
   deploy:
-    name: Deploy
-    needs: build
+    name: Deploy to production site
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@master
-      - name: Download artifact
-        uses: actions/download-artifact@master
+        uses: actions/checkout@v2
+      - name: Download build artifact
+        uses: actions/download-artifact@v2
         with:
-          name: build
-          path: build
-      - name: Deploy to Firebase
+          name: prod-build
+          path: dist
+      - name: Deploy to firebase
         uses: w9jds/firebase-action@master
         with:
           args: deploy --only hosting:prod
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_TOKEN: ${{ secrets.PROD_FIREBASE_TOKEN }}
+          PROJECT_ID: echo-bedriftstur-81a2e

@@ -1,4 +1,4 @@
-module Page.NotFound exposing (Model, init, title, toSession, view)
+module Page.NotFound exposing (Model, init, title, toSession, updateSession, view)
 
 import Element exposing (Element, el, text)
 import Session exposing (Session)
@@ -26,3 +26,8 @@ title =
 toSession : Model -> Session
 toSession (Model session) =
     session
+
+
+updateSession : Model -> Session -> Model
+updateSession _ =
+    Model
