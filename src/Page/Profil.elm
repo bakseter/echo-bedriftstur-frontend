@@ -1,5 +1,6 @@
 port module Page.Profil exposing (..)
 
+import Assets exposing (Assets)
 import Content exposing (Content)
 import Cred exposing (Cred)
 import Degree exposing (Degree(..))
@@ -109,6 +110,7 @@ type ProfileMsg
 
 type alias Model =
     { session : Session
+    , assets : List Assets
     , signInModel : SignInModel
     , profileModel : ProfileModel
     , subpage : Subpage
@@ -143,8 +145,8 @@ type FormStage
     | FormReceived
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
+init : Session -> List Assets -> ( Model, Cmd Msg )
+init session assets =
     let
         ( cmd, subpage ) =
             case session.cred of
@@ -155,6 +157,7 @@ init session =
                     ( Cmd.none, SignIn )
     in
     ( { session = session
+      , assets = assets
       , signInModel =
             { emailInput = Nothing
             , linkSent = False
@@ -492,13 +495,3 @@ route =
 title : String
 title =
     "Min profil"
-
-
-toSession : Model -> Session
-toSession model =
-    model.session
-
-
-updateSession : Model -> Session -> Model
-updateSession model session =
-    { model | session = session }

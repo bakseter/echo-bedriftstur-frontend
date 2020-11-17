@@ -1,13 +1,12 @@
 # echo bedriftstur
 
-[![Build Status](https://travis-ci.org/bakseter/echo-bedriftstur.svg?branch=master)](https://travis-ci.org/bakseter/echo-bedriftstur)
-
 ## About
 
-Website of echo bedriftstur - a student trip to Oslo organized by volunteers from _echo – Fagutvalget for Informatikk_ at the University of Bergen.
-The website uses Elm as the frontend with Firebase and Firestore as the backend.
+Website of **echo bedriftstur** - a student trip to Oslo organized by volunteers from _echo – Fagutvalget for Informatikk_ at the University of Bergen.
 
-## Local setup
+The website uses Elm as the frontend with Firebase as the backend.
+
+## Development setup
 
 **1. Clone the git repository**
     
@@ -15,11 +14,11 @@ The website uses Elm as the frontend with Firebase and Firestore as the backend.
 
 **2. Install dependencies**
 
-    yarn
+    cd echo-bedriftstur && yarn
 
-**3. Host the website locally with**
+**3. Serve the website locally with**
     
-    yarn start
+    yarn dev
 
 **4. ... or build it with**
 

@@ -1,5 +1,6 @@
-module Page.Om exposing (Model, Msg, init, route, subscriptions, title, toSession, update, updateSession, view)
+module Page.Om exposing (Model, Msg, init, route, subscriptions, title, update, view)
 
+import Assets exposing (Assets)
 import Element exposing (..)
 import Element.Events as Events
 import Element.Font as Font
@@ -14,19 +15,23 @@ type Msg
 
 type alias Model =
     { session : Session
+    , assets : List Assets
     , mailElias : String
     , mailAndreas : String
     , mailTuva : String
     }
 
 
-init : Session -> Model
-init session =
-    { session = session
-    , mailElias = "Trykk for å se mail"
-    , mailAndreas = "Trykk for å se mail"
-    , mailTuva = "Trykk for å se mail"
-    }
+init : Session -> List Assets -> ( Model, Cmd Msg )
+init session assets =
+    ( { session = session
+      , assets = assets
+      , mailElias = "Trykk for å se mail"
+      , mailAndreas = "Trykk for å se mail"
+      , mailTuva = "Trykk for å se mail"
+      }
+    , Cmd.none
+    )
 
 
 subscriptions : Model -> Sub Msg
@@ -61,7 +66,8 @@ view model =
             ]
         , column [ spacing 40 ]
             [ row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ] { src = "elias.png", description = "Elias" }
+                [ image [ width (px 180), height (px 180) ]
+                    { src = Assets.get model.assets "elias", description = "Elias" }
                 , column [ spacing 20 ]
                     [ el [ Font.bold, Font.size 26 ] <| text "Elias Djupesland"
                     , el [ Font.bold, Font.size 20 ] <| text "Leder og bedriftskontakt"
@@ -69,7 +75,8 @@ view model =
                     ]
                 ]
             , row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ] { src = "andreas.png", description = "Andreas" }
+                [ image [ width (px 180), height (px 180) ]
+                    { src = Assets.get model.assets "andreas", description = "Andreas" }
                 , column [ spacing 20 ]
                     [ el [ Font.bold, Font.size 26 ] <| text "Andreas Salhus Bakseter"
                     , el [ Font.bold, Font.size 20 ] <| text "Webansvarlig"
@@ -77,7 +84,8 @@ view model =
                     ]
                 ]
             , row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ] { src = "tuva.png", description = "Tuva" }
+                [ image [ width (px 180), height (px 180) ]
+                    { src = Assets.get model.assets "tuva", description = "Tuva" }
                 , column [ spacing 20 ]
                     [ el [ Font.bold, Font.size 26 ] <| text "Tuva Kvalsøren"
                     , el [ Font.bold, Font.size 20 ] <| text "PR-ansvarlig"
@@ -105,13 +113,3 @@ route =
 title : String
 title =
     "Om oss"
-
-
-toSession : Model -> Session
-toSession model =
-    model.session
-
-
-updateSession : Model -> Session -> Model
-updateSession model session =
-    { model | session = session }

@@ -3,7 +3,6 @@ module Main exposing (main)
 import Assets exposing (Assets)
 import Browser
 import Browser.Navigation
-import Dict exposing (Dict)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
@@ -28,24 +27,34 @@ import Url
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
+    | GotHjemMsg Hjem.Msg
     | GotProfilMsg Profil.Msg
     | GotBedrifterMsg Bedrifter.Msg
     | GotProgramMsg Program.Msg
     | GotOmMsg Om.Msg
 
 
-type Model
-    = Hjem Hjem.Model
-    | Profil Profil.Model
-    | Bedrifter Bedrifter.Model
-    | Program Program.Model
-    | Om Om.Model
-    | NotFound NotFound.Model
+type alias Model =
+    { hjem : Hjem.Model
+    , profil : Profil.Model
+    , bedrifter : Bedrifter.Model
+    , program : Program.Model
+    , om : Om.Model
+    , page : Page
+    , session : Session
+    , assets : List Assets
+    }
 
 
 init : Encode.Value -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init json url navKey =
     let
+        page =
+            Page.fromUrl url
+
+        session =
+            Session navKey Nothing
+
         assets =
             case Assets.decode json of
                 Just a ->
@@ -53,191 +62,129 @@ init json url navKey =
 
                 Nothing ->
                     []
+
+        ( hjem, hjemCmd ) =
+            Hjem.init session assets
+
+        ( profil, profilCmd ) =
+            Profil.init session assets
+
+        ( bedrifter, bedrifterCmd ) =
+            Bedrifter.init session assets
+
+        ( program, programCmd ) =
+            Program.init session assets
+
+        ( om, omCmd ) =
+            Om.init session assets
     in
-    changeRouteTo url <| Session navKey Nothing assets
+    ( { hjem = hjem
+      , profil = profil
+      , bedrifter = bedrifter
+      , program = program
+      , om = om
+      , page = page
+      , session = session
+      , assets = assets
+      }
+    , Cmd.batch <|
+        [ Cmd.map GotHjemMsg hjemCmd
+        , Cmd.map GotProfilMsg profilCmd
+        , Cmd.map GotBedrifterMsg bedrifterCmd
+        , Cmd.map GotProgramMsg programCmd
+        , Cmd.map GotOmMsg omCmd
+        ]
+    )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model of
-        Profil profil ->
-            Sub.map GotProfilMsg <| Profil.subscriptions profil
-
-        Bedrifter bedrifter ->
-            Sub.map GotBedrifterMsg <| Bedrifter.subscriptions bedrifter
-
-        Program program ->
-            Sub.map GotProgramMsg <| Program.subscriptions program
-
-        Om om ->
-            Sub.map GotOmMsg <| Om.subscriptions om
-
-        _ ->
-            Sub.none
+    Sub.batch
+        [ Sub.map GotProfilMsg <| Profil.subscriptions model.profil
+        , Sub.map GotBedrifterMsg <| Bedrifter.subscriptions model.bedrifter
+        , Sub.map GotProgramMsg <| Program.subscriptions model.program
+        , Sub.map GotOmMsg <| Om.subscriptions model.om
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
-        ( UrlRequested request, _ ) ->
+    case msg of
+        UrlRequested request ->
             case request of
                 Browser.Internal url ->
-                    ( model, Browser.Navigation.pushUrl (.navKey <| toSession model) (Url.toString url) )
+                    ( model, Browser.Navigation.pushUrl model.session.navKey (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Browser.Navigation.load href )
 
-        ( UrlChanged url, _ ) ->
-            changeRouteTo url (toSession model)
+        UrlChanged url ->
+            ( { model | page = Page.fromUrl url }, Cmd.none )
 
-        ( GotProfilMsg pageMsg, Profil profil ) ->
+        GotHjemMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    Profil.update pageMsg profil
+                    Hjem.update pageMsg model.hjem
             in
-            ( Profil newModel, Cmd.map GotProfilMsg cmd )
+            ( { model | hjem = newModel }, Cmd.map GotHjemMsg cmd )
 
-        ( GotBedrifterMsg pageMsg, Bedrifter bedrifter ) ->
+        GotProfilMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    Bedrifter.update pageMsg bedrifter
+                    Profil.update pageMsg model.profil
             in
-            ( Bedrifter newModel, Cmd.map GotBedrifterMsg cmd )
+            ( { model | profil = newModel }, Cmd.map GotProfilMsg cmd )
 
-        ( GotProgramMsg pageMsg, Program program ) ->
+        GotBedrifterMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    Program.update pageMsg program
+                    Bedrifter.update pageMsg model.bedrifter
             in
-            ( Program newModel, Cmd.map GotProgramMsg cmd )
+            ( { model | bedrifter = newModel }, Cmd.map GotBedrifterMsg cmd )
 
-        ( GotOmMsg pageMsg, Om om ) ->
+        GotProgramMsg pageMsg ->
             let
                 ( newModel, cmd ) =
-                    Om.update pageMsg om
+                    Program.update pageMsg model.program
             in
-            ( Om newModel, Cmd.map GotOmMsg cmd )
+            ( { model | program = newModel }, Cmd.map GotProgramMsg cmd )
 
-        _ ->
-            ( model, Cmd.none )
-
-
-toSession : Model -> Session
-toSession model =
-    case model of
-        Hjem hjem ->
-            Hjem.toSession hjem
-
-        Profil profil ->
-            Profil.toSession profil
-
-        Program program ->
-            Program.toSession program
-
-        Bedrifter bedrifter ->
-            Bedrifter.toSession bedrifter
-
-        Om om ->
-            Om.toSession om
-
-        NotFound notFound ->
-            NotFound.toSession notFound
-
-
-updateSession : Model -> Session -> Model
-updateSession model session =
-    case model of
-        Hjem hjem ->
-            Hjem <| Hjem.updateSession hjem session
-
-        Profil profil ->
-            Profil <| Profil.updateSession profil session
-
-        Program program ->
-            Program <| Program.updateSession program session
-
-        Bedrifter bedrifter ->
-            Bedrifter <| Bedrifter.updateSession bedrifter session
-
-        Om om ->
-            Om <| Om.updateSession om session
-
-        NotFound notFound ->
-            NotFound <| NotFound.updateSession notFound session
-
-
-changeRouteTo : Url.Url -> Session -> ( Model, Cmd Msg )
-changeRouteTo url session =
-    case Page.fromUrl url of
-        Page.Hjem ->
-            ( Hjem (Hjem.init session), Cmd.none )
-
-        Page.Profil ->
+        GotOmMsg pageMsg ->
             let
-                ( model, cmd ) =
-                    Profil.init session
+                ( newModel, cmd ) =
+                    Om.update pageMsg model.om
             in
-            ( Profil model
-            , Cmd.map GotProfilMsg <|
-                Cmd.batch [ cmd ]
-            )
-
-        Page.Program ->
-            ( Program (Program.init session), Cmd.none )
-
-        Page.Bedrifter ->
-            ( Bedrifter (Bedrifter.init session)
-            , Cmd.map GotBedrifterMsg <|
-                Cmd.batch []
-            )
-
-        Page.Om ->
-            ( Om (Om.init session)
-            , Cmd.map GotOmMsg <|
-                Cmd.batch []
-            )
-
-        Page.NotFound ->
-            ( NotFound (NotFound.init session)
-            , Cmd.none
-            )
+            ( { model | om = newModel }, Cmd.map GotOmMsg cmd )
 
 
-header : List Assets -> Element msg
-header assets =
+header : Model -> Element msg
+header model =
     row
-        [ Background.color Theme.foreground
-        , width fill
-        , centerX
-        , paddingEach { top = 75, left = 0, right = 0, bottom = 75 }
+        [ centerX
+        , spacing 120
         ]
-        [ row
-            [ centerX
-            , spacing 100
-            ]
-            [ link []
-                { url = "/"
-                , label =
-                    image [ width (fill |> maximum 100) ]
-                        { src = Assets.get assets "echoicon", description = "echo logo" }
-                }
-            , link []
-                { url = "/" ++ Program.route
-                , label = text Program.title
-                }
-            , link []
-                { url = "/" ++ Bedrifter.route
-                , label = text Bedrifter.title
-                }
-            , link []
-                { url = "/" ++ Om.route
-                , label = text Om.title
-                }
-            , link []
-                { url = "/" ++ Profil.route
-                , label = html <| Icon.viewStyled [ Html.Attributes.width 20 ] FontAwesome.Regular.user
-                }
-            ]
+        [ link []
+            { url = "/"
+            , label =
+                image [ width (fill |> maximum 120) ]
+                    { src = Assets.get model.assets "echoicon", description = "echo logo" }
+            }
+        , link []
+            { url = "/" ++ Program.route
+            , label = el [ Font.bold, Font.size 26 ] <| text Program.title
+            }
+        , link []
+            { url = "/" ++ Bedrifter.route
+            , label = el [ Font.bold, Font.size 26 ] <| text Bedrifter.title
+            }
+        , link []
+            { url = "/" ++ Om.route
+            , label = el [ Font.bold, Font.size 26 ] <| text Om.title
+            }
+        , link []
+            { url = "/" ++ Profil.route
+            , label = html <| Icon.viewStyled [ Html.Attributes.width 30 ] FontAwesome.Regular.user
+            }
         ]
 
 
@@ -271,46 +218,43 @@ view : Model -> Browser.Document Msg
 view model =
     let
         ( title, body ) =
-            case model of
-                Hjem _ ->
+            case model.page of
+                Hjem ->
                     ( Hjem.title
-                    , Hjem.view
+                    , Element.map GotHjemMsg <| Hjem.view model.hjem
                     )
 
-                Profil profil ->
+                Profil ->
                     ( Profil.title
-                    , Element.map GotProfilMsg <| Profil.view profil
+                    , Element.map GotProfilMsg <| Profil.view model.profil
                     )
 
-                Program program ->
+                Program ->
                     ( Program.title
-                    , Element.map GotProgramMsg <| Program.view program
+                    , Element.map GotProgramMsg <| Program.view model.program
                     )
 
-                Bedrifter bedrifter ->
+                Bedrifter ->
                     ( Bedrifter.title
-                    , Element.map GotBedrifterMsg <| Bedrifter.view bedrifter
+                    , Element.map GotBedrifterMsg <| Bedrifter.view model.bedrifter
                     )
 
-                Om om ->
+                Om ->
                     ( Om.title
-                    , Element.map GotOmMsg <| Om.view om
+                    , Element.map GotOmMsg <| Om.view model.om
                     )
 
-                NotFound _ ->
+                NotFound ->
                     ( NotFound.title
                     , NotFound.view
                     )
-
-        session =
-            toSession model
     in
     { title = title
     , body =
         [ layout
             [ Font.family [ Font.typeface "IBM Plex Sans" ], Background.color Theme.background ]
             (column [ height fill, width fill ]
-                [ header session.assets, body ]
+                [ header model, body ]
             )
         ]
     }
