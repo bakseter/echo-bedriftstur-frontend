@@ -1,4 +1,4 @@
-name: Build and tests from development branch
+name: Build and run tests from development branch
 
 on:
   pull_request:
@@ -28,8 +28,3 @@ jobs:
         run: yarn test
       - name: Build
         run: yarn build
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: dev-build
-          path: dist
