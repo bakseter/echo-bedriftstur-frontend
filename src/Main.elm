@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Assets exposing (Assets)
+import Api
 import Browser
 import Browser.Navigation
 import Element exposing (..)
@@ -12,6 +12,8 @@ import FontAwesome.Regular
 import FontAwesome.Solid
 import Html.Attributes
 import Json.Encode as Encode
+import Monocle.Compose as Compose
+import Monocle.Lens exposing (Lens)
 import Page exposing (Page(..))
 import Page.Bedrifter as Bedrifter
 import Page.Hjem as Hjem
@@ -22,6 +24,7 @@ import Page.Program as Program
 import Session exposing (Session)
 import Theme
 import Url
+import Util
 
 
 type Msg
@@ -42,7 +45,6 @@ type alias Model =
     , om : Om.Model
     , page : Page
     , session : Session
-    , assets : List Assets
     }
 
 
@@ -52,31 +54,31 @@ init json url navKey =
         page =
             Page.fromUrl url
 
-        session =
-            Session navKey Nothing
-
-        assets =
-            case Assets.decode json of
-                Just a ->
-                    a
+        apiKey =
+            case Session.decodeApiKey json of
+                Just k ->
+                    k
 
                 Nothing ->
-                    []
+                    Session.ApiKey ""
+
+        session =
+            Session navKey apiKey Nothing
 
         ( hjem, hjemCmd ) =
-            Hjem.init session assets
+            Hjem.init session
 
         ( profil, profilCmd ) =
-            Profil.init session assets
+            Profil.init session
 
         ( bedrifter, bedrifterCmd ) =
-            Bedrifter.init session assets
+            Bedrifter.init session
 
         ( program, programCmd ) =
-            Program.init session assets
+            Program.init session
 
         ( om, omCmd ) =
-            Om.init session assets
+            Om.init session
     in
     ( { hjem = hjem
       , profil = profil
@@ -85,7 +87,6 @@ init json url navKey =
       , om = om
       , page = page
       , session = session
-      , assets = assets
       }
     , Cmd.batch <|
         [ Cmd.map GotHjemMsg hjemCmd
@@ -119,7 +120,38 @@ update msg model =
                     ( model, Browser.Navigation.load href )
 
         UrlChanged url ->
-            ( { model | page = Page.fromUrl url }, Cmd.none )
+            let
+                sessionChanges =
+                    case model.page of
+                        Hjem ->
+                            model.hjem.session
+
+                        Profil ->
+                            model.profil.session
+
+                        Bedrifter ->
+                            model.bedrifter.session
+
+                        Program ->
+                            model.program.session
+
+                        Om ->
+                            model.om.session
+
+                        _ ->
+                            model.session
+            in
+            ( { model
+                | page = Page.fromUrl url
+                , session = sessionChanges
+                , hjem = Hjem.updateSession model.hjem sessionChanges
+                , profil = Profil.updateSession model.profil sessionChanges
+                , bedrifter = Bedrifter.updateSession model.bedrifter sessionChanges
+                , program = Program.updateSession model.program sessionChanges
+                , om = Om.updateSession model.om sessionChanges
+              }
+            , Cmd.none
+            )
 
         GotHjemMsg pageMsg ->
             let
@@ -167,7 +199,7 @@ header model =
             { url = "/"
             , label =
                 image [ width (fill |> maximum 120) ]
-                    { src = Assets.get model.assets "echoicon", description = "echo logo" }
+                    { src = Util.getPng "echoicon", description = "echo logo" }
             }
         , link []
             { url = "/" ++ Program.route

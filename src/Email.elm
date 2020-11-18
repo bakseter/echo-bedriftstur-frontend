@@ -1,7 +1,6 @@
-module Email exposing (Email(..), encodeForSignInLink, orNullDecoder, toString)
+module Email exposing (Email(..), isValid, orNullDecoder, toString)
 
 import Json.Decode as Decode
-import Json.Encode as Encode
 
 
 
@@ -27,45 +26,23 @@ type Email
 
 
 toString : Email -> String
-toString (Email email) =
-    email
+toString (Email str) =
+    str
 
 
-
--- Encodes an Email type as a JSON object
-
-
-encode : Email -> Encode.Value
-encode email =
-    Encode.object
-        [ ( "email", Encode.string (toString email) ) ]
-
-
-encodeForSignInLink : Email -> Encode.Value
-encodeForSignInLink email =
-    Encode.object
-        [ ( "email", Encode.string (toString email) )
-        , ( "actionCodeSettings"
-          , Encode.object
-                [ ( "url", Encode.string "http://localhost:3000/profil" )
-                , ( "handleCodeInApp", Encode.bool True )
-                ]
-          )
-        ]
-
-
-
-{-
-   Decodes an Email type from a JSON value.
-   Returns an Email type with the email as a string value inside the Email type if successful.
-   Returns an Email type with an empty string if fails.
--}
+isValid : Email -> Bool
+isValid (Email str) =
+    let
+        validEnding =
+            "@student.uib.no"
+    in
+    String.right (String.length validEnding) str == validEnding && String.length str > String.length validEnding
 
 
 orNullDecoder : String -> Decode.Decoder Email
 orNullDecoder field =
     Decode.oneOf
-        [ Decode.map Email (Decode.at [ field ] Decode.string)
+        [ Decode.map Email <| Decode.at [ field ] Decode.string
         , Decode.at [ field ] (Decode.null (Email ""))
         , Decode.succeed (Email "")
         ]

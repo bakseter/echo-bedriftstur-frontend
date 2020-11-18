@@ -1,4 +1,4 @@
-module Page.NotFound exposing (Model, init, title, toSession, updateSession, view)
+module Page.NotFound exposing (Model, init, title, view)
 
 import Element exposing (Element, el, text)
 import Session exposing (Session)
@@ -21,13 +21,3 @@ view =
 title : String
 title =
     "404"
-
-
-toSession : Model -> Session
-toSession (Model session) =
-    session
-
-
-updateSession : Model -> Session -> Model
-updateSession _ =
-    Model

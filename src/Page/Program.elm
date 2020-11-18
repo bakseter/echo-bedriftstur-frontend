@@ -1,15 +1,14 @@
-module Page.Program exposing (Model, Msg, init, route, subscriptions, title, update, view)
+module Page.Program exposing (Model, Msg, init, route, subscriptions, title, update, updateSession, view)
 
-import Assets exposing (Assets)
 import Element exposing (..)
 import Element.Font as Font
 import Html.Attributes
 import Session exposing (Session)
+import Util
 
 
 type alias Model =
     { session : Session
-    , assets : List Assets
     }
 
 
@@ -26,10 +25,9 @@ type Company
     | Bekk
 
 
-init : Session -> List Assets -> ( Model, Cmd Msg )
-init session assets =
+init : Session -> ( Model, Cmd Msg )
+init session =
     ( { session = session
-      , assets = assets
       }
     , Cmd.none
     )
@@ -58,7 +56,7 @@ view model =
                             , mouseOver [ scale 4.0 ]
                             , htmlAttribute (Html.Attributes.style "transition" "0.4s ease")
                             ]
-                            { src = Assets.get model.assets <| companyToString company
+                            { src = Util.getPng <| companyToString company
                             , description = companyToString company
                             }
                         , el [ centerX, Font.bold, padding 50 ] <| text time
@@ -101,3 +99,8 @@ route =
 title : String
 title =
     "Program"
+
+
+updateSession : Model -> Session -> Model
+updateSession model session =
+    { model | session = session }

@@ -1,14 +1,22 @@
-module Cred exposing (Cred, decode, encode, isSignedIn)
+module Cred exposing (Cred, IdToken(..), RefreshToken(..), credDecoder, isSignedIn)
 
-import Email exposing (Email(..))
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Uid exposing (Uid(..))
 
 
+type IdToken
+    = IdToken String Int
+
+
+type RefreshToken
+    = RefreshToken String
+
+
 type alias Cred =
-    { uid : Uid
-    , email : Email
+    { idToken : IdToken
+    , refreshToken : RefreshToken
+    , uid : Uid
     }
 
 
@@ -22,34 +30,21 @@ isSignedIn cred =
             False
 
 
-encode : Cred -> Encode.Value
-encode cred =
-    Encode.object
-        [ ( "uid", Encode.string (Uid.toString cred.uid) ) ]
-
-
-
--- Uses the userDecoder function to turn
--- a JSON object into a Cred record.
-
-
-decode : Encode.Value -> Maybe Cred
-decode json =
-    case Decode.decodeValue credDecoder json of
-        Ok cred ->
-            Just cred
-
-        Err _ ->
-            Nothing
-
-
-
--- Decodes a JSON object into a Cred type.
--- Uses the decoders in the Uid and Email modules.
-
-
 credDecoder : Decode.Decoder Cred
 credDecoder =
-    Decode.map2 Cred
-        (Uid.orNullDecoder "uid")
-        (Email.orNullDecoder "email")
+    Decode.oneOf
+        [ Decode.map3 Cred
+            (Decode.map2 IdToken
+                (Decode.field "idToken" Decode.string)
+                (Decode.map (Maybe.withDefault 0 << String.toInt) <| Decode.field "expiresIn" Decode.string)
+            )
+            (Decode.map RefreshToken <| Decode.field "refreshToken" Decode.string)
+            (Decode.map Uid <| Decode.field "localId" Decode.string)
+        , Decode.map3 Cred
+            (Decode.map2 IdToken
+                (Decode.field "id_token" Decode.string)
+                (Decode.map (Maybe.withDefault 0 << String.toInt) <| Decode.field "expires_in" Decode.string)
+            )
+            (Decode.map RefreshToken <| Decode.field "refresh_token" Decode.string)
+            (Decode.map Uid <| Decode.field "user_id" Decode.string)
+        ]

@@ -3,6 +3,11 @@ module Util exposing (..)
 import Json.Decode as Decode
 
 
+getPng : String -> String
+getPng str =
+    "/assets/" ++ str ++ ".png"
+
+
 stringOrNullDecoder : String -> Decode.Decoder String
 stringOrNullDecoder field =
     Decode.oneOf

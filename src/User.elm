@@ -1,4 +1,4 @@
-module User exposing (User, decode)
+module User exposing (User, decode, userDecoder)
 
 import Content exposing (Content)
 import Degree exposing (Degree(..))
@@ -20,11 +20,6 @@ type alias User =
     }
 
 
-
--- Uses the contentDecoder function to turn
--- a JSON object into a User record.
-
-
 decode : Encode.Value -> Maybe User
 decode json =
     let
@@ -39,15 +34,11 @@ decode json =
             Nothing
 
 
-
--- Decoder for converting a JSON object to a User record
-
-
 userDecoder : Decode.Decoder User
 userDecoder =
     Decode.map5 User
-        (Email.orNullDecoder "email")
+        (Decode.map Email <| Decode.field "email" Decode.string)
         Content.contentDecoder
-        (Ticket.orNullDecoder "hasTicket")
-        (Util.boolOrNullDecoder "submittedTicket")
-        (Util.intOrNulllDecoder "ticketNumber")
+        (Decode.map Ticket <| Decode.map Just <| Decode.field "hasTicket" Decode.bool)
+        (Decode.field "submittedTicket" Decode.bool)
+        (Decode.field "ticketNumber" Decode.int)

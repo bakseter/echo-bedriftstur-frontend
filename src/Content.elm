@@ -21,17 +21,9 @@ type alias Content =
     }
 
 
-
--- Returns an empty Content record
-
-
 empty : Content
 empty =
     Content "" "" DTEK (Terms.fromAbsolute False)
-
-
-
--- Updates every field of the Content record given
 
 
 updateAll : String -> String -> Degree -> Terms -> Content -> Content
@@ -42,17 +34,9 @@ updateAll firstName lastName degree terms =
         << updateTerms terms
 
 
-
--- Updates the firstName field of the Content record
-
-
 updateFirstName : String -> Content -> Content
 updateFirstName firstName content =
     { content | firstName = firstName }
-
-
-
--- Updates the lastName field of the Content record
 
 
 updateLastName : String -> Content -> Content
@@ -60,17 +44,9 @@ updateLastName lastName content =
     { content | lastName = lastName }
 
 
-
--- Updates the degree field of the Content record
-
-
 updateDegree : Degree -> Content -> Content
 updateDegree degree content =
     { content | degree = degree }
-
-
-
--- Updates the Terms field of the Content record
 
 
 updateTerms : Terms -> Content -> Content
@@ -78,19 +54,13 @@ updateTerms terms content =
     { content | terms = terms }
 
 
-
-{-
-   Encodes the Content record as a JSON object.
-   This is used to send user input to the Firestore database.
--}
-
-
+contentDecoder : Decode.Decoder Content
 contentDecoder =
     Decode.map4 Content
-        (Util.stringOrNullDecoder "firstName")
-        (Util.stringOrNullDecoder "lastName")
-        (Degree.orNullDecoder "degree")
-        (Terms.orNullDecoder "terms")
+        (Decode.field "firstName" Decode.string)
+        (Decode.field "lastName" Decode.string)
+        (Decode.map (Maybe.withDefault MISC << Degree.fromString) <| Decode.field "degree" Decode.string)
+        (Decode.map Terms.fromAbsolute <| Decode.field "terms" Decode.bool)
 
 
 encode : Cred -> Content -> Encode.Value

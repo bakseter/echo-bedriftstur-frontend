@@ -1,6 +1,5 @@
-module Page.Hjem exposing (Model, Msg, init, subscriptions, title, update, view)
+module Page.Hjem exposing (Model, Msg, init, subscriptions, title, update, updateSession, view)
 
-import Assets exposing (Assets)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
@@ -14,14 +13,12 @@ type Msg
 
 type alias Model =
     { session : Session
-    , assets : List Assets
     }
 
 
-init : Session -> List Assets -> ( Model, Cmd Msg )
-init session assets =
+init : Session -> ( Model, Cmd Msg )
+init session =
     ( { session = session
-      , assets = assets
       }
     , Cmd.none
     )
@@ -65,3 +62,8 @@ edges =
 title : String
 title =
     "echo bedriftstur"
+
+
+updateSession : Model -> Session -> Model
+updateSession model session =
+    { model | session = session }
