@@ -1,7 +1,7 @@
 module Page.Bedrifter exposing (Model, Msg, init, route, subscriptions, title, update, updateSession, view)
 
 import Browser.Dom
-import Element exposing (Element, el, text)
+import Element exposing (Element, column, el, row, spacing, text)
 import Session exposing (Session)
 import Task
 import Time
@@ -12,28 +12,12 @@ type Msg
 
 
 type alias Model =
-    { session : Session
-    , viewport : Browser.Dom.Viewport
-    , mnemonicSlidIn : Bool
-    , computasSlidIn : Bool
-    , ciscoSlidIn : Bool
-    , knowitSlidIn : Bool
-    , dnbSlidIn : Bool
-    , bekkSlidIn : Bool
-    }
+    { session : Session }
 
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { session = session
-      , viewport = maybeViewport
-      , mnemonicSlidIn = False
-      , computasSlidIn = False
-      , ciscoSlidIn = False
-      , knowitSlidIn = False
-      , dnbSlidIn = False
-      , bekkSlidIn = False
-      }
+    ( { session = session }
     , Cmd.none
     )
 
@@ -50,47 +34,18 @@ update msg model =
 
 view : Model -> Element Msg
 view model =
-    el [] <| text "Bedrifter"
-
-
-maybeViewport : Browser.Dom.Viewport
-maybeViewport =
-    { scene =
-        { width = 0
-        , height = 0
-        }
-    , viewport =
-        { x = 0
-        , y = 0
-        , width = 0
-        , height = 0
-        }
-    }
-
-
-percentageOfScreenScrolled : Model -> Float
-percentageOfScreenScrolled model =
     let
-        yPos =
-            model.viewport.viewport.y
+        weeksInMonth =
+            4
 
-        screenHeight =
-            model.viewport.scene.height
-
-        viewportHeight =
-            model.viewport.viewport.height
+        weekDays =
+            [ "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" ]
     in
-    (yPos + (viewportHeight / 2)) / screenHeight
-
-
-allAreSlidIn : Model -> Bool
-allAreSlidIn model =
-    model.mnemonicSlidIn
-        && model.computasSlidIn
-        && model.ciscoSlidIn
-        && model.knowitSlidIn
-        && model.dnbSlidIn
-        && model.bekkSlidIn
+    column [] <|
+        List.repeat 4
+            (row [ spacing 10 ] <|
+                List.map (\day -> column [] [ text day ]) weekDays
+            )
 
 
 route : String

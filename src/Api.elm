@@ -8,6 +8,7 @@ import Json.Encode as Encode
 import Password exposing (Password(..))
 import Session exposing (Session)
 import Uid exposing (Uid(..))
+import Url.Builder as Builder
 import User exposing (User)
 
 
@@ -41,12 +42,72 @@ request req =
         }
 
 
+type Action
+    = RegisterA
+    | SignInA
+    | RefreshTokenA
+    | CreateUserDataA Cred
+    | GetUserDataA Cred
+
+
+buildUrl : Action -> Session -> Endpoint
+buildUrl action session =
+    let
+        accountUrl =
+            "https://identitytoolkit.googleapis.com/v1"
+
+        tokenUrl =
+            "https://securetoken.googleapis.com/v1"
+
+        databaseUrl =
+            "https://echo-bedriftstur-dev-60683.firebaseio.com"
+    in
+    case action of
+        RegisterA ->
+            Endpoint <|
+                Builder.crossOrigin accountUrl
+                    [ "accounts:signUp" ]
+                    [ Builder.string "key" <| Session.keyToString session.apiKey ]
+
+        SignInA ->
+            Endpoint <|
+                Builder.crossOrigin accountUrl
+                    [ "accounts:signInWithPassword" ]
+                    [ Builder.string "key" <| Session.keyToString session.apiKey ]
+
+        RefreshTokenA ->
+            Endpoint <|
+                Builder.crossOrigin accountUrl
+                    [ "token" ]
+                    [ Builder.string "key" <| Session.keyToString session.apiKey ]
+
+        GetUserDataA cred ->
+            let
+                (IdToken token _) =
+                    cred.idToken
+            in
+            Endpoint <|
+                Builder.crossOrigin databaseUrl
+                    [ "users", Uid.toString cred.uid ++ ".json" ]
+                    [ Builder.string "auth" token ]
+
+        CreateUserDataA cred ->
+            let
+                (IdToken token _) =
+                    cred.idToken
+            in
+            Endpoint <|
+                Builder.crossOrigin databaseUrl
+                    [ "users", Uid.toString cred.uid ++ ".json" ]
+                    [ Builder.string "auth" token ]
+
+
 register : (Result Http.Error Cred -> msg) -> Email -> Password -> Session -> Cmd msg
 register msg email password session =
     request
         { method = "POST"
         , headers = []
-        , url = Endpoint <| "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" ++ Session.keyToString session.apiKey
+        , url = buildUrl RegisterA session
         , body = Http.jsonBody <| encodeForRegister email password
         , expect = Http.expectJson msg Cred.credDecoder
         , timeout = Nothing
@@ -68,7 +129,7 @@ signIn msg email password session =
     request
         { method = "POST"
         , headers = []
-        , url = Endpoint <| "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" ++ Session.keyToString session.apiKey
+        , url = buildUrl SignInA session
         , body = Http.jsonBody <| encodeForSignIn email password
         , expect = Http.expectJson msg Cred.credDecoder
         , timeout = Nothing
@@ -92,7 +153,7 @@ refreshIdToken msg session =
             request
                 { method = "POST"
                 , headers = []
-                , url = Endpoint <| "https://securetoken.googleapis.com/v1/token?key=" ++ Session.keyToString session.apiKey
+                , url = buildUrl RefreshTokenA session
                 , body = Http.jsonBody <| encodeForRefreshIdToken cred.refreshToken
                 , expect = Http.expectJson msg Cred.credDecoder
                 , timeout = Nothing
@@ -111,18 +172,39 @@ encodeForRefreshIdToken (RefreshToken token) =
         ]
 
 
+createUserData : (Result Http.Error User -> msg) -> Session -> Email -> Cmd msg
+createUserData msg session email =
+    case session.cred of
+        Just cred ->
+            request
+                { method = "PUT"
+                , headers = []
+                , url = buildUrl (CreateUserDataA cred) session
+                , body = Http.jsonBody <| encodeForCreateUserData email
+                , expect = Http.expectJson msg User.userDecoder
+                , timeout = Nothing
+                , tracker = Nothing
+                }
+
+        Nothing ->
+            Debug.log "cred is nothing lol @ createUserData" Cmd.none
+
+
+encodeForCreateUserData : Email -> Encode.Value
+encodeForCreateUserData email =
+    Encode.object
+        [ ( "email", Encode.string <| Email.toString email )
+        ]
+
+
 getUserData : (Result Http.Error User -> msg) -> Session -> Cmd msg
 getUserData msg session =
     case session.cred of
         Just cred ->
-            let
-                (IdToken token _) =
-                    cred.idToken
-            in
             request
                 { method = "GET"
                 , headers = []
-                , url = Endpoint <| "https://echo-bedriftstur-dev-60683.firebaseio.com/users/" ++ Uid.toString cred.uid ++ ".json?auth=" ++ token
+                , url = buildUrl (GetUserDataA cred) session
                 , body = Http.emptyBody
                 , expect = Http.expectJson msg User.userDecoder
                 , timeout = Nothing

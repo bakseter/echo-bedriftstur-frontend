@@ -27,12 +27,7 @@ type Page
 
 fromUrl : Url.Url -> Page
 fromUrl url =
-    case Parser.parse pageParser url of
-        Just page ->
-            page
-
-        Nothing ->
-            NotFound
+    Maybe.withDefault NotFound <| Parser.parse pageParser url
 
 
 

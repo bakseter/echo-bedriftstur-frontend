@@ -8,8 +8,7 @@ import Util
 
 
 type alias Model =
-    { session : Session
-    }
+    { session : Session }
 
 
 type Msg
@@ -27,8 +26,7 @@ type Company
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { session = session
-      }
+    ( { session = session }
     , Cmd.none
     )
 
@@ -44,7 +42,7 @@ update _ model =
 
 
 view : Model -> Element Msg
-view model =
+view _ =
     let
         grid =
             List.map2

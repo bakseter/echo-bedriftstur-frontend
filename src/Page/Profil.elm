@@ -260,7 +260,7 @@ updateSignInModel msg model =
                     ( newModel, Api.getUserData (GotSignInMsg << GetUserDataResponse) newModel.session )
 
                 Err err ->
-                    ( Debug.log (Debug.toString err) model, Cmd.none )
+                    ( Debug.log (Debug.toString err ++ "err: SignInUserResponse @ updateSignInModel") model, Cmd.none )
 
         GetUserDataResponse response ->
             case response of
@@ -276,7 +276,7 @@ updateSignInModel msg model =
                     ( { newModel | subpage = Profile }, Cmd.none )
 
                 Err err ->
-                    ( Debug.log (Debug.toString err) model, Cmd.none )
+                    ( Debug.log (Debug.toString err ++ "err: GetUserDataResponse @ updateSignInModel") model, Cmd.none )
 
         TypedEmail str ->
             ( updateEmailInput.set (Just <| Email str) model, Cmd.none )

@@ -1,4 +1,4 @@
-module Session exposing (ApiKey(..), Session, decodeApiKey, keyToString)
+module Session exposing (Session, decodeApiKey, emptyKey, keyToString)
 
 import Browser.Navigation
 import Cred exposing (Cred)
@@ -19,6 +19,11 @@ type alias Session =
 keyToString : ApiKey -> String
 keyToString (ApiKey str) =
     str
+
+
+emptyKey : ApiKey
+emptyKey =
+    ApiKey ""
 
 
 decodeApiKey : Decode.Value -> Maybe ApiKey

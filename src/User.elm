@@ -22,11 +22,7 @@ type alias User =
 
 decode : Encode.Value -> Maybe User
 decode json =
-    let
-        jsonStr =
-            Encode.encode 0 json
-    in
-    case Decode.decodeString userDecoder jsonStr of
+    case Decode.decodeValue userDecoder json of
         Ok user ->
             Just user
 
@@ -39,6 +35,6 @@ userDecoder =
     Decode.map5 User
         (Decode.map Email <| Decode.field "email" Decode.string)
         Content.contentDecoder
-        (Decode.map Ticket <| Decode.map Just <| Decode.field "hasTicket" Decode.bool)
+        (Decode.map (Ticket << Just) <| Decode.field "hasTicket" Decode.bool)
         (Decode.field "submittedTicket" Decode.bool)
         (Decode.field "ticketNumber" Decode.int)

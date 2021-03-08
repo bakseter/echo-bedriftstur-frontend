@@ -1,6 +1,5 @@
 module Main exposing (main)
 
-import Api
 import Browser
 import Browser.Navigation
 import Element exposing (..)
@@ -12,8 +11,6 @@ import FontAwesome.Regular
 import FontAwesome.Solid
 import Html.Attributes
 import Json.Encode as Encode
-import Monocle.Compose as Compose
-import Monocle.Lens exposing (Lens)
 import Page exposing (Page(..))
 import Page.Bedrifter as Bedrifter
 import Page.Hjem as Hjem
@@ -24,7 +21,7 @@ import Page.Program as Program
 import Session exposing (Session)
 import Theme
 import Url
-import Util
+import Util exposing (edges)
 
 
 type Msg
@@ -60,7 +57,7 @@ init json url navKey =
                     k
 
                 Nothing ->
-                    Session.ApiKey ""
+                    Session.emptyKey
 
         session =
             Session navKey apiKey Nothing
@@ -190,10 +187,11 @@ update msg model =
 
 
 header : Model -> Element msg
-header model =
+header _ =
     row
         [ centerX
         , spacing 120
+        , paddingEach { edges | top = 50, bottom = 200 }
         ]
         [ link []
             { url = "/"

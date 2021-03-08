@@ -8,6 +8,15 @@ getPng str =
     "/assets/" ++ str ++ ".png"
 
 
+edges : { top : Int, right : Int, bottom : Int, left : Int }
+edges =
+    { top = 0
+    , right = 0
+    , bottom = 0
+    , left = 0
+    }
+
+
 stringOrNullDecoder : String -> Decode.Decoder String
 stringOrNullDecoder field =
     Decode.oneOf
