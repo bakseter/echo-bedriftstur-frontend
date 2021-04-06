@@ -1,8 +1,8 @@
 {
   "hosting": [
     {
-      "target": "app",
-      "public": "public",
+      "target": "prod",
+      "public": "build",
       "ignore": [
         "**/.*"
       ],
@@ -14,8 +14,8 @@
       ]
     },
     {
-      "target": "auth",
-      "public": "public",
+      "target": "dev",
+      "public": "build",
       "ignore": [
         "**/.*"
       ],

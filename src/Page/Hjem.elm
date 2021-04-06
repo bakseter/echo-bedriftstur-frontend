@@ -1,34 +1,75 @@
-module Page.Hjem exposing (view)
+module Page.Hjem exposing (title, view)
 
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, id)
+import Element exposing (..)
+import Element.Font as Font
+import Html.Attributes as HtmlA
 import Svg
 import Svg.Attributes
+import Theme
+import Util exposing (edges)
 
 
-view : Html msg
-view =
-    div [ class "hjem" ]
-        [ div [ id "hjem-header" ]
-            [ div [] [ text "Bedriftstur til Oslo" ]
-            , div [] [ text "for informatikkstudenter ved UiB" ]
-            ]
-        , div [ id "hjem-text" ]
-            [ div [] [ text "Er du nysgjerrig på jobbmulighetene i Oslo etter endt utdanning?" ]
-            , div [] [ text "Bedriftsturkomitéen arrangerer besøk hos seks forskjellige bedrifter til høsten!" ]
-            ]
-        , div [ id "barcode-anim" ]
-            [ Svg.svg [ Svg.Attributes.width "100%", Svg.Attributes.viewBox "0 0 800 350" ]
-                [ Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-1", Svg.Attributes.x "0", Svg.Attributes.y "153", Svg.Attributes.width "66", Svg.Attributes.height "207" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-2", Svg.Attributes.x "91", Svg.Attributes.y "84", Svg.Attributes.width "59", Svg.Attributes.height "276" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-3", Svg.Attributes.x "150", Svg.Attributes.y "46", Svg.Attributes.width "56", Svg.Attributes.height "314" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-4", Svg.Attributes.x "238", Svg.Attributes.y "93", Svg.Attributes.width "49", Svg.Attributes.height "367" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-1", Svg.Attributes.x "346", Svg.Attributes.y "44", Svg.Attributes.width "66", Svg.Attributes.height "316" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-2", Svg.Attributes.x "425", Svg.Attributes.y "143", Svg.Attributes.width "44", Svg.Attributes.height "217" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-3", Svg.Attributes.x "469", Svg.Attributes.y "130", Svg.Attributes.width "46", Svg.Attributes.height "230" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-4", Svg.Attributes.x "542", Svg.Attributes.y "58", Svg.Attributes.width "108", Svg.Attributes.height "302" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-1", Svg.Attributes.x "660", Svg.Attributes.y "116", Svg.Attributes.width "65", Svg.Attributes.height "244" ] []
-                , Svg.rect [ Svg.Attributes.class "barcode-item barcode-item-2", Svg.Attributes.x "725", Svg.Attributes.y "75", Svg.Attributes.width "60", Svg.Attributes.height "285" ] []
+view : Device -> Element msg
+view device =
+    case device.class of
+        Desktop ->
+            column
+                [ centerX
+                , height fill
                 ]
+                [ Theme.h1 [ padding 50 ] "Bedriftstur til Oslo for informatikkstudenter ved UiB"
+                , Theme.h3 [ centerX, padding 10, Font.regular ] "Er du nysgjerrig på jobbmulighetene i Oslo etter endt utdanning?"
+                , Theme.h3 [ centerX, padding 10, Font.regular ] "Bedriftsturkomitéen arrangerer besøk hos bedrifter i hovedstaden til høsten!"
+                , el [ padding 10, centerX, alignBottom ] <| barcode "800px"
+                ]
+
+        _ ->
+            column [ centerX, paddingEach { edges | left = 15, right = 15 }, height fill ]
+                [ paragraph
+                    [ paddingEach { edges | bottom = 50 }, Font.center ]
+                    [ Theme.h4 [ centerX ] "Bedriftstur til Oslo for informatikkstudenter ved UiB" ]
+                , paragraph [ Font.center ]
+                    [ el [ centerX ] <| text "Er du nysgjerrig på jobbmulighetene i Oslo etter endt utdanning? "
+                    , el [ centerX ] <| text "Bedriftsturkomitéen arrangerer besøk hos bedrifter i hovedstaden til høsten!"
+                    ]
+                , el [ padding 10, centerX, alignBottom ] <| barcode "350px"
+                ]
+
+
+barcode : String -> Element msg
+barcode width =
+    Element.html <|
+        Svg.svg
+            [ Svg.Attributes.viewBox "0 0 800 350"
+            , Svg.Attributes.width width
+            , Svg.Attributes.preserveAspectRatio "xMidYMid meet"
             ]
-        ]
+        <|
+            List.map
+                (\props ->
+                    Svg.rect
+                        [ Svg.Attributes.fill (Util.toHexColor props.color)
+                        , Svg.Attributes.class "barcode-item"
+                        , Svg.Attributes.x props.x
+                        , Svg.Attributes.y props.y
+                        , Svg.Attributes.width props.w
+                        , Svg.Attributes.height props.h
+                        ]
+                        []
+                )
+                [ { x = "0", y = "153", w = "66", h = "207", color = Theme.yellow1 }
+                , { x = "91", y = "84", w = "59", h = "276", color = Theme.blue1 }
+                , { x = "150", y = "46", w = "56", h = "314", color = Theme.yellow2 }
+                , { x = "238", y = "93", w = "49", h = "367", color = Theme.blue2 }
+                , { x = "346", y = "44", w = "66", h = "316", color = Theme.yellow1 }
+                , { x = "425", y = "143", w = "44", h = "217", color = Theme.blue1 }
+                , { x = "469", y = "130", w = "46", h = "230", color = Theme.yellow2 }
+                , { x = "542", y = "58", w = "108", h = "302", color = Theme.blue2 }
+                , { x = "660", y = "116", w = "65", h = "244", color = Theme.yellow1 }
+                , { x = "725", y = "75", w = "50", h = "285", color = Theme.blue1 }
+                ]
+
+
+title : String
+title =
+    "echo bedriftstur"

@@ -1,0 +1,44 @@
+name: Deploy from development branch
+
+on:
+  push:
+    branches: develop
+
+jobs:
+  build:
+    name: Build and run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: yarn
+      - name: Run tests
+        run: yarn test
+      - name: Build
+        run: yarn build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: dev-build
+          path: build
+
+  deploy:
+    name: Deploy to development site
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Download build artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: dev-build
+          path: build
+      - name: Deploy to firebase
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only hosting:dev
+        env:
+          FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
+          PROJECT_ID: echo-bedriftstur-dev-60683

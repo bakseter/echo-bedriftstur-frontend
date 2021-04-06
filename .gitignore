@@ -62,12 +62,18 @@ node_modules/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+.env*
 
-# elm build files
+# build files
 main.js
 elm-stuff/
+build/
+dist/
 
 # JS linter
-.eslintrc.json
-.eslintrc.js
+.eslintignore
+
+# cache
+.cache
+
+*.txt
