@@ -1,108 +1,113 @@
-module Page.Om exposing (Model, Msg, init, route, subscriptions, title, update, view)
+module Page.Om exposing (route, title, view)
 
-import Assets exposing (Assets)
 import Element exposing (..)
-import Element.Events as Events
 import Element.Font as Font
-import Session exposing (Session)
+import Html
+import Html.Attributes as HtmlA
+import Theme
+import Util
 
 
-type Msg
-    = ShowMailElias
-    | ShowMailAndreas
-    | ShowMailTuva
-
-
-type alias Model =
-    { session : Session
-    , assets : List Assets
-    , mailElias : String
-    , mailAndreas : String
-    , mailTuva : String
+type alias Member =
+    { name : String
+    , title : String
+    , email : String
+    , image : String
     }
 
 
-init : Session -> List Assets -> ( Model, Cmd Msg )
-init session assets =
-    ( { session = session
-      , assets = assets
-      , mailElias = "Trykk for å se mail"
-      , mailAndreas = "Trykk for å se mail"
-      , mailTuva = "Trykk for å se mail"
-      }
-    , Cmd.none
-    )
+elias : Member
+elias =
+    { name = "Elias Djupesland"
+    , title = "Leder"
+    , email = "elias.djupesland@echo.uib.no"
+    , image = "elias"
+    }
 
 
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+andreas : Member
+andreas =
+    { name = "Andreas Salhus Bakseter"
+    , title = "Webansvarlig"
+    , email = "andreas.bakseter@echo.uib.no"
+    , image = "andreas"
+    }
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        ShowMailElias ->
-            ( { model | mailElias = "elias.djupesland@echo.uib.no" }, Cmd.none )
-
-        ShowMailAndreas ->
-            ( { model | mailAndreas = "andreas.bakseter@echo.uib.no" }, Cmd.none )
-
-        ShowMailTuva ->
-            ( { model | mailTuva = "tuva.kvalsoren@echo.uib.no" }, Cmd.none )
+tuva : Member
+tuva =
+    { name = "Tuva Kvalsøren"
+    , title = "PR-ansvarlig"
+    , email = "tuva.kvalsoeren@echo.uib.no"
+    , image = "tuva"
+    }
 
 
-view : Model -> Element Msg
-view model =
-    row [ centerX ]
-        [ textColumn [ paddingEach { edges | right = 100 }, spacing 50 ]
-            [ el [ Font.bold, Font.size 42 ] <| text "Hvem er vi?"
-            , paragraph [ Font.justify, spacing 15 ]
-                [ text
-                    """
-                    Leo duis ut diam quam nulla porttitor. Egestas sed tempus urna et pharetra. Arcu odio ut sem nulla pharetra. Bibendum est ultricies integer quis auctor elit. Eu volutpat odio facilisis mauris sit. Integer feugiat scelerisque varius morbi. Egestas erat imperdiet sed euismod nisi porta. Adipiscing elit pellentesque habitant morbi tristique senectus et. Senectus et netus et malesuada. Id cursus metus aliquam eleifend mi in nulla posuere sollicitudin. Magna etiam tempor orci eu lobortis elementum nibh tellus. Lacus vestibulum sed arcu non. Dictum fusce ut placerat orci nulla. Amet tellus cras adipiscing enim eu turpis egestas pretium aenean. Tristique sollicitudin nibh sit amet commodo nulla. Sit amet est placerat in egestas erat imperdiet. Interdum varius sit amet mattis vulputate enim. Feugiat nisl pretium fusce id velit ut tortor pretium. Urna nunc id cursus metus aliquam eleifend mi.
-                    """
+view : Device -> Element msg
+view device =
+    let
+        members =
+            if device.class == Desktop || device.class == BigDesktop then
+                [ viewMember elias
+                , row [ centerX, spacing 50 ]
+                    [ viewMember andreas, viewMember tuva ]
                 ]
-            ]
-        , column [ spacing 40 ]
-            [ row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ]
-                    { src = Assets.get model.assets "elias", description = "Elias" }
-                , column [ spacing 20 ]
-                    [ el [ Font.bold, Font.size 26 ] <| text "Elias Djupesland"
-                    , el [ Font.bold, Font.size 20 ] <| text "Leder og bedriftskontakt"
-                    , el [ Font.italic, Events.onClick ShowMailElias ] <| text model.mailElias
-                    ]
+
+            else
+                List.map viewMember [ elias, andreas, tuva ]
+    in
+    wrappedRow [ spaceEvenly ]
+        [ column [ centerX, spacing 50, width fill ]
+            members
+        , textColumn [ width fill, spacing 50, padding 40 ]
+            [ paragraph [ spacing 20 ]
+                [ text "Etter å ha blitt inspirert av andre linjeforeninger og etter dialog med vår hovedsamarbeidspartner, "
+                , text "begynte vi å smått å planlegge echo bedriftstur høsten 2019. "
+                , text "En bedriftstur til Oslo var et helt nytt konsept for informatikkstudentene i Bergen, "
+                , text "men vi var gira på å få det til. "
+                , text "Etter mye arbeid åpnet vi påmeldingen til echo sin første bedriftstur i april 2020, "
+                , text "her på denne nettsiden. "
+                , text "De 47 plassene ble fylt opp på "
+                , el [ Font.bold, Font.underline ] <| text "under 4 sekunder"
+                , text "!"
                 ]
-            , row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ]
-                    { src = Assets.get model.assets "andreas", description = "Andreas" }
-                , column [ spacing 20 ]
-                    [ el [ Font.bold, Font.size 26 ] <| text "Andreas Salhus Bakseter"
-                    , el [ Font.bold, Font.size 20 ] <| text "Webansvarlig"
-                    , el [ Font.italic, Events.onClick ShowMailAndreas ] <| text model.mailAndreas
-                    ]
+            , paragraph [ spacing 20 ]
+                [ text "Selv med pandemien hengende over oss, "
+                , text "gjorde vi tilpasninger og vi var forsatt innstilt på at turen var mulig å arrangere. "
+                , text "Dessverre ble situasjonen verre, og vi måtte avlyse turen i august 2020, "
+                , text "bare få uker før den skulle finne sted. "
+                , text ""
                 ]
-            , row [ spacing 20 ]
-                [ image [ width (px 180), height (px 180) ]
-                    { src = Assets.get model.assets "tuva", description = "Tuva" }
-                , column [ spacing 20 ]
-                    [ el [ Font.bold, Font.size 26 ] <| text "Tuva Kvalsøren"
-                    , el [ Font.bold, Font.size 20 ] <| text "PR-ansvarlig"
-                    , el [ Font.italic, Events.onClick ShowMailTuva ] <| text model.mailTuva
-                    ]
+            , paragraph [ spacing 20 ]
+                [ text "Per våren 2021 ser vi fortsatt på muligheten for å arrangere en tur til høsten 2021 eller våren 2022. "
+                , text "Dersom dere er en bedrift som vil være en del av vår neste bedriftstur, "
+                , text "ta gjerne kontakt med oss på "
+                , link [ Font.underline, Font.bold ]
+                    { url = "mailto:kontakt@echobedriftstur.no"
+                    , label = text "kontakt@echobedriftstur.no"
+                    }
+                , text " for mer informasjon!"
                 ]
             ]
         ]
 
 
-edges : { top : Int, right : Int, bottom : Int, left : Int }
-edges =
-    { top = 0
-    , right = 0
-    , bottom = 0
-    , left = 0
-    }
+viewMember : Member -> Element msg
+viewMember member =
+    column [ centerX, spacing 10 ]
+        [ el [ centerX, width (fill |> maximum 220) ] <|
+            Element.html <|
+                Html.img
+                    [ HtmlA.src (Util.getPng member.image)
+                    , HtmlA.alt member.name
+                    , HtmlA.style "border-radius" "50%"
+                    ]
+                    []
+        , Theme.h4 [ centerX ] <| member.name
+        , Theme.h5 [ centerX ] <| member.title
+
+        --, Theme.h5 [ centerX ] <| member.email
+        ]
 
 
 route : String

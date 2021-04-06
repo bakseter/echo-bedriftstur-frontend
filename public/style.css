@@ -1,0 +1,15 @@
+.barcode-item {
+    animation-name: slide-up;
+    animation-duration: 1.5s;
+    animation-iteration-count: 1;
+    animation-timing-function: ease;
+    transition: 0.3s ease-out;
+}
+.barcode-item:hover {
+    transform: translateY(10%);
+}
+
+@keyframes slide-up {
+    from { transform: translateY(400px); }
+    to { transform: translateY(0px); }
+}

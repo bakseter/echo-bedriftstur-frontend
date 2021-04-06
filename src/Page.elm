@@ -8,10 +8,6 @@ import Url
 import Url.Parser as Parser
 
 
-
--- Type representing all the pages on the website.
-
-
 type Page
     = Hjem
     | Profil
@@ -21,22 +17,9 @@ type Page
     | NotFound
 
 
-
--- Runs the pageParser function on a url, converting it to a Page type.
-
-
 fromUrl : Url.Url -> Page
 fromUrl url =
-    case Parser.parse pageParser url of
-        Just page ->
-            page
-
-        Nothing ->
-            NotFound
-
-
-
--- Returns the correct Page type (according to the route of the Page type) for an url.
+    Maybe.withDefault NotFound <| Parser.parse pageParser url
 
 
 pageParser : Parser.Parser (Page -> b) b
