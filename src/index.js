@@ -2,5 +2,5 @@ import { Elm } from './Main';
 
 Elm.Main.init ({
     node: document.getElementById('elm'),
-    flags: 'test'
+    flags: { apiKey: 'text', width: window.innerWidth, height: window.innerHeight }
 });

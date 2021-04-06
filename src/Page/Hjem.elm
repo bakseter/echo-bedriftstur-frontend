@@ -1,33 +1,47 @@
 module Page.Hjem exposing (title, view)
 
-import Element exposing (Element, above, alignBottom, below, centerX, column, el, fill, height, inFront, padding)
+import Element exposing (..)
 import Element.Font as Font
-import Element.Region as Region
+import Html.Attributes as HtmlA
 import Svg
 import Svg.Attributes
 import Theme
-import Util
+import Util exposing (edges)
 
 
-view : Element msg
-view =
-    column
-        [ centerX
-        , height fill
-        ]
-        [ Theme.h1 [ padding 50 ] "Bedriftstur til Oslo for informatikkstudenter ved UiB"
-        , Theme.h3 [ centerX, padding 10, Font.regular ] "Er du nysgjerrig på jobbmulighetene i Oslo etter endt utdanning?"
-        , Theme.h3 [ centerX, padding 10, Font.regular ] "Bedriftsturkomitéen arrangerer besøk hos bedrifter i hovedstaden til høsten!"
-        , el [ padding 10, centerX, alignBottom ] barcode
-        ]
+view : Device -> Element msg
+view device =
+    case device.class of
+        Desktop ->
+            column
+                [ centerX
+                , height fill
+                ]
+                [ Theme.h1 [ padding 50 ] "Bedriftstur til Oslo for informatikkstudenter ved UiB"
+                , Theme.h3 [ centerX, padding 10, Font.regular ] "Er du nysgjerrig på jobbmulighetene i Oslo etter endt utdanning?"
+                , Theme.h3 [ centerX, padding 10, Font.regular ] "Bedriftsturkomitéen arrangerer besøk hos bedrifter i hovedstaden til høsten!"
+                , el [ padding 10, centerX, alignBottom ] <| barcode "800px"
+                ]
+
+        _ ->
+            column [ centerX, paddingEach { edges | left = 15, right = 15 }, height fill ]
+                [ paragraph
+                    [ paddingEach { edges | bottom = 50 }, Font.center ]
+                    [ Theme.h4 [ centerX ] "Bedriftstur til Oslo for informatikkstudenter ved UiB" ]
+                , paragraph [ Font.center ]
+                    [ el [ centerX ] <| text "Er du nysgjerrig på jobbmulighetene i Oslo etter endt utdanning? "
+                    , el [ centerX ] <| text "Bedriftsturkomitéen arrangerer besøk hos bedrifter i hovedstaden til høsten!"
+                    ]
+                , el [ padding 10, centerX, alignBottom ] <| barcode "350px"
+                ]
 
 
-barcode : Element msg
-barcode =
+barcode : String -> Element msg
+barcode width =
     Element.html <|
         Svg.svg
             [ Svg.Attributes.viewBox "0 0 800 350"
-            , Svg.Attributes.width "800px"
+            , Svg.Attributes.width width
             , Svg.Attributes.preserveAspectRatio "xMidYMid meet"
             ]
         <|
@@ -35,11 +49,11 @@ barcode =
                 (\props ->
                     Svg.rect
                         [ Svg.Attributes.fill (Util.toHexColor props.color)
+                        , Svg.Attributes.class "barcode-item"
                         , Svg.Attributes.x props.x
                         , Svg.Attributes.y props.y
                         , Svg.Attributes.width props.w
                         , Svg.Attributes.height props.h
-                        , Svg.Attributes.style "hover: sale(1.2);"
                         ]
                         []
                 )
