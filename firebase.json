@@ -2,7 +2,7 @@
   "hosting": [
     {
       "target": "prod",
-      "public": "dist",
+      "public": "build",
       "ignore": [
         "**/.*"
       ],
@@ -15,7 +15,7 @@
     },
     {
       "target": "dev",
-      "public": "dist",
+      "public": "build",
       "ignore": [
         "**/.*"
       ],
