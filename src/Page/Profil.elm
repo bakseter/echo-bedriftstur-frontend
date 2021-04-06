@@ -1,124 +1,109 @@
 module Page.Profil exposing (..)
 
 import Api
-import Content exposing (Content)
-import Cred exposing (Cred, IdToken(..))
-import Degree exposing (Degree(..))
+import Database.Account as Account exposing (Account)
+import Database.Account.Password as Password exposing (Password(..))
+import Database.Email as Email exposing (Email(..))
+import Database.Registration exposing (Registration)
+import Database.Registration.Terms as Terms exposing (Terms(..))
+import Database.UserInfo as UserInfo exposing (UserInfo)
+import Database.UserInfo.Degree as Degree exposing (Degree(..))
 import Element exposing (..)
-import Element.Background as Background
+import Element.Font as Font
 import Element.Input as Input
-import Email exposing (Email(..))
 import Error exposing (Error)
-import Html exposing (Html)
-import Html.Attributes as HtmlA
-import Html.Events as HtmlE
 import Http
-import Json.Decode as Decode
 import Json.Encode as Encode
-import Monocle.Compose as Compose
-import Monocle.Lens exposing (Lens)
-import Monocle.Optional exposing (Optional)
-import Password exposing (Password(..))
 import Session exposing (Session)
-import Terms exposing (Terms(..))
 import Theme
-import Time
-import User exposing (User)
 
 
 type Msg
-    = GotRegisterMsg RegisterMsg
+    = GotSignUpMsg SignUpMsg
     | GotSignInMsg SignInMsg
-    | GotProfileMsg ProfileMsg
+    | GotUserDashboardMsg UserDashboardMsg
+    | GotAdminDashboardMsg AdminDashboardMsg
     | GotError Encode.Value
-    | CheckCred
-    | RefreshIdTokenResponse (Result Http.Error Cred)
     | Toggle
+    | NoOp
 
 
-type RegisterMsg
-    = RegisterUser
-    | RegisterUserResponse (Result Http.Error Cred)
-    | TypedNewEmail String
-    | TypedNewPassword String
-    | TypedConfirmNewPassword String
+type SignUpMsg
+    = CreateAccount
+    | CreateAccountResponse (Result Http.Error Account)
+    | SignUpTypedEmail String
+    | SignUpTypedPassword String
+    | SignUpTypedFirstName String
+    | SignUpTypedLastName String
+    | SignUpTypedDegree String
 
 
 type SignInMsg
     = SignInUser
-    | SignInUserResponse (Result Http.Error Cred)
-    | GetUserDataResponse (Result Http.Error User)
-    | TypedEmail String
-    | TypedPassword String
+    | SignInUserResponse (Result Http.Error ())
+    | SignInTypedEmail String
+    | SignInTypedPassword String
 
 
-type ProfileMsg
-    = TypedFirstName String
-    | TypedLastName String
-    | ChangedDegree String
-    | CheckedBoxOne Bool
-    | CheckedBoxTwo Bool
-    | CheckedBoxThree Bool
+type UserDashboardMsg
+    = UpdateUserInfo
+    | UpdateUserInfoResponse (Result Http.Error ())
+    | UserDashTypedFirstName String
+    | UserDashTypedLastName String
+    | UserDashTypedDegree String
+
+
+type AdminDashboardMsg
+    = GetAllAccounts
+    | GetAllAccountsResponse (Result Http.Error (List Account))
+    | GetAllUserInfo
+    | GetAllUserInfoResponse (Result Http.Error (List UserInfo))
+    | GetAllRegistrations
+    | GetAllRegistrationsResponse (Result Http.Error (List Registration))
 
 
 type alias Model =
     { session : Session
-    , registerModel : RegisterModel
+    , signUpModel : SignUpModel
     , signInModel : SignInModel
-    , profileModel : ProfileModel
+    , userDashboard : UserDashboardModel
+    , adminDashboard : AdminDashboardModel
     , subpage : Subpage
     , error : Maybe Error
     }
 
 
 type Subpage
-    = Register
+    = SignUp
     | SignIn
-    | Profile
+    | UserDashboard
+    | AdminDashboard
 
 
-type alias RegisterModel =
-    { newEmailInput : Maybe Email
-    , newPasswordInput : Maybe Password
-    , confirmNewPasswordInput : Maybe Password
-    }
+type SignUpModel
+    = SignUpModel Account UserInfo
 
 
 type alias SignInModel =
-    { emailInput : Maybe Email
-    , passwordInput : Maybe Password
-    }
+    Account
 
 
-type alias ProfileModel =
-    { firstName : String
-    , lastName : String
-    , degree : Maybe Degree
-    , terms : Terms
-    , user : Maybe User
-    }
+type alias UserDashboardModel =
+    UserInfo
+
+
+type AdminDashboardModel
+    = AdminDashboardModel (List Account) (List UserInfo) (List Registration)
 
 
 init : Session -> ( Model, Cmd Msg )
 init session =
     ( { session = session
-      , registerModel =
-            { newEmailInput = Nothing
-            , newPasswordInput = Nothing
-            , confirmNewPasswordInput = Nothing
-            }
-      , signInModel =
-            { emailInput = Nothing
-            , passwordInput = Nothing
-            }
-      , profileModel =
-            { firstName = ""
-            , lastName = ""
-            , degree = Nothing
-            , terms = Terms.fromAbsolute False
-            , user = Nothing
-            }
-      , subpage = SignIn
+      , signUpModel = SignUpModel Account.empty UserInfo.empty
+      , signInModel = Account.empty
+      , userDashboard = UserInfo.empty
+      , adminDashboard = AdminDashboardModel [] [] []
+      , subpage = SignUp
       , error = Nothing
       }
     , Cmd.none
@@ -127,353 +112,250 @@ init session =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Time.every 60000 <| \_ -> CheckCred
+    Sub.none
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotRegisterMsg registerMsg ->
-            updateRegisterModel registerMsg model
+        GotSignUpMsg m ->
+            updateSignUp m model
 
-        GotSignInMsg signInMsg ->
-            updateSignInModel signInMsg model
+        GotSignInMsg m ->
+            updateSignIn m model
 
-        GotProfileMsg profileMsg ->
-            updateProfileModel profileMsg model
+        GotUserDashboardMsg m ->
+            updateUserDash m model
+
+        GotAdminDashboardMsg m ->
+            updateAdminDash m model
 
         GotError json ->
             ( { model | error = Error.decode json }, Cmd.none )
 
         Toggle ->
             let
-                subpage =
+                newSubpage =
                     case model.subpage of
-                        Register ->
+                        SignUp ->
                             SignIn
 
                         SignIn ->
-                            Register
+                            UserDashboard
 
-                        _ ->
-                            model.subpage
+                        UserDashboard ->
+                            AdminDashboard
+
+                        AdminDashboard ->
+                            SignUp
             in
-            ( { model | subpage = subpage }, Cmd.none )
+            ( { model | subpage = newSubpage }, Cmd.none )
 
-        CheckCred ->
-            case model.session.cred of
-                Just cred ->
-                    let
-                        (IdToken token time) =
-                            cred.idToken
-                    in
-                    if time <= 120 then
-                        ( model, Api.refreshIdToken RefreshIdTokenResponse model.session )
+        NoOp ->
+            ( model, Cmd.none )
 
-                    else
-                        ( updateCred.set
-                            (Just
-                                { idToken = IdToken token (time - 60)
-                                , refreshToken = cred.refreshToken
-                                , uid = cred.uid
-                                }
-                            )
-                            model
-                        , Cmd.none
-                        )
+
+updateSignUp : SignUpMsg -> Model -> ( Model, Cmd Msg )
+updateSignUp msg model =
+    let
+        (SignUpModel acc userInfo) =
+            model.signUpModel
+    in
+    case msg of
+        CreateAccount ->
+            ( model, Cmd.none )
+
+        CreateAccountResponse _ ->
+            ( model, Cmd.none )
+
+        SignUpTypedEmail str ->
+            ( { model
+                | signUpModel =
+                    SignUpModel
+                        (Account.updateEmail (Email str) acc)
+                        (UserInfo.updateEmail (Email str) userInfo)
+              }
+            , Cmd.none
+            )
+
+        SignUpTypedPassword str ->
+            ( { model | signUpModel = SignUpModel (Account.updatePassword (Password str) acc) userInfo }, Cmd.none )
+
+        SignUpTypedFirstName str ->
+            ( { model | signUpModel = SignUpModel acc (UserInfo.updateFirstName str userInfo) }, Cmd.none )
+
+        SignUpTypedLastName str ->
+            ( { model | signUpModel = SignUpModel acc (UserInfo.updateLastName str userInfo) }, Cmd.none )
+
+        SignUpTypedDegree str ->
+            case Degree.fromString str of
+                Just deg ->
+                    ( { model | signUpModel = SignUpModel acc (UserInfo.updateDegree deg userInfo) }, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
 
-        RefreshIdTokenResponse response ->
-            case response of
-                Ok cred ->
-                    ( updateCred.set
-                        (Just
-                            { idToken = cred.idToken
-                            , refreshToken = cred.refreshToken
-                            , uid = cred.uid
-                            }
-                        )
-                        model
-                    , Cmd.none
-                    )
 
-                Err err ->
-                    ( Debug.log (Debug.toString err) model, Cmd.none )
-
-
-updateRegisterModel : RegisterMsg -> Model -> ( Model, Cmd Msg )
-updateRegisterModel msg model =
-    case msg of
-        RegisterUser ->
-            case ( model.registerModel.newEmailInput, model.registerModel.newPasswordInput, model.registerModel.confirmNewPasswordInput ) of
-                ( Just email, Just password, Just confirmPassword ) ->
-                    {-
-                       if Email.isValid email && Password.isValid password && password == confirmPassword then
-                    -}
-                    if True then
-                        ( model, Api.register (GotRegisterMsg << RegisterUserResponse) email password model.session )
-
-                    else
-                        ( Debug.log "Password and email is not valid" model, Cmd.none )
-
-                _ ->
-                    ( Debug.log "Password and/or email is Nothing" model, Cmd.none )
-
-        RegisterUserResponse response ->
-            case response of
-                Ok data ->
-                    ( Debug.log (Debug.toString data) model, Cmd.none )
-
-                Err err ->
-                    ( Debug.log (Debug.toString err) model, Cmd.none )
-
-        TypedNewEmail str ->
-            ( updateNewEmailInput.set (Just <| Email str) model, Cmd.none )
-
-        TypedNewPassword str ->
-            ( updateNewPasswordInput.set (Just <| Password str) model, Cmd.none )
-
-        TypedConfirmNewPassword str ->
-            ( updateConfirmNewPassordInput.set (Just <| Password str) model, Cmd.none )
-
-
-updateSignInModel : SignInMsg -> Model -> ( Model, Cmd Msg )
-updateSignInModel msg model =
+updateSignIn : SignInMsg -> Model -> ( Model, Cmd Msg )
+updateSignIn msg model =
     case msg of
         SignInUser ->
-            case ( model.signInModel.emailInput, model.signInModel.passwordInput ) of
-                ( Just email, Just password ) ->
-                    ( model, Api.signIn (GotSignInMsg << SignInUserResponse) email password model.session )
+            ( model, Cmd.none )
 
-                _ ->
+        SignInUserResponse _ ->
+            ( model, Cmd.none )
+
+        SignInTypedEmail str ->
+            ( { model | signInModel = Account.updateEmail (Email str) model.signInModel }, Cmd.none )
+
+        SignInTypedPassword str ->
+            ( { model | signInModel = Account.updatePassword (Password str) model.signInModel }, Cmd.none )
+
+
+updateUserDash : UserDashboardMsg -> Model -> ( Model, Cmd Msg )
+updateUserDash msg model =
+    let
+        userInfo =
+            model.userDashboard
+    in
+    case msg of
+        UpdateUserInfo ->
+            ( model, Api.updateUserInfo userInfo (GotUserDashboardMsg << UpdateUserInfoResponse) )
+
+        UpdateUserInfoResponse response ->
+            case response of
+                Ok _ ->
                     ( model, Cmd.none )
 
-        SignInUserResponse response ->
-            case response of
-                Ok cred ->
-                    let
-                        newModel =
-                            updateCred.set (Just cred) model
-                    in
-                    ( newModel, Api.getUserData (GotSignInMsg << GetUserDataResponse) newModel.session )
-
                 Err err ->
-                    ( Debug.log (Debug.toString err ++ "err: SignInUserResponse @ updateSignInModel") model, Cmd.none )
+                    ( Debug.log ("Error @ UpdateUserInfoResponse: " ++ Debug.toString err) model, Cmd.none )
 
-        GetUserDataResponse response ->
-            case response of
-                Ok user ->
-                    let
-                        newModel =
-                            updateUser.set (Just user) model
-                                |> updateFirstName.set user.content.firstName
-                                |> updateLastName.set user.content.lastName
-                                |> updateDegree.set (Just user.content.degree)
-                                |> updateTerms.set user.content.terms
-                    in
-                    ( { newModel | subpage = Profile }, Cmd.none )
+        UserDashTypedFirstName str ->
+            ( { model | userDashboard = UserInfo.updateFirstName str userInfo }, Cmd.none )
 
-                Err err ->
-                    ( Debug.log (Debug.toString err ++ "err: GetUserDataResponse @ updateSignInModel") model, Cmd.none )
+        UserDashTypedLastName str ->
+            ( { model | userDashboard = UserInfo.updateLastName str userInfo }, Cmd.none )
 
-        TypedEmail str ->
-            ( updateEmailInput.set (Just <| Email str) model, Cmd.none )
-
-        TypedPassword str ->
-            ( updatePasswordInput.set (Just <| Password str) model, Cmd.none )
-
-
-sessionLens : Lens Model Session
-sessionLens =
-    Lens .session (\b a -> { a | session = b })
-
-
-updateCred : Lens Model (Maybe Cred)
-updateCred =
-    Compose.lensWithLens
-        (Lens .cred (\b a -> { a | cred = b }))
-        sessionLens
-
-
-registerModelLens : Lens Model RegisterModel
-registerModelLens =
-    Lens .registerModel (\b a -> { a | registerModel = b })
-
-
-updateNewEmailInput : Lens Model (Maybe Email)
-updateNewEmailInput =
-    Compose.lensWithLens
-        (Lens .newEmailInput (\b a -> { a | newEmailInput = b }))
-        registerModelLens
-
-
-updateNewPasswordInput : Lens Model (Maybe Password)
-updateNewPasswordInput =
-    Compose.lensWithLens
-        (Lens .newPasswordInput (\b a -> { a | newPasswordInput = b }))
-        registerModelLens
-
-
-updateConfirmNewPassordInput : Lens Model (Maybe Password)
-updateConfirmNewPassordInput =
-    Compose.lensWithLens
-        (Lens .confirmNewPasswordInput (\b a -> { a | confirmNewPasswordInput = b }))
-        registerModelLens
-
-
-signInModelLens : Lens Model SignInModel
-signInModelLens =
-    Lens .signInModel (\b a -> { a | signInModel = b })
-
-
-updateEmailInput : Lens Model (Maybe Email)
-updateEmailInput =
-    Compose.lensWithLens
-        (Lens .emailInput (\b a -> { a | emailInput = b }))
-        signInModelLens
-
-
-updatePasswordInput : Lens Model (Maybe Password)
-updatePasswordInput =
-    Compose.lensWithLens
-        (Lens .passwordInput (\b a -> { a | passwordInput = b }))
-        signInModelLens
-
-
-profileModelLens : Lens Model ProfileModel
-profileModelLens =
-    Lens .profileModel (\b a -> { a | profileModel = b })
-
-
-updateFirstName : Lens Model String
-updateFirstName =
-    Compose.lensWithLens
-        (Lens .firstName (\b a -> { a | firstName = b }))
-        profileModelLens
-
-
-updateLastName : Lens Model String
-updateLastName =
-    Compose.lensWithLens
-        (Lens .lastName (\b a -> { a | lastName = b }))
-        profileModelLens
-
-
-updateDegree : Lens Model (Maybe Degree)
-updateDegree =
-    Compose.lensWithLens
-        (Lens .degree (\b a -> { a | degree = b }))
-        profileModelLens
-
-
-updateTerms : Lens Model Terms
-updateTerms =
-    Compose.lensWithLens
-        (Lens .terms (\b a -> { a | terms = b }))
-        profileModelLens
-
-
-updateUser : Lens Model (Maybe User)
-updateUser =
-    Compose.lensWithLens
-        (Lens .user (\b a -> { a | user = b }))
-        profileModelLens
-
-
-updateProfileModel : ProfileMsg -> Model -> ( Model, Cmd Msg )
-updateProfileModel msg model =
-    case msg of
-        TypedFirstName str ->
-            ( updateFirstName.set str model, Cmd.none )
-
-        TypedLastName str ->
-            ( updateLastName.set str model, Cmd.none )
-
-        ChangedDegree str ->
+        UserDashTypedDegree str ->
             case Degree.fromString str of
-                Just degree ->
-                    ( updateDegree.set (Just degree) model, Cmd.none )
+                Just deg ->
+                    ( { model | userDashboard = UserInfo.updateDegree deg userInfo }, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
 
-        CheckedBoxOne bool ->
-            let
-                (Terms _ b2 b3) =
-                    model.profileModel.terms
-            in
-            ( updateTerms.set (Terms bool b2 b3) model, Cmd.none )
 
-        CheckedBoxTwo bool ->
-            let
-                (Terms b1 _ b3) =
-                    model.profileModel.terms
-            in
-            ( updateTerms.set (Terms b1 bool b3) model, Cmd.none )
+updateAdminDash : AdminDashboardMsg -> Model -> ( Model, Cmd Msg )
+updateAdminDash msg model =
+    let
+        (AdminDashboardModel accs userInfo regs) =
+            model.adminDashboard
+    in
+    case msg of
+        GetAllAccounts ->
+            ( model, Api.getAllAccounts (GotAdminDashboardMsg << GetAllAccountsResponse) )
 
-        CheckedBoxThree bool ->
-            let
-                (Terms b1 b2 _) =
-                    model.profileModel.terms
-            in
-            ( updateTerms.set (Terms b1 b2 bool) model, Cmd.none )
+        GetAllAccountsResponse response ->
+            case response of
+                Ok newAccs ->
+                    ( { model | adminDashboard = AdminDashboardModel newAccs userInfo regs }, Cmd.none )
+
+                Err err ->
+                    ( Debug.log ("Error @ GetAllAccountsResponse: " ++ Debug.toString err) model, Cmd.none )
+
+        GetAllUserInfo ->
+            ( model, Api.getAllUserInfo (GotAdminDashboardMsg << GetAllUserInfoResponse) )
+
+        GetAllUserInfoResponse response ->
+            case response of
+                Ok newUserInfo ->
+                    ( { model | adminDashboard = AdminDashboardModel accs newUserInfo regs }, Cmd.none )
+
+                Err err ->
+                    ( Debug.log ("Error @ GetAllUserInfoResponse: " ++ Debug.toString err) model, Cmd.none )
+
+        GetAllRegistrations ->
+            ( model, Api.getAllRegistrations (GotAdminDashboardMsg << GetAllRegistrationsResponse) )
+
+        GetAllRegistrationsResponse response ->
+            case response of
+                Ok newRegs ->
+                    ( { model | adminDashboard = AdminDashboardModel accs userInfo newRegs }, Cmd.none )
+
+                Err err ->
+                    ( Debug.log ("Error @ GetAllRegistrationsResponse: " ++ Debug.toString err) model, Cmd.none )
 
 
 view : Model -> Element Msg
 view model =
     case model.subpage of
-        Register ->
-            viewRegister model
+        SignUp ->
+            viewSignUp model
 
         SignIn ->
             viewSignIn model
 
-        Profile ->
-            viewProfile model
+        UserDashboard ->
+            viewUserDash model
+
+        AdminDashboard ->
+            viewAdminDash model
 
 
 toggleHeader : Element Msg
 toggleHeader =
-    Input.button
-        [ Background.color Theme.button
-        , padding 10
+    row [ centerX ]
+        [ Theme.button
+            { onPress = Just <| Toggle
+            , label = text "Toggle"
+            }
         ]
-        { onPress = Just Toggle
-        , label = text "Toggle"
-        }
 
 
-viewRegister : Model -> Element Msg
-viewRegister model =
-    column [ centerX, spacing 50, padding 100 ]
+viewSignUp : Model -> Element Msg
+viewSignUp model =
+    let
+        (SignUpModel acc userInfo) =
+            model.signUpModel
+    in
+    column [ centerX, spacing 50 ]
         [ toggleHeader
+        , el [ Font.bold, Font.size 32, centerX ] <| text "Sign up"
         , Input.email [ Input.focusedOnLoad ]
-            { onChange = GotRegisterMsg << TypedNewEmail
-            , text = Email.toString <| Maybe.withDefault (Email "") model.registerModel.newEmailInput
+            { onChange = GotSignUpMsg << SignUpTypedEmail
+            , text = Email.toString acc.email
             , placeholder = Just <| Input.placeholder [] (text "Email")
             , label = Input.labelHidden "Email"
             }
         , Input.newPassword []
-            { onChange = GotRegisterMsg << TypedNewPassword
-            , text = Password.toString <| Maybe.withDefault (Password "") model.registerModel.newPasswordInput
-            , placeholder = Just <| Input.placeholder [] (text "Passord")
-            , label = Input.labelHidden "Passord"
+            { onChange = GotSignUpMsg << SignUpTypedPassword
+            , text = Password.toString acc.password
+            , placeholder = Just <| Input.placeholder [] (text "Nytt passord")
+            , label = Input.labelHidden "Nytt passord"
             , show = False
             }
-        , Input.newPassword []
-            { onChange = GotRegisterMsg << TypedConfirmNewPassword
-            , text = Password.toString <| Maybe.withDefault (Password "") model.registerModel.confirmNewPasswordInput
-            , placeholder = Just <| Input.placeholder [] (text "Gjenta passord")
-            , label = Input.labelHidden "Passord"
-            , show = False
+        , Input.text []
+            { onChange = GotSignUpMsg << SignUpTypedFirstName
+            , text = userInfo.firstName
+            , placeholder = Just <| Input.placeholder [] (text "Fornavn")
+            , label = Input.labelHidden "Fornavn"
             }
-        , Input.button
-            [ Background.color Theme.button
-            , padding 10
-            ]
-            { onPress = Just <| GotRegisterMsg RegisterUser
+        , Input.text []
+            { onChange = GotSignUpMsg << SignUpTypedLastName
+            , text = userInfo.lastName
+            , placeholder = Just <| Input.placeholder [] (text "Etternavn")
+            , label = Input.labelHidden "Etternavn"
+            }
+        , Theme.select
+            { onInput = GotSignUpMsg << SignUpTypedDegree
+            , value = Tuple.first <| Degree.toString userInfo.degree
+            , options =
+                List.map Degree.toString
+                    [ DTEK, DSIK, DVIT, BINF, IMØ, IKT, KOGNI, INF, PROG, POST, MISC ]
+            , addEmpty = True
+            }
+        , Theme.button
+            { onPress = Just <| GotSignUpMsg CreateAccount
             , label = text "Lag ny bruker"
             }
         ]
@@ -481,86 +363,162 @@ viewRegister model =
 
 viewSignIn : Model -> Element Msg
 viewSignIn model =
-    column [ centerX, spacing 50, padding 100 ]
+    let
+        acc =
+            model.signInModel
+    in
+    column [ centerX, spacing 50 ]
         [ toggleHeader
+        , el [ Font.bold, Font.size 32, centerX ] <| text "Sign in"
         , Input.email [ Input.focusedOnLoad ]
-            { onChange = GotSignInMsg << TypedEmail
-            , text = Email.toString <| Maybe.withDefault (Email "") model.signInModel.emailInput
+            { onChange = GotSignInMsg << SignInTypedEmail
+            , text = Email.toString acc.email
             , placeholder = Just <| Input.placeholder [] (text "Email")
             , label = Input.labelHidden "Email"
             }
         , Input.currentPassword []
-            { onChange = GotSignInMsg << TypedPassword
-            , text = Password.toString <| Maybe.withDefault (Password "") model.signInModel.passwordInput
+            { onChange = GotSignInMsg << SignInTypedPassword
+            , text = Password.toString acc.password
             , placeholder = Just <| Input.placeholder [] (text "Passord")
             , label = Input.labelHidden "Passord"
             , show = False
             }
-        , Input.button
-            [ Background.color Theme.button
-            , padding 10
-            ]
+        , Theme.button
             { onPress = Just <| GotSignInMsg SignInUser
             , label = text "Logg inn"
             }
         ]
 
 
-viewProfile : Model -> Element Msg
-viewProfile model =
-    column [ centerX, spacing 50, padding 100 ]
-        [ Input.text []
-            { onChange = GotProfileMsg << TypedFirstName
-            , text = model.profileModel.firstName
+viewUserDash : Model -> Element Msg
+viewUserDash model =
+    let
+        userInfo =
+            model.userDashboard
+    in
+    column [ centerX, spacing 50 ]
+        [ toggleHeader
+        , el [ Font.bold, Font.size 32, centerX ] <| text "User dashboard"
+        , Input.email []
+            { onChange = \_ -> NoOp
+            , text = ""
+            , placeholder = Just <| Input.placeholder [] <| text <| Email.toString userInfo.email
+            , label = Input.labelHidden "Email"
+            }
+        , Input.text []
+            { onChange = GotSignUpMsg << SignUpTypedFirstName
+            , text = userInfo.firstName
             , placeholder = Just <| Input.placeholder [] (text "Fornavn")
             , label = Input.labelHidden "Fornavn"
             }
         , Input.text []
-            { onChange = GotProfileMsg << TypedLastName
-            , text = model.profileModel.lastName
+            { onChange = GotSignUpMsg << SignUpTypedLastName
+            , text = userInfo.lastName
             , placeholder = Just <| Input.placeholder [] (text "Etternavn")
             , label = Input.labelHidden "Etternavn"
             }
-        , html <|
-            Html.select
-                [ HtmlE.onInput (GotProfileMsg << ChangedDegree)
-                , HtmlA.value <| Maybe.withDefault "" <| Maybe.map (Degree.toString True) model.profileModel.degree
+        , Theme.select
+            { onInput = GotSignUpMsg << SignUpTypedDegree
+            , value = Tuple.first <| Degree.toString userInfo.degree
+            , options =
+                List.map Degree.toString
+                    [ DTEK, DSIK, DVIT, BINF, IMØ, IKT, KOGNI, INF, PROG, POST, MISC ]
+            , addEmpty = True
+            }
+        , Theme.button
+            { onPress = Just <| GotUserDashboardMsg UpdateUserInfo
+            , label = text "Oppdater informasjon"
+            }
+        ]
+
+
+viewAdminDash : Model -> Element Msg
+viewAdminDash model =
+    let
+        (AdminDashboardModel accs userInfo regs) =
+            model.adminDashboard
+    in
+    column [ centerX, spacing 50 ]
+        [ toggleHeader
+        , el [ Font.bold, Font.size 32, centerX ] <| text "Admin dashboard"
+        , table [ spacing 20, centerX ]
+            { data = accs
+            , columns =
+                [ { header = el [ Font.bold ] <| text "Email"
+                  , width = fill
+                  , view = \acc -> text <| Email.toString acc.email
+                  }
+                , { header = el [ Font.bold ] <| text "Passord"
+                  , width = fill
+                  , view = \acc -> text <| Password.toString acc.password
+                  }
                 ]
-            <|
-                Html.option
-                    [ HtmlA.value "" ]
-                    [ Html.text "" ]
-                    :: List.map
-                        (\d ->
-                            Html.option
-                                [ HtmlA.value <| Degree.toString True d ]
-                                [ Html.text <| Degree.toString False d ]
-                        )
-                        [ DTEK, DSIK, DVIT, BINF, IMØ, IKT, KOGNI, INF, PROG, POST, MISC ]
-        , Input.checkbox []
-            { onChange = GotProfileMsg << CheckedBoxOne
-            , icon = Input.defaultCheckbox
-            , checked = Terms.fst model.profileModel.terms
-            , label =
-                Input.labelRight []
-                    (text "Jeg godkjenner at ...")
             }
-        , Input.checkbox []
-            { onChange = GotProfileMsg << CheckedBoxTwo
-            , icon = Input.defaultCheckbox
-            , checked = Terms.snd model.profileModel.terms
-            , label =
-                Input.labelRight []
-                    (text "Jeg godkjenner også at ...")
+        , table [ spacing 20, centerX ]
+            { data = userInfo
+            , columns =
+                [ { header = el [ Font.bold ] <| text "Email"
+                  , width = fill
+                  , view = \info -> text <| Email.toString info.email
+                  }
+                , { header = el [ Font.bold ] <| text "Fornavn"
+                  , width = fill
+                  , view = \info -> text info.firstName
+                  }
+                , { header = el [ Font.bold ] <| text "Etternavn"
+                  , width = fill
+                  , view = \info -> text info.lastName
+                  }
+                , { header = el [ Font.bold ] <| text "Studieretning"
+                  , width = fill
+                  , view = \info -> text <| Tuple.first <| Degree.toString info.degree
+                  }
+                ]
             }
-        , Input.checkbox []
-            { onChange = GotProfileMsg << CheckedBoxThree
-            , icon = Input.defaultCheckbox
-            , checked = Terms.thd model.profileModel.terms
-            , label =
-                Input.labelRight []
-                    (text "Jeg godkjenner OGSÅ at ...")
+        , table [ spacing 20, centerX ]
+            { data = regs
+            , columns =
+                [ { header = el [ Font.bold ] <| text "Email"
+                  , width = fill
+                  , view = \reg -> text <| Email.toString reg.email
+                  }
+                , { header = el [ Font.bold ] <| text "Godkjent betingelser"
+                  , width = fill
+                  , view =
+                        \reg ->
+                            if Terms.toBool reg.terms then
+                                text "Ja"
+
+                            else
+                                text "Nei"
+                  }
+                , { header = el [ Font.bold ] <| text "Tidspunkt"
+                  , width = fill
+                  , view =
+                        \reg ->
+                            case reg.timestamp of
+                                Just timestamp ->
+                                    text (String.fromInt timestamp)
+
+                                Nothing ->
+                                    text "N/A"
+                  }
+                ]
             }
+        , row [ spacing 30, centerX ]
+            [ Theme.button
+                { onPress = Just <| GotAdminDashboardMsg GetAllAccounts
+                , label = text "Get accounts"
+                }
+            , Theme.button
+                { onPress = Just <| GotAdminDashboardMsg GetAllUserInfo
+                , label = text "Get user info"
+                }
+            , Theme.button
+                { onPress = Just <| GotAdminDashboardMsg GetAllRegistrations
+                , label = text "Get registrations"
+                }
+            ]
         ]
 
 

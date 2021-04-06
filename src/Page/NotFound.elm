@@ -1,21 +1,11 @@
-module Page.NotFound exposing (Model, init, title, view)
+module Page.NotFound exposing (title, view)
 
-import Element exposing (Element, el, text)
-import Session exposing (Session)
-
-
-type Model
-    = Model Session
-
-
-init : Session -> Model
-init =
-    Model
+import Element exposing (Element, text)
 
 
 view : Element msg
 view =
-    el [] <| text "404 not found"
+    text "404 Not Found"
 
 
 title : String

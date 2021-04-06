@@ -1,15 +1,13 @@
 module Api exposing (..)
 
-import Cred exposing (Cred, IdToken(..), RefreshToken(..))
-import Email exposing (Email(..))
+import Database.Account as Account exposing (Account)
+import Database.Email exposing (Email(..))
+import Database.Registration as Registration exposing (Registration)
+import Database.UserInfo as UserInfo exposing (UserInfo)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Password exposing (Password(..))
-import Session exposing (Session)
-import Uid exposing (Uid(..))
 import Url.Builder as Builder
-import User exposing (User)
 
 
 type Endpoint
@@ -43,173 +41,168 @@ request req =
 
 
 type Action
-    = RegisterA
-    | SignInA
-    | RefreshTokenA
-    | CreateUserDataA Cred
-    | GetUserDataA Cred
+    = UserAccount
+      --
+    | UserUserInfo
+      --
+    | UserRegistration
+      --
+    | AdminAccount
+    | AdminUserInfo
+    | AdminRegistration
 
 
-buildUrl : Action -> Session -> Endpoint
-buildUrl action session =
+buildUrl : Action -> Endpoint
+buildUrl action =
     let
-        accountUrl =
-            "https://identitytoolkit.googleapis.com/v1"
-
-        tokenUrl =
-            "https://securetoken.googleapis.com/v1"
-
         databaseUrl =
-            "https://echo-bedriftstur-dev-60683.firebaseio.com"
+            "http://localhost:8080"
     in
     case action of
-        RegisterA ->
-            Endpoint <|
-                Builder.crossOrigin accountUrl
-                    [ "accounts:signUp" ]
-                    [ Builder.string "key" <| Session.keyToString session.apiKey ]
-
-        SignInA ->
-            Endpoint <|
-                Builder.crossOrigin accountUrl
-                    [ "accounts:signInWithPassword" ]
-                    [ Builder.string "key" <| Session.keyToString session.apiKey ]
-
-        RefreshTokenA ->
-            Endpoint <|
-                Builder.crossOrigin accountUrl
-                    [ "token" ]
-                    [ Builder.string "key" <| Session.keyToString session.apiKey ]
-
-        GetUserDataA cred ->
-            let
-                (IdToken token _) =
-                    cred.idToken
-            in
+        UserAccount ->
             Endpoint <|
                 Builder.crossOrigin databaseUrl
-                    [ "users", Uid.toString cred.uid ++ ".json" ]
-                    [ Builder.string "auth" token ]
+                    [ "user", "account" ]
+                    []
 
-        CreateUserDataA cred ->
-            let
-                (IdToken token _) =
-                    cred.idToken
-            in
+        UserUserInfo ->
             Endpoint <|
                 Builder.crossOrigin databaseUrl
-                    [ "users", Uid.toString cred.uid ++ ".json" ]
-                    [ Builder.string "auth" token ]
+                    [ "user", "userInfo" ]
+                    []
+
+        UserRegistration ->
+            Endpoint <|
+                Builder.crossOrigin databaseUrl
+                    [ "user", "registration" ]
+                    []
+
+        AdminAccount ->
+            Endpoint <|
+                Builder.crossOrigin databaseUrl
+                    [ "admin", "account" ]
+                    []
+
+        AdminUserInfo ->
+            Endpoint <|
+                Builder.crossOrigin databaseUrl
+                    [ "admin", "userInfo" ]
+                    []
+
+        AdminRegistration ->
+            Endpoint <|
+                Builder.crossOrigin databaseUrl
+                    [ "admin", "registration" ]
+                    []
 
 
-register : (Result Http.Error Cred -> msg) -> Email -> Password -> Session -> Cmd msg
-register msg email password session =
+createAccount : Account -> UserInfo -> (Result Http.Error () -> msg) -> Cmd msg
+createAccount acc userInfo msg =
     request
         { method = "POST"
         , headers = []
-        , url = buildUrl RegisterA session
-        , body = Http.jsonBody <| encodeForRegister email password
-        , expect = Http.expectJson msg Cred.credDecoder
+        , url = buildUrl UserAccount
+        , body = Http.jsonBody <| encodeForCreateAccount acc userInfo
+        , expect = Http.expectWhatever msg
         , timeout = Nothing
         , tracker = Nothing
         }
 
 
-encodeForRegister : Email -> Password -> Encode.Value
-encodeForRegister email password =
+encodeForCreateAccount : Account -> UserInfo -> Encode.Value
+encodeForCreateAccount acc userInfo =
     Encode.object
-        [ ( "email", Encode.string <| Email.toString email )
-        , ( "password", Encode.string <| Password.toString password )
-        , ( "returnSecureToken", Encode.bool True )
+        [ ( "caUnsafeAccount", Account.encode acc )
+        , ( "caUserInfo", UserInfo.encode userInfo )
         ]
 
 
-signIn : (Result Http.Error Cred -> msg) -> Email -> Password -> Session -> Cmd msg
-signIn msg email password session =
+getUserInfo : (Result Http.Error UserInfo -> msg) -> Cmd msg
+getUserInfo msg =
     request
-        { method = "POST"
+        { method = "GET"
         , headers = []
-        , url = buildUrl SignInA session
-        , body = Http.jsonBody <| encodeForSignIn email password
-        , expect = Http.expectJson msg Cred.credDecoder
+        , url = buildUrl UserUserInfo
+        , body = Http.emptyBody
+        , expect = Http.expectJson msg UserInfo.decoder
         , timeout = Nothing
         , tracker = Nothing
         }
 
 
-encodeForSignIn : Email -> Password -> Encode.Value
-encodeForSignIn email password =
-    Encode.object
-        [ ( "email", Encode.string <| Email.toString email )
-        , ( "password", Encode.string <| Password.toString password )
-        , ( "returnSecureToken", Encode.bool True )
-        ]
+updateUserInfo : UserInfo -> (Result Http.Error () -> msg) -> Cmd msg
+updateUserInfo userInfo msg =
+    request
+        { method = "PUT"
+        , headers = []
+        , url = buildUrl UserUserInfo
+        , body = Http.jsonBody <| UserInfo.encode userInfo
+        , expect = Http.expectWhatever msg
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 
-refreshIdToken : (Result Http.Error Cred -> msg) -> Session -> Cmd msg
-refreshIdToken msg session =
-    case session.cred of
-        Just cred ->
-            request
-                { method = "POST"
-                , headers = []
-                , url = buildUrl RefreshTokenA session
-                , body = Http.jsonBody <| encodeForRefreshIdToken cred.refreshToken
-                , expect = Http.expectJson msg Cred.credDecoder
-                , timeout = Nothing
-                , tracker = Nothing
-                }
-
-        Nothing ->
-            Debug.log "cred is nothing lol" Cmd.none
+getRegistration : (Result Http.Error Registration -> msg) -> Cmd msg
+getRegistration msg =
+    request
+        { method = "GET"
+        , headers = []
+        , url = buildUrl UserRegistration
+        , body = Http.emptyBody
+        , expect = Http.expectJson msg Registration.decoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 
-encodeForRefreshIdToken : RefreshToken -> Encode.Value
-encodeForRefreshIdToken (RefreshToken token) =
-    Encode.object
-        [ ( "grant_type", Encode.string "refresh_token" )
-        , ( "refresh_token", Encode.string token )
-        ]
+submitRegistration : Registration -> (Result Http.Error () -> msg) -> Cmd msg
+submitRegistration reg msg =
+    request
+        { method = "POST"
+        , headers = []
+        , url = buildUrl UserRegistration
+        , body = Http.jsonBody <| Registration.encode reg
+        , expect = Http.expectWhatever msg
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 
-createUserData : (Result Http.Error User -> msg) -> Session -> Email -> Cmd msg
-createUserData msg session email =
-    case session.cred of
-        Just cred ->
-            request
-                { method = "PUT"
-                , headers = []
-                , url = buildUrl (CreateUserDataA cred) session
-                , body = Http.jsonBody <| encodeForCreateUserData email
-                , expect = Http.expectJson msg User.userDecoder
-                , timeout = Nothing
-                , tracker = Nothing
-                }
-
-        Nothing ->
-            Debug.log "cred is nothing lol @ createUserData" Cmd.none
+getAllAccounts : (Result Http.Error (List Account) -> msg) -> Cmd msg
+getAllAccounts msg =
+    request
+        { method = "GET"
+        , headers = []
+        , url = buildUrl AdminAccount
+        , body = Http.emptyBody
+        , expect = Http.expectJson msg <| Decode.list Account.decoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 
-encodeForCreateUserData : Email -> Encode.Value
-encodeForCreateUserData email =
-    Encode.object
-        [ ( "email", Encode.string <| Email.toString email )
-        ]
+getAllUserInfo : (Result Http.Error (List UserInfo) -> msg) -> Cmd msg
+getAllUserInfo msg =
+    request
+        { method = "GET"
+        , headers = []
+        , url = buildUrl AdminUserInfo
+        , body = Http.emptyBody
+        , expect = Http.expectJson msg <| Decode.list UserInfo.decoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 
-getUserData : (Result Http.Error User -> msg) -> Session -> Cmd msg
-getUserData msg session =
-    case session.cred of
-        Just cred ->
-            request
-                { method = "GET"
-                , headers = []
-                , url = buildUrl (GetUserDataA cred) session
-                , body = Http.emptyBody
-                , expect = Http.expectJson msg User.userDecoder
-                , timeout = Nothing
-                , tracker = Nothing
-                }
-
-        Nothing ->
-            Debug.log "cred is nothing lol @ getUserData" Cmd.none
+getAllRegistrations : (Result Http.Error (List Registration) -> msg) -> Cmd msg
+getAllRegistrations msg =
+    request
+        { method = "GET"
+        , headers = []
+        , url = buildUrl AdminRegistration
+        , body = Http.emptyBody
+        , expect = Http.expectJson msg <| Decode.list Registration.decoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }

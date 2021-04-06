@@ -5,6 +5,7 @@ import Browser.Navigation
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
+import Element.Region as Region
 import FontAwesome.Brands
 import FontAwesome.Icon as Icon
 import FontAwesome.Regular
@@ -27,21 +28,13 @@ import Util exposing (edges)
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
-    | GotHjemMsg Hjem.Msg
     | GotProfilMsg Profil.Msg
-    | GotBedrifterMsg Bedrifter.Msg
-    | GotProgramMsg Program.Msg
-    | GotOmMsg Om.Msg
 
 
 type alias Model =
-    { hjem : Hjem.Model
-    , profil : Profil.Model
-    , bedrifter : Bedrifter.Model
-    , program : Program.Model
-    , om : Om.Model
-    , page : Page
+    { page : Page
     , session : Session
+    , profilModel : Profil.Model
     }
 
 
@@ -52,57 +45,25 @@ init json url navKey =
             Page.fromUrl url
 
         apiKey =
-            case Session.decodeApiKey json of
-                Just k ->
-                    k
-
-                Nothing ->
-                    Session.emptyKey
+            Session.decodeApiKey json
 
         session =
-            Session navKey apiKey Nothing
+            Session navKey apiKey
 
-        ( hjem, hjemCmd ) =
-            Hjem.init session
-
-        ( profil, profilCmd ) =
+        ( profilModel, profilCmd ) =
             Profil.init session
-
-        ( bedrifter, bedrifterCmd ) =
-            Bedrifter.init session
-
-        ( program, programCmd ) =
-            Program.init session
-
-        ( om, omCmd ) =
-            Om.init session
     in
-    ( { hjem = hjem
-      , profil = profil
-      , bedrifter = bedrifter
-      , program = program
-      , om = om
-      , page = page
+    ( { page = page
       , session = session
+      , profilModel = profilModel
       }
-    , Cmd.batch <|
-        [ Cmd.map GotHjemMsg hjemCmd
-        , Cmd.map GotProfilMsg profilCmd
-        , Cmd.map GotBedrifterMsg bedrifterCmd
-        , Cmd.map GotProgramMsg programCmd
-        , Cmd.map GotOmMsg omCmd
-        ]
+    , Cmd.map GotProfilMsg profilCmd
     )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.batch
-        [ Sub.map GotProfilMsg <| Profil.subscriptions model.profil
-        , Sub.map GotBedrifterMsg <| Bedrifter.subscriptions model.bedrifter
-        , Sub.map GotProgramMsg <| Program.subscriptions model.program
-        , Sub.map GotOmMsg <| Om.subscriptions model.om
-        ]
+subscriptions _ =
+    Sub.none
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -117,73 +78,14 @@ update msg model =
                     ( model, Browser.Navigation.load href )
 
         UrlChanged url ->
-            let
-                sessionChanges =
-                    case model.page of
-                        Hjem ->
-                            model.hjem.session
+            ( { model | page = Page.fromUrl url }, Cmd.none )
 
-                        Profil ->
-                            model.profil.session
-
-                        Bedrifter ->
-                            model.bedrifter.session
-
-                        Program ->
-                            model.program.session
-
-                        Om ->
-                            model.om.session
-
-                        _ ->
-                            model.session
-            in
-            ( { model
-                | page = Page.fromUrl url
-                , session = sessionChanges
-                , hjem = Hjem.updateSession model.hjem sessionChanges
-                , profil = Profil.updateSession model.profil sessionChanges
-                , bedrifter = Bedrifter.updateSession model.bedrifter sessionChanges
-                , program = Program.updateSession model.program sessionChanges
-                , om = Om.updateSession model.om sessionChanges
-              }
-            , Cmd.none
-            )
-
-        GotHjemMsg pageMsg ->
+        GotProfilMsg profilMsg ->
             let
                 ( newModel, cmd ) =
-                    Hjem.update pageMsg model.hjem
+                    Profil.update profilMsg model.profilModel
             in
-            ( { model | hjem = newModel }, Cmd.map GotHjemMsg cmd )
-
-        GotProfilMsg pageMsg ->
-            let
-                ( newModel, cmd ) =
-                    Profil.update pageMsg model.profil
-            in
-            ( { model | profil = newModel }, Cmd.map GotProfilMsg cmd )
-
-        GotBedrifterMsg pageMsg ->
-            let
-                ( newModel, cmd ) =
-                    Bedrifter.update pageMsg model.bedrifter
-            in
-            ( { model | bedrifter = newModel }, Cmd.map GotBedrifterMsg cmd )
-
-        GotProgramMsg pageMsg ->
-            let
-                ( newModel, cmd ) =
-                    Program.update pageMsg model.program
-            in
-            ( { model | program = newModel }, Cmd.map GotProgramMsg cmd )
-
-        GotOmMsg pageMsg ->
-            let
-                ( newModel, cmd ) =
-                    Om.update pageMsg model.om
-            in
-            ( { model | om = newModel }, Cmd.map GotOmMsg cmd )
+            ( { model | profilModel = newModel }, Cmd.map GotProfilMsg cmd )
 
 
 header : Model -> Element msg
@@ -191,13 +93,16 @@ header _ =
     row
         [ centerX
         , spacing 120
-        , paddingEach { edges | top = 50, bottom = 200 }
+        , paddingEach { edges | top = 50, bottom = 100 }
+        , Region.navigation
         ]
         [ link []
             { url = "/"
             , label =
                 image [ width (fill |> maximum 120) ]
-                    { src = Util.getPng "echoicon", description = "echo logo" }
+                    { src = Util.getPng "echoicon"
+                    , description = "echo logo"
+                    }
             }
         , link []
             { url = "/" ++ Program.route
@@ -218,8 +123,8 @@ header _ =
         ]
 
 
-footer : Model -> Element Msg
-footer _ =
+footer : Model -> Element msg
+footer model =
     row
         [ centerX
         , alignBottom
@@ -233,6 +138,7 @@ footer _ =
             , centerX
             ]
             (text "echo bedriftstur")
+        , text <| Session.keyToString model.session.apiKey
         , column []
             [ row []
                 [ html <| Icon.viewStyled [ Html.Attributes.width 80 ] FontAwesome.Brands.githubSquare
@@ -251,27 +157,27 @@ view model =
             case model.page of
                 Hjem ->
                     ( Hjem.title
-                    , Element.map GotHjemMsg <| Hjem.view model.hjem
+                    , Hjem.view
                     )
 
                 Profil ->
                     ( Profil.title
-                    , Element.map GotProfilMsg <| Profil.view model.profil
+                    , Element.map GotProfilMsg <| Profil.view model.profilModel
                     )
 
                 Program ->
                     ( Program.title
-                    , Element.map GotProgramMsg <| Program.view model.program
+                    , Program.view
                     )
 
                 Bedrifter ->
                     ( Bedrifter.title
-                    , Element.map GotBedrifterMsg <| Bedrifter.view model.bedrifter
+                    , Bedrifter.view
                     )
 
                 Om ->
                     ( Om.title
-                    , Element.map GotOmMsg <| Om.view model.om
+                    , Om.view
                     )
 
                 NotFound ->
