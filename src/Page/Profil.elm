@@ -1,6 +1,7 @@
 module Page.Profil exposing (..)
 
 import Element exposing (Element, centerX, column, padding)
+import Element.Events as Events
 import Session exposing (Session)
 import Theme
 
@@ -24,13 +25,15 @@ subscriptions _ =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update _ model =
-    ( model, Cmd.none )
+update msg model =
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
 
 
 view : Model -> Element Msg
 view _ =
-    column [ centerX, padding 100 ]
+    column [ centerX, padding 100, Events.onClick NoOp ]
         [ Theme.h1 [] "Kommer snart!" ]
 
 
