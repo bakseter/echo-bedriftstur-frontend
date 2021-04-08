@@ -10,8 +10,8 @@
   "devDependencies": {
     "create-elm-app": "5.22.0",
     "elm": "0.19.1-5",
-    "elm-review": "^2.5.0",
+    "elm-review": "2.5.0",
     "elm-test": "0.19.1",
-    "husky": "^6.0.0"
+    "husky": "6.0.0"
   }
 }
