@@ -3252,7 +3252,7 @@ elm-hot@^1.1.5:
   resolved "https://registry.yarnpkg.com/elm-hot/-/elm-hot-1.1.5.tgz#bba309b592d39b5c3195c3c6f608f36b96c23b89"
   integrity sha512-HSMlAr6INTV82wkpPNG0zsHoJXo/04GwG7bnhFX8s4zyIbbzuJAovsdo27FAT6/NKx5IVTXGI+IFcK9Z7oN1Tw==
 
-elm-review@^2.5.0:
+elm-review@2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/elm-review/-/elm-review-2.5.0.tgz#bd2ec1b6f9b8787b17d9ca4a7e1e6aea9b857f1d"
   integrity sha512-LPi38MoUJ0/j8s5iP49nqGKroRrnM+FCmnGPwXRUzEAgYz/H9mmoVlyjuyM9fA85D+zok0yO3Kf1d7//0EXS1A==
@@ -4530,7 +4530,7 @@ https-browserify@^1.0.0:
   resolved "https://registry.yarnpkg.com/https-browserify/-/https-browserify-1.0.0.tgz#ec06c10e0a34c0f2faf199f7fd7fc78fffd03c73"
   integrity sha1-7AbBDgo0wPL68Zn3/X/Hj//QPHM=
 
-husky@^6.0.0:
+husky@6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/husky/-/husky-6.0.0.tgz#810f11869adf51604c32ea577edbc377d7f9319e"
   integrity sha512-SQS2gDTB7tBN486QSoKPKQItZw97BMOd+Kdb6ghfpBc0yXyzrddI0oDV5MkDAbuB4X2mO3/nj60TRMcYxwzZeQ==
