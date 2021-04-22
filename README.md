@@ -1,4 +1,4 @@
-# echo bedriftstur
+# echo bedriftstur frontend
 
 [![Build & tests](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/build_test.yml/badge.svg)](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/build_test.yml)
 [![Deploy dev](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_dev.yml/badge.svg?branch=develop)](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_dev.yml)
