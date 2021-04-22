@@ -8,7 +8,7 @@
 
 Website of **echo bedriftstur** - a student trip to Oslo organized by volunteers from _echo – Fagutvalget for Informatikk_ at the University of Bergen.
 
-The website uses Elm as the frontend with Firebase as the backend.
+The website uses Elm for the frontend and [Haskell](https://github.com/bakseter/echo-bedriftstur-backend) for the backend.
 
 ## Development setup
 
