@@ -2,7 +2,6 @@ module Page.Hjem exposing (title, view)
 
 import Element exposing (..)
 import Element.Font as Font
-import Html.Attributes as HtmlA
 import Svg
 import Svg.Attributes
 import Theme
