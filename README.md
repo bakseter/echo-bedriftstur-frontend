@@ -1,8 +1,10 @@
 # echo bedriftstur
 
-[![Build and run tests](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/build_test.yml/badge.svg)](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/build_test.yml)
-[![Deploy from development branch](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_dev.yml/badge.svg?branch=develop)](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_dev.yml)
-[![Deploy from production branch](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_prod.yml/badge.svg?branch=master)](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_prod.yml)
+[![Build & tests](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/build_test.yml/badge.svg)](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/build_test.yml)
+
+[![Deploy dev](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_dev.yml/badge.svg?branch=develop)](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_dev.yml)
+
+[![Deploy prod](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_prod.yml/badge.svg?branch=master)](https://github.com/bakseter/echo-bedriftstur-frontend/actions/workflows/deploy_prod.yml)
 
 ## About
 
