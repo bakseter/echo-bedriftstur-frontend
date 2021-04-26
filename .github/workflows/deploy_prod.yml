@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build and run tests
+    name: Build & test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -24,7 +24,7 @@ jobs:
           path: build
 
   deploy:
-    name: Deploy to production site
+    name: Deploy to prod site
     needs: build
     runs-on: ubuntu-latest
     steps:
