@@ -225,8 +225,9 @@ updateUserDash msg model =
                 Ok _ ->
                     ( model, Cmd.none )
 
-                Err err ->
-                    ( Debug.log ("Error @ UpdateUserInfoResponse: " ++ Debug.toString err) model, Cmd.none )
+                Err _ ->
+                    -- ( Debug.log ("Error @ UpdateUserInfoResponse: " ++ Debug.toString err) model, Cmd.none )
+                    ( model, Cmd.none )
 
         UserDashTypedFirstName str ->
             ( { model | userDashboard = UserInfo.updateFirstName str userInfo }, Cmd.none )
@@ -258,8 +259,9 @@ updateAdminDash msg model =
                 Ok newAccs ->
                     ( { model | adminDashboard = AdminDashboardModel newAccs userInfo regs }, Cmd.none )
 
-                Err err ->
-                    ( Debug.log ("Error @ GetAllAccountsResponse: " ++ Debug.toString err) model, Cmd.none )
+                Err _ ->
+                    -- ( Debug.log ("Error @ GetAllAccountsResponse: " ++ Debug.toString err) model, Cmd.none )
+                    ( model, Cmd.none )
 
         GetAllUserInfo ->
             ( model, Api.getAllUserInfo (GotAdminDashboardMsg << GetAllUserInfoResponse) )
@@ -269,8 +271,9 @@ updateAdminDash msg model =
                 Ok newUserInfo ->
                     ( { model | adminDashboard = AdminDashboardModel accs newUserInfo regs }, Cmd.none )
 
-                Err err ->
-                    ( Debug.log ("Error @ GetAllUserInfoResponse: " ++ Debug.toString err) model, Cmd.none )
+                Err _ ->
+                    -- ( Debug.log ("Error @ GetAllUserInfoResponse: " ++ Debug.toString err) model, Cmd.none )
+                    ( model, Cmd.none )
 
         GetAllRegistrations ->
             ( model, Api.getAllRegistrations (GotAdminDashboardMsg << GetAllRegistrationsResponse) )
@@ -280,8 +283,9 @@ updateAdminDash msg model =
                 Ok newRegs ->
                     ( { model | adminDashboard = AdminDashboardModel accs userInfo newRegs }, Cmd.none )
 
-                Err err ->
-                    ( Debug.log ("Error @ GetAllRegistrationsResponse: " ++ Debug.toString err) model, Cmd.none )
+                Err _ ->
+                    -- ( Debug.log ("Error @ GetAllRegistrationsResponse: " ++ Debug.toString err) model, Cmd.none )
+                    ( model, Cmd.none )
 
 
 view : Model -> Element Msg

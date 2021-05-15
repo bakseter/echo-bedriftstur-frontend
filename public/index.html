@@ -13,11 +13,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#eeeeee"/>
         <meta name="description" content="Bedriftstur til Oslo arrangert av echo – Fagutvalget for informatikk ved Universitetet i Bergen" />
+
+        <script src="main.min.js"></script>
     </head>
 
     <body>
-        <div id="root">
-        </div>
+        <script>
+             Elm.Main.init ({
+                node: document.getElementById('elm'),
+                flags: { apiKey: 'text', width: window.innerWidth, height: window.innerHeight }
+            });
+        </script>
+
+       <div id="elm">
+       </div>
 
         <noscript>Du må aktivere Javascript for å bruke denne nettsiden.</noscript>
     </body>
