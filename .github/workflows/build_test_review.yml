@@ -1,4 +1,4 @@
-name: Build & test
+name: Build, test & review
 
 on:
   pull_request:
@@ -6,7 +6,6 @@ on:
 
 jobs:
   build_test:
-    name: Build and run tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
