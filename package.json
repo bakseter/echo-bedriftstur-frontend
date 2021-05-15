@@ -12,6 +12,6 @@
     "elm-review": "2.5.1",
     "elm-test": "0.19.1-revision7",
     "husky": "6.0.0",
-    "terser": "^5.7.0"
+    "terser": "5.7.0"
   }
 }
