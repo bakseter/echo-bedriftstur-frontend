@@ -5,15 +5,21 @@ on:
     branches: [master, develop]
 
 jobs:
-  build:
+  build_test:
     name: Build and run tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
       - name: Install dependencies
         run: yarn
+
       - name: Run tests
         run: yarn test
+
+      - name: Run code review
+        run: yarn review
+
       - name: Build
         run: yarn build

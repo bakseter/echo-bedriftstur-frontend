@@ -1,17 +1,17 @@
 {
   "scripts": {
     "dev": "elm-app start",
-    "build": "elm-app build",
+    "build": "sh build.sh",
     "test": "elm-test",
     "review": "elm-review",
     "fix": "elm-review --fix",
     "prepare": "husky install"
   },
   "devDependencies": {
-    "create-elm-app": "5.22.0",
     "elm": "0.19.1-5",
     "elm-review": "2.5.1",
     "elm-test": "0.19.1",
-    "husky": "6.0.0"
+    "husky": "6.0.0",
+    "terser": "^5.7.0"
   }
 }
