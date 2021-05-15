@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build & test
+    name: Build project
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,7 +22,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: dev-build
-          path: build
+          path: public
 
   deploy:
     name: Deploy to dev site
@@ -36,7 +36,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: dev-build
-          path: build
+          path: public
 
       - name: Deploy to firebase
         uses: w9jds/firebase-action@master

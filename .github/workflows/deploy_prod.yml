@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build & test
+    name: Build project
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -15,9 +15,6 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Run tests
-        run: yarn test
-
       - name: Build
         run: yarn build
 
@@ -25,7 +22,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: prod-build
-          path: build
+          path: public
 
   deploy:
     name: Deploy to prod site
@@ -39,7 +36,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: prod-build
-          path: build
+          path: public
 
       - name: Deploy to firebase
         uses: w9jds/firebase-action@master
