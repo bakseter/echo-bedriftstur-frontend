@@ -1,4 +1,4 @@
-name: Deploy from development branch
+name: Deploy dev
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build and run tests
+    name: Build & test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -24,7 +24,7 @@ jobs:
           path: build
 
   deploy:
-    name: Deploy to development site
+    name: Deploy to dev site
     needs: build
     runs-on: ubuntu-latest
     steps:

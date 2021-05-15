@@ -5,15 +5,13 @@ import Database.Account as Account exposing (Account)
 import Database.Account.Password as Password exposing (Password(..))
 import Database.Email as Email exposing (Email(..))
 import Database.Registration exposing (Registration)
-import Database.Registration.Terms as Terms exposing (Terms(..))
+import Database.Registration.Terms as Terms
 import Database.UserInfo as UserInfo exposing (UserInfo)
 import Database.UserInfo.Degree as Degree exposing (Degree(..))
 import Element exposing (..)
 import Element.Font as Font
 import Element.Input as Input
-import Error exposing (Error)
 import Http
-import Json.Encode as Encode
 import Session exposing (Session)
 import Theme
 
@@ -23,14 +21,13 @@ type Msg
     | GotSignInMsg SignInMsg
     | GotUserDashboardMsg UserDashboardMsg
     | GotAdminDashboardMsg AdminDashboardMsg
-    | GotError Encode.Value
     | Toggle
     | NoOp
 
 
 type SignUpMsg
     = CreateAccount
-    | CreateAccountResponse (Result Http.Error Account)
+    | CreateAccountResponse (Result Http.Error ())
     | SignUpTypedEmail String
     | SignUpTypedPassword String
     | SignUpTypedFirstName String
@@ -40,7 +37,7 @@ type SignUpMsg
 
 type SignInMsg
     = SignInUser
-    | SignInUserResponse (Result Http.Error ())
+      --    | SignInUserResponse (Result Http.Error ())
     | SignInTypedEmail String
     | SignInTypedPassword String
 
@@ -69,7 +66,6 @@ type alias Model =
     , userDashboard : UserDashboardModel
     , adminDashboard : AdminDashboardModel
     , subpage : Subpage
-    , error : Maybe Error
     }
 
 
@@ -104,7 +100,6 @@ init session =
       , userDashboard = UserInfo.empty
       , adminDashboard = AdminDashboardModel [] [] []
       , subpage = SignUp
-      , error = Nothing
       }
     , Cmd.none
     )
@@ -129,9 +124,6 @@ update msg model =
 
         GotAdminDashboardMsg m ->
             updateAdminDash m model
-
-        GotError json ->
-            ( { model | error = Error.decode json }, Cmd.none )
 
         Toggle ->
             let
@@ -163,10 +155,15 @@ updateSignUp msg model =
     in
     case msg of
         CreateAccount ->
-            ( model, Cmd.none )
+            ( model, Api.createAccount acc userInfo (GotSignUpMsg << CreateAccountResponse) )
 
-        CreateAccountResponse _ ->
-            ( model, Cmd.none )
+        CreateAccountResponse resp ->
+            case resp of
+                Ok _ ->
+                    ( model, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
         SignUpTypedEmail str ->
             ( { model
@@ -202,9 +199,10 @@ updateSignIn msg model =
         SignInUser ->
             ( model, Cmd.none )
 
-        SignInUserResponse _ ->
-            ( model, Cmd.none )
-
+        {-
+           SignInUserResponse _ ->
+               ( model, Cmd.none )
+        -}
         SignInTypedEmail str ->
             ( { model | signInModel = Account.updateEmail (Email str) model.signInModel }, Cmd.none )
 
@@ -406,19 +404,19 @@ viewUserDash model =
             , label = Input.labelHidden "Email"
             }
         , Input.text []
-            { onChange = GotSignUpMsg << SignUpTypedFirstName
+            { onChange = GotUserDashboardMsg << UserDashTypedFirstName
             , text = userInfo.firstName
             , placeholder = Just <| Input.placeholder [] (text "Fornavn")
             , label = Input.labelHidden "Fornavn"
             }
         , Input.text []
-            { onChange = GotSignUpMsg << SignUpTypedLastName
+            { onChange = GotUserDashboardMsg << UserDashTypedLastName
             , text = userInfo.lastName
             , placeholder = Just <| Input.placeholder [] (text "Etternavn")
             , label = Input.labelHidden "Etternavn"
             }
         , Theme.select
-            { onInput = GotSignUpMsg << SignUpTypedDegree
+            { onInput = GotUserDashboardMsg << UserDashTypedDegree
             , value = Tuple.first <| Degree.toString userInfo.degree
             , options =
                 List.map Degree.toString

@@ -1,4 +1,4 @@
-module Util exposing (edges, getPng, sequenceM, sequenceR, toHexColor)
+module Util exposing (edges, getPng, toHexColor)
 
 import Element
 import Hex
@@ -12,7 +12,7 @@ getPng str =
 toHexColor : Element.Color -> String
 toHexColor color =
     let
-        { red, green, blue, alpha } =
+        { red, green, blue } =
             Element.toRgb color
 
         san c =
@@ -36,23 +36,3 @@ edges =
     , bottom = 0
     , left = 0
     }
-
-
-sequenceM : List (Maybe a) -> Maybe (List a)
-sequenceM list =
-    case list of
-        x :: xs ->
-            Maybe.andThen (\a -> Maybe.map ((::) a) <| sequenceM xs) x
-
-        [] ->
-            Just []
-
-
-sequenceR : List (Result a b) -> Result a (List b)
-sequenceR list =
-    case list of
-        x :: xs ->
-            Result.andThen (\a -> Result.map ((::) a) <| sequenceR xs) x
-
-        [] ->
-            Ok []

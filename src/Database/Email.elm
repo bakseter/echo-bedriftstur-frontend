@@ -1,4 +1,4 @@
-module Database.Email exposing (Email(..), decoder, isValid, toString)
+module Database.Email exposing (Email(..), decoder, toString)
 
 import Json.Decode as Decode
 
@@ -26,13 +26,16 @@ toString (Email str) =
     str
 
 
-isValid : Email -> Bool
-isValid (Email str) =
-    let
-        validEnding =
-            "@student.uib.no"
-    in
-    String.right (String.length validEnding) str == validEnding && String.length str > String.length validEnding
+
+{-
+   isValid : Email -> Bool
+   isValid (Email str) =
+       let
+           validEnding =
+               "@student.uib.no"
+       in
+       String.right (String.length validEnding) str == validEnding && String.length str > String.length validEnding
+-}
 
 
 decoder : String -> Decode.Decoder Email

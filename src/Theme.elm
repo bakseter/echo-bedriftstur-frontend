@@ -114,7 +114,7 @@ blue2 =
 
 foreground : Element.Color
 foreground =
-    rgb255 230 230 230
+    rgb255 255 255 255
 
 
 drawer : Element.Color

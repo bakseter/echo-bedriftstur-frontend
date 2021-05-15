@@ -1,7 +1,8 @@
 module Api exposing (..)
 
+-- import Database.Email exposing (Email(..))
+
 import Database.Account as Account exposing (Account)
-import Database.Email exposing (Email(..))
 import Database.Registration as Registration exposing (Registration)
 import Database.UserInfo as UserInfo exposing (UserInfo)
 import Http

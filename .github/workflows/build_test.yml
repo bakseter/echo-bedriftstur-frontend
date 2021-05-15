@@ -1,8 +1,8 @@
-name: Build and run tests from produdction branch
+name: Build & test
 
 on:
   pull_request:
-    branches: master
+    branches: [master, develop]
 
 jobs:
   build:

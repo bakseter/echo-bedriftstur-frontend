@@ -9,10 +9,8 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
-import FontAwesome.Brands
 import FontAwesome.Icon as Icon
 import FontAwesome.Regular
-import FontAwesome.Solid
 import Html
 import Html.Attributes as HtmlA
 import Json.Encode as Encode
@@ -53,11 +51,11 @@ init json url navKey =
         page =
             Page.fromUrl url
 
-        ( apiKey, device ) =
+        device =
             Session.decodeSession json
 
         session =
-            Session navKey apiKey device
+            Session navKey device
 
         ( profilModel, profilCmd ) =
             Profil.init session
@@ -101,7 +99,6 @@ update msg model =
             let
                 newSession =
                     { navKey = model.session.navKey
-                    , apiKey = model.session.apiKey
                     , device = classifyDevice { width = w, height = h }
                     }
             in
@@ -273,33 +270,6 @@ header model =
                         }
                     ]
                 ]
-
-
-footer : Model -> Element msg
-footer model =
-    row
-        [ centerX
-        , alignBottom
-        , padding 20
-        , width fill
-        , spacing 20
-        , padding 50
-        ]
-        [ el
-            [ Font.size 36
-            , centerX
-            ]
-            (text "echo bedriftstur")
-        , text <| Session.keyToString model.session.apiKey
-        , column []
-            [ row []
-                [ html <| Icon.viewStyled [ HtmlA.width 80 ] FontAwesome.Brands.githubSquare
-                , html <| Icon.viewStyled [ HtmlA.width 80 ] FontAwesome.Brands.linkedin
-                ]
-            , row []
-                [ html <| Icon.viewStyled [ HtmlA.width 80 ] FontAwesome.Solid.envelope ]
-            ]
-        ]
 
 
 view : Model -> Browser.Document Msg
