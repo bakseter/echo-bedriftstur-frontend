@@ -79,3 +79,4 @@ dist/
 *.txt
 main.js
 main.min.js
+public/index.js
