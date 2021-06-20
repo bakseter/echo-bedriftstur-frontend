@@ -79,11 +79,11 @@ update msg model =
     case msg of
         UrlRequested request ->
             case request of
-                Browser.Internal url ->
-                    ( model, Browser.Navigation.pushUrl model.session.navKey (Url.toString url) )
+                Browser.Internal href ->
+                    ( model, Browser.Navigation.pushUrl model.session.navKey (Url.toString href) )
 
-                Browser.External href ->
-                    ( model, Browser.Navigation.load href )
+                Browser.External url ->
+                    ( model, Browser.Navigation.load url )
 
         UrlChanged url ->
             ( { model | page = Page.fromUrl url }, Cmd.none )

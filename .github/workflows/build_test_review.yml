@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: yarn
+        run: yarn --frozen-lockfile --ignore-optional
 
       - name: Run tests
         run: yarn test
