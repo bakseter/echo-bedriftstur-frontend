@@ -13,6 +13,13 @@
         "fix": "elm-review --fix",
         "prepare": "husky install"
     },
+    "renovate": {
+        "extends": ["config:base"],
+        "labels": ["dependencies :handshake:"],
+        "prHourlyLimit": 0,
+        "stabilityDays": 3,
+        "prCreation": "not-pending"
+    },
     "dependencies": {
         "elm": "^0.19.1-5",
         "terser": "^5.7.0"
