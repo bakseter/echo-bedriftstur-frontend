@@ -1,17 +1,28 @@
 {
-  "scripts": {
-    "dev": "elm-app start",
-    "build": "sh build.sh",
-    "test": "elm-test",
-    "review": "elm-review",
-    "fix": "elm-review --fix",
-    "prepare": "husky install"
-  },
-  "devDependencies": {
-    "elm": "0.19.1-5",
-    "elm-review": "2.5.2",
-    "elm-test": "0.19.1-revision7",
-    "husky": "6.0.0",
-    "terser": "5.7.0"
-  }
+    "name": "echo-bedriftstur-frontend",
+    "description": "Frontend for the website of echo's student trip to Oslo.",
+    "private": true,
+    "license": "GPL-3.0",
+    "author": "Andreas Salhus Bakseter",
+    "homepage": "https://github.com/bakseter/echo-bedriftstur-frontend",
+    "scripts": {
+        "dev": "elm-app start",
+        "build": "sh build",
+        "test": "elm-test",
+        "review": "elm-review",
+        "fix": "elm-review --fix",
+        "prepare": "husky install"
+    },
+    "dependencies": {
+        "elm": "^0.19.1-5",
+        "terser": "^5.7.0"
+    },
+    "devDependencies": {
+        "elm-review": "2.5.2",
+        "elm-test": "0.19.1-revision7",
+        "husky": "6.0.0"
+    },
+    "optionalDependencies": {
+        "create-elm-app": "^5.22.0"
+    }
 }
