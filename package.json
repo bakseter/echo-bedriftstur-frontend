@@ -21,8 +21,8 @@
         "prCreation": "not-pending"
     },
     "dependencies": {
-        "elm": "^0.19.1-5",
-        "terser": "^5.7.0"
+        "elm": "0.19.1-5",
+        "terser": "5.7.0"
     },
     "devDependencies": {
         "elm-review": "2.5.3",
