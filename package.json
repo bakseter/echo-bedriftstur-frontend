@@ -22,7 +22,7 @@
     },
     "dependencies": {
         "elm": "0.19.1-5",
-        "terser": "5.7.0"
+        "terser": "5.7.1"
     },
     "devDependencies": {
         "elm-review": "2.5.3",
