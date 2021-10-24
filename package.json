@@ -27,7 +27,7 @@
     "devDependencies": {
         "elm-review": "2.6.1",
         "elm-test": "0.19.1-revision7",
-        "husky": "7.0.2"
+        "husky": "7.0.4"
     },
     "optionalDependencies": {
         "create-elm-app": "^5.22.0"
